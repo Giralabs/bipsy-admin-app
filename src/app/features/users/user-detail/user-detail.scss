@@ -1,0 +1,187 @@
+.user-detail {
+  .back {
+    display: inline-block;
+    margin-bottom: 1rem;
+    color: #555;
+    text-decoration: none;
+    font-size: 0.85rem;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+
+    h1 {
+      margin: 0;
+    }
+
+    .subtitle {
+      margin: 0.15rem 0 0;
+      color: #666;
+      font-size: 0.85rem;
+    }
+  }
+
+  .tabs {
+    display: flex;
+    gap: 0.25rem;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 1rem;
+
+    button {
+      padding: 0.5rem 1rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: #666;
+      border-bottom: 2px solid transparent;
+
+      &.active {
+        color: #1f2937;
+        border-bottom-color: #1f2937;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .panel {
+    background: #fff;
+    border-radius: 8px;
+    padding: 1.25rem;
+
+    h3 {
+      margin: 1.25rem 0 0.5rem;
+
+      &:first-child {
+        margin-top: 0;
+      }
+    }
+  }
+
+  .profile-grid {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.4rem 1.5rem;
+    margin-bottom: 1.25rem;
+
+    dt {
+      color: #666;
+      font-size: 0.85rem;
+    }
+
+    dd {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+
+    th,
+    td {
+      text-align: left;
+      padding: 0.5rem 0.6rem;
+      border-bottom: 1px solid #eee;
+      font-size: 0.85rem;
+    }
+
+    th {
+      color: #666;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+  }
+
+  .pill {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    background: #f3f4f6;
+    font-size: 0.75rem;
+
+    &.danger {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+  }
+
+  .payment-methods {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.9rem;
+
+    li {
+      padding: 0.4rem 0;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+  }
+
+  button {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: #fff;
+    cursor: pointer;
+    font-size: 0.85rem;
+
+    &.danger {
+      background: #dc2626;
+      color: #fff;
+      border: none;
+    }
+
+    &.secondary {
+      background: #f3f4f6;
+      border: none;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+  }
+
+  .sanction-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: 360px;
+    margin: 1rem 0;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 8px;
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      font-size: 0.85rem;
+      color: #444;
+    }
+
+    select,
+    input,
+    textarea {
+      padding: 0.4rem 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-family: inherit;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+  }
+}

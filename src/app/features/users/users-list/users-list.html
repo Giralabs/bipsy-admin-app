@@ -1,0 +1,56 @@
+<div class="users-list">
+  <h1>Usuarios</h1>
+
+  <div class="filters">
+    <input
+      type="text"
+      placeholder="Buscar por nombre, email o usuario…"
+      [(ngModel)]="search"
+      (keyup.enter)="onFilterChange()"
+    />
+    <select [(ngModel)]="reputationFilter" (ngModelChange)="onFilterChange()">
+      <option value="">Toda reputación</option>
+      <option value="GREEN">Sin incidencias</option>
+      <option value="ORANGE">Atención</option>
+      <option value="RED">Riesgo</option>
+    </select>
+    <button type="button" (click)="onFilterChange()">Buscar</button>
+  </div>
+
+  @if (loading()) {
+    <p>Cargando…</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Usuario</th>
+          <th>Ciudad</th>
+          <th>No-shows</th>
+          <th>Reputación</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of customers(); track c.id) {
+          <tr [routerLink]="['/users', c.id]">
+            <td>{{ c.name }}</td>
+            <td>{{ c.email }}</td>
+            <td>{{ c.username }}</td>
+            <td>{{ c.city || '—' }}</td>
+            <td>{{ c.noShowCount }}</td>
+            <td><app-reputation-badge [reputation]="c.reputation" /></td>
+          </tr>
+        } @empty {
+          <tr><td colspan="6">No hay usuarios que coincidan con el filtro.</td></tr>
+        }
+      </tbody>
+    </table>
+
+    <div class="pagination">
+      <button type="button" (click)="goToPage(-1)" [disabled]="page() === 0">Anterior</button>
+      <span>Página {{ page() + 1 }} de {{ totalPages() || 1 }}</span>
+      <button type="button" (click)="goToPage(1)" [disabled]="page() + 1 >= totalPages()">Siguiente</button>
+    </div>
+  }
+</div>
