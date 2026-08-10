@@ -1,0 +1,55 @@
+<div class="tickets-list">
+  <h1>Tickets</h1>
+
+  <div class="filters">
+    <select [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()">
+      <option value="">Todos los estados</option>
+      <option value="OPEN">Abierto</option>
+      <option value="IN_PROGRESS">En progreso</option>
+      <option value="RESOLVED">Resuelto</option>
+      <option value="CLOSED">Cerrado</option>
+    </select>
+    <input
+      type="text"
+      placeholder="ID de negocio…"
+      [(ngModel)]="businessIdFilter"
+      (keyup.enter)="onFilterChange()"
+    />
+    <button type="button" (click)="onFilterChange()">Buscar</button>
+  </div>
+
+  @if (loading()) {
+    <p>Cargando…</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Asunto</th>
+          <th>Negocio</th>
+          <th>Autor</th>
+          <th>Estado</th>
+          <th>Actualizado</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (t of tickets(); track t.id) {
+          <tr [routerLink]="['/tickets', t.id]">
+            <td>{{ displaySubject(t) }}</td>
+            <td>{{ t.businessName || '—' }}</td>
+            <td>{{ t.requesterName }}</td>
+            <td><span class="status-badge" [class]="'status-' + t.status.toLowerCase()">{{ t.status }}</span></td>
+            <td>{{ t.updatedAt | date: 'dd/MM/yy HH:mm' }}</td>
+          </tr>
+        } @empty {
+          <tr><td colspan="5">No hay tickets que coincidan con el filtro.</td></tr>
+        }
+      </tbody>
+    </table>
+
+    <div class="pagination">
+      <button type="button" (click)="goToPage(-1)" [disabled]="page() === 0">Anterior</button>
+      <span>Página {{ page() + 1 }} de {{ totalPages() || 1 }}</span>
+      <button type="button" (click)="goToPage(1)" [disabled]="page() + 1 >= totalPages()">Siguiente</button>
+    </div>
+  }
+</div>

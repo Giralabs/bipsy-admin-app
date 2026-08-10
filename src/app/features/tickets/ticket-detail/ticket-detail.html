@@ -1,0 +1,135 @@
+<div class="ticket-detail">
+  <a routerLink="/tickets" class="back">← Volver a Tickets</a>
+
+  @if (loading()) {
+    <p>Cargando…</p>
+  } @else if (ticket(); as t) {
+    <header class="header">
+      <div>
+        <h1>{{ displaySubject(t) }}</h1>
+        <p class="subtitle">
+          {{ t.requesterName }} ({{ t.requesterRole }})
+          @if (t.businessName) {
+            · <button type="button" class="link" (click)="toggleBusinessPanel()">{{ t.businessName }}</button>
+          }
+          · Abierto {{ t.createdAt | date: 'medium' }}
+        </p>
+      </div>
+      <span class="status-badge" [class]="'status-' + t.status.toLowerCase()">{{ t.status }}</span>
+    </header>
+
+    @if (showBusinessPanel()) {
+      <section class="panel business-panel">
+        @if (loadingBusiness()) {
+          <p>Cargando negocio…</p>
+        } @else if (businessDetail(); as b) {
+          <dl class="info-grid">
+            <dt>Nombre</dt><dd>{{ b.name }}</dd>
+            <dt>Email</dt><dd>{{ b.email }}</dd>
+            <dt>Teléfono</dt><dd>{{ b.phone }}</dd>
+            <dt>CIF</dt><dd>{{ b.cif || '—' }}</dd>
+            <dt>Dirección</dt><dd>{{ b.address || '—' }}</dd>
+            <dt>Ciudad</dt><dd>{{ b.city || '—' }} @if (b.province) { ({{ b.province }}) }</dd>
+            <dt>Categorías</dt><dd>{{ b.categories.join(', ') || '—' }}</dd>
+            <dt>Autónomo</dt><dd>{{ b.autonomous ? 'Sí' : 'No' }}</dd>
+            <dt>Setup completo</dt><dd>{{ b.setupComplete ? 'Sí' : 'No' }}</dd>
+            <dt>Cuenta baneada</dt><dd>{{ b.banned ? 'Sí' : 'No' }}</dd>
+            <dt>Alta</dt><dd>{{ b.createdAt | date: 'medium' }}</dd>
+          </dl>
+        } @else {
+          <p>No se pudo cargar la información del negocio.</p>
+        }
+      </section>
+    }
+
+    <section class="panel">
+      <h3>Descripción</h3>
+      <p class="description">{{ t.description }}</p>
+
+      @if (previews().length > 0) {
+        <div class="attachments">
+          @for (p of previews(); track p.attachment.id) {
+            <div class="attachment">
+              @if (p.loading) {
+                <span class="attachment-loading">Cargando…</span>
+              } @else if (p.kind === 'image' && p.objectUrl) {
+                <img [src]="p.objectUrl" [alt]="p.attachment.filename" />
+              } @else if (p.kind === 'video' && p.objectUrl) {
+                <video [src]="p.objectUrl" controls></video>
+              } @else if (p.objectUrl) {
+                <button type="button" class="file-chip" (click)="downloadFile(p)">
+                  📄 {{ p.attachment.filename }}
+                </button>
+              } @else {
+                <span class="attachment-error">No se pudo cargar</span>
+              }
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="panel">
+      <h3>Respuestas</h3>
+
+      @if (t.replies.length === 0) {
+        <p>Todavía no se ha respondido a este ticket.</p>
+      } @else {
+        <ul class="replies">
+          @for (r of t.replies; track r.id) {
+            <li class="reply">
+              <div class="reply-meta">
+                <strong>{{ r.adminName }}</strong>
+                <span>{{ r.createdAt | date: 'short' }}</span>
+              </div>
+              <p>{{ r.body }}</p>
+            </li>
+          }
+        </ul>
+      }
+
+      @if (t.status !== 'CLOSED') {
+        <form class="reply-form" (ngSubmit)="sendReply()">
+          <textarea
+            [(ngModel)]="replyBody"
+            name="replyBody"
+            rows="3"
+            placeholder="Escribe una respuesta para el negocio…"
+          ></textarea>
+          <button type="submit" [disabled]="sendingReply() || !replyBody.trim()">
+            {{ sendingReply() ? 'Enviando…' : 'Responder' }}
+          </button>
+        </form>
+      }
+    </section>
+
+    <section class="panel actions-panel">
+      <h3>Estado</h3>
+      <div class="actions">
+        <button type="button" [disabled]="updatingStatus() || t.status === 'IN_PROGRESS'" (click)="setStatus('IN_PROGRESS')">
+          Marcar en progreso
+        </button>
+        <button type="button" [disabled]="updatingStatus() || t.status === 'RESOLVED'" (click)="setStatus('RESOLVED')">
+          Marcar resuelto
+        </button>
+        <button
+          type="button"
+          class="danger"
+          [disabled]="updatingStatus() || t.status === 'CLOSED'"
+          (click)="showCloseConfirm.set(true)"
+        >
+          Cerrar ticket
+        </button>
+      </div>
+    </section>
+
+    <app-confirm-modal
+      [open]="showCloseConfirm()"
+      title="Cerrar ticket"
+      message="El ticket se cerrará y el negocio no podrá adjuntar más archivos."
+      confirmLabel="Cerrar ticket"
+      (confirmed)="setStatus('CLOSED')"
+      (cancelled)="showCloseConfirm.set(false)"
+    />
+  }
+</div>
