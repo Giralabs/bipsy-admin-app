@@ -1,7 +1,9 @@
 import { DatePipe } from '@angular/common';
-import { Component, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { downloadCsv } from '../../../shared/utils/download';
 import { TicketListItem, TicketStatus } from '../models/ticket.model';
 import { TicketsService } from '../tickets.service';
 
@@ -13,6 +15,8 @@ import { TicketsService } from '../tickets.service';
   styleUrl: './tickets-list.scss',
 })
 export class TicketsList {
+  private readonly http = inject(HttpClient);
+
   readonly tickets = signal<TicketListItem[]>([]);
   readonly loading = signal(false);
   readonly page = signal(0);
@@ -53,5 +57,11 @@ export class TicketsList {
   displaySubject(t: TicketListItem): string {
     if (t.subject) return t.subject;
     return t.description.length > 60 ? t.description.slice(0, 60) + '…' : t.description;
+  }
+
+  export() {
+    const businessId = this.businessIdFilter.trim() ? Number(this.businessIdFilter.trim()) : null;
+    const url = this.ticketsService.exportUrl(this.statusFilter || null, businessId);
+    downloadCsv(this.http, url, 'tickets.csv');
   }
 }

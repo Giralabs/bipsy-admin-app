@@ -2,8 +2,9 @@ import { DatePipe } from '@angular/common';
 import { Component, inject, OnDestroy, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
-import { BusinessDetail, TicketAttachment, TicketDetail, TicketStatus } from '../models/ticket.model';
+import { BusinessDetail, TicketAttachment, TicketDetail, TicketPriority, TicketStatus } from '../models/ticket.model';
 import { TicketsService } from '../tickets.service';
 
 interface AttachmentPreview {
@@ -23,6 +24,7 @@ interface AttachmentPreview {
 export class TicketDetailPage implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly ticketsService = inject(TicketsService);
+  protected readonly auth = inject(AuthService);
 
   readonly ticketId = Number(this.route.snapshot.paramMap.get('id'));
   readonly ticket = signal<TicketDetail | null>(null);
@@ -35,6 +37,7 @@ export class TicketDetailPage implements OnDestroy {
 
   readonly showCloseConfirm = signal(false);
   readonly updatingStatus = signal(false);
+  readonly updatingPriority = signal(false);
 
   readonly showBusinessPanel = signal(false);
   readonly businessDetail = signal<BusinessDetail | null>(null);
@@ -126,6 +129,17 @@ export class TicketDetailPage implements OnDestroy {
         this.showCloseConfirm.set(false);
       },
       error: () => this.updatingStatus.set(false),
+    });
+  }
+
+  setPriority(priority: TicketPriority) {
+    this.updatingPriority.set(true);
+    this.ticketsService.updatePriority(this.ticketId, priority).subscribe({
+      next: (t) => {
+        this.ticket.set(t);
+        this.updatingPriority.set(false);
+      },
+      error: () => this.updatingPriority.set(false),
     });
   }
 
