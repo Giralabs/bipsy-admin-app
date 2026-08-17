@@ -1,4 +1,4 @@
-<div class="users-list">
+<div class="users-list anim-fade-up">
   <h1>Usuarios</h1>
 
   <div class="filters">
@@ -15,6 +15,7 @@
       <option value="RED">Riesgo</option>
     </select>
     <button type="button" (click)="onFilterChange()">Buscar</button>
+    <button type="button" class="btn-ghost" (click)="export()">Exportar CSV</button>
   </div>
 
   @if (loading()) {
@@ -42,7 +43,7 @@
             <td><app-reputation-badge [reputation]="c.reputation" /></td>
           </tr>
         } @empty {
-          <tr><td colspan="6">No hay usuarios que coincidan con el filtro.</td></tr>
+          <tr><td colspan="6" class="table-empty">No hay usuarios que coincidan con el filtro.</td></tr>
         }
       </tbody>
     </table>

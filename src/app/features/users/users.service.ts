@@ -32,4 +32,12 @@ export class UsersService {
   liftSanction(id: number, sanctionId: number) {
     return this.http.delete<void>(`${this.base}/${id}/sanctions/${sanctionId}`);
   }
+
+  exportUrl(search: string, reputation: Reputation | null): string {
+    const params = new URLSearchParams();
+    if (search) params.set('search', search);
+    if (reputation) params.set('reputation', reputation);
+    const qs = params.toString();
+    return `${this.base}/export${qs ? '?' + qs : ''}`;
+  }
 }

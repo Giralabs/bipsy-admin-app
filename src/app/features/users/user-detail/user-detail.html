@@ -1,4 +1,4 @@
-<div class="user-detail">
+<div class="user-detail anim-fade-up">
   <a routerLink="/users" class="back">← Volver a Usuarios</a>
 
   @if (loading()) {
@@ -37,7 +37,9 @@
             <dt>Reservas totales</dt><dd>{{ c.totalBookings }}</dd>
           </dl>
 
-          <button type="button" class="danger" (click)="showResetConfirm.set(true)">Restablecer cuenta</button>
+          @if (auth.canManage()) {
+            <button type="button" class="danger" (click)="showResetConfirm.set(true)">Restablecer cuenta</button>
+          }
         </section>
       }
 
@@ -78,7 +80,9 @@
 
       @case ('sanciones') {
         <section class="panel">
+          @if (auth.canManage()) {
           <button type="button" (click)="showSanctionForm.set(true)">Sancionar</button>
+          }
 
           @if (showSanctionForm()) {
             <form class="sanction-form" [formGroup]="sanctionForm" (ngSubmit)="submitSanction()">
@@ -156,7 +160,7 @@
                     </td>
                     <td>{{ s.bannedIps.join(', ') || '—' }}</td>
                     <td>
-                      @if (s.active) {
+                      @if (s.active && auth.canManage()) {
                         <button type="button" (click)="liftSanction(s.id)" [disabled]="liftingSanctionId() === s.id">
                           Levantar
                         </button>
