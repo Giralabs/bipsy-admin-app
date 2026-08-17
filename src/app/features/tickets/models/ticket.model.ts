@@ -1,5 +1,6 @@
 export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
 export type TicketKind = 'SUPPORT' | 'IMPROVEMENT';
+export type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 
 export interface TicketAttachment {
   id: number;
@@ -27,6 +28,7 @@ export interface TicketListItem {
   subject: string | null;
   description: string;
   status: TicketStatus;
+  priority: TicketPriority;
   adminNotes: string | null;
   createdAt: string;
   updatedAt: string;

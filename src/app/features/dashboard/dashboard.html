@@ -1,0 +1,113 @@
+<div class="dashboard anim-fade-up">
+  <h1>Estadísticas</h1>
+
+  @if (loading()) {
+    <section class="stat-grid">
+      @for (i of [1,2,3,4,5,6,7,8]; track i) {
+        <div class="stat-tile stat-tile--skeleton">
+          <span class="skeleton-line skeleton-line--label"></span>
+          <span class="skeleton-line skeleton-line--value"></span>
+          <span class="skeleton-line skeleton-line--sub"></span>
+        </div>
+      }
+    </section>
+  } @else if (error(); as e) {
+    <div class="error-panel">
+      <p>{{ e }}</p>
+      <button type="button" class="btn-mint" (click)="load()">Reintentar</button>
+    </div>
+  } @else if (stats(); as s) {
+    <section class="stat-grid">
+      <div class="stat-tile">
+        <span class="stat-label">Clientes totales</span>
+        <span class="stat-value">{{ s.customers.total }}</span>
+        <span class="stat-sub">+{{ s.customers.newLast30Days }} en 30 días</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-label">Clientes referidos</span>
+        <span class="stat-value">{{ s.customers.referred }}</span>
+        <span class="stat-sub">llegaron con un código</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-label">Establecimientos</span>
+        <span class="stat-value">{{ s.businesses.total }}</span>
+        <span class="stat-sub">+{{ s.businesses.newLast30Days }} en 30 días</span>
+      </div>
+      <div class="stat-tile" [class.stat-tile--warn]="s.businesses.banned > 0">
+        <span class="stat-label">Negocios baneados</span>
+        <span class="stat-value">{{ s.businesses.banned }}</span>
+        <span class="stat-sub">{{ s.businesses.setupIncomplete }} con setup incompleto</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-label">Con código de referido</span>
+        <span class="stat-value">{{ s.businesses.withReferralCode }}</span>
+        <span class="stat-sub">de {{ s.businesses.total }} negocios</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-label">Reservas totales</span>
+        <span class="stat-value">{{ s.bookings.total }}</span>
+        <span class="stat-sub">+{{ s.bookings.last30Days }} en 30 días</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-label">Suscripciones activas</span>
+        <span class="stat-value">{{ s.subscriptions.active }}</span>
+        <span class="stat-sub">MRR estimado {{ formatEur(s.subscriptions.estimatedMrr) }}</span>
+      </div>
+      <div class="stat-tile" [class.stat-tile--warn]="(s.tickets.byStatus['OPEN'] || 0) > 0">
+        <span class="stat-label">Tickets de soporte</span>
+        <span class="stat-value">{{ s.tickets.total }}</span>
+        <span class="stat-sub">{{ s.tickets.byStatus['OPEN'] || 0 }} abiertos</span>
+      </div>
+    </section>
+
+    <section class="breakdown-grid">
+      <div class="breakdown-panel">
+        <h3>Reservas por estado</h3>
+        @if (s.bookings.total === 0) {
+          <p class="empty">Aún no hay reservas.</p>
+        } @else {
+          @for (e of bookingStatusEntries(s.bookings.byStatus); track e.label) {
+            <div class="bar-row">
+              <span class="bar-label">{{ e.label }}</span>
+              <div class="bar-track">
+                <div
+                  class="bar-fill"
+                  [class.bar-fill--pending]="e.label === 'Pendientes'"
+                  [class.bar-fill--confirmed]="e.label === 'Confirmadas'"
+                  [class.bar-fill--canceled]="e.label === 'Canceladas'"
+                  [class.bar-fill--noshow]="e.label === 'No presentados'"
+                  [style.width.%]="(e.count / s.bookings.total) * 100"
+                ></div>
+              </div>
+              <span class="bar-count">{{ e.count }}</span>
+            </div>
+          }
+        }
+      </div>
+
+      <div class="breakdown-panel">
+        <h3>Tickets por estado</h3>
+        @if (s.tickets.total === 0) {
+          <p class="empty">Aún no hay tickets de soporte.</p>
+        } @else {
+          @for (e of ticketStatusEntries(s.tickets.byStatus); track e.label) {
+            <div class="bar-row">
+              <span class="bar-label">{{ e.label }}</span>
+              <div class="bar-track">
+                <div
+                  class="bar-fill"
+                  [class.bar-fill--pending]="e.label === 'Abiertos'"
+                  [class.bar-fill--confirmed]="e.label === 'Resueltos'"
+                  [class.bar-fill--inprogress]="e.label === 'En curso'"
+                  [class.bar-fill--noshow]="e.label === 'Cerrados'"
+                  [style.width.%]="(e.count / s.tickets.total) * 100"
+                ></div>
+              </div>
+              <span class="bar-count">{{ e.count }}</span>
+            </div>
+          }
+        }
+      </div>
+    </section>
+  }
+</div>

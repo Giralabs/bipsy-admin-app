@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { PageResponse } from '../../core/models/page.model';
-import { BusinessDetail, TicketDetail, TicketListItem, TicketStatus } from './models/ticket.model';
+import { BusinessDetail, TicketDetail, TicketListItem, TicketPriority, TicketStatus } from './models/ticket.model';
 
 @Injectable({ providedIn: 'root' })
 export class TicketsService {
@@ -28,6 +28,18 @@ export class TicketsService {
 
   updateStatus(id: number, status: TicketStatus, adminNotes: string | null = null) {
     return this.http.put<TicketDetail>(`${this.base}/${id}/status`, { status, adminNotes });
+  }
+
+  updatePriority(id: number, priority: TicketPriority) {
+    return this.http.put<TicketDetail>(`${this.base}/${id}/priority`, { priority });
+  }
+
+  exportUrl(status: TicketStatus | null, businessId: number | null): string {
+    const params = new URLSearchParams();
+    if (status) params.set('status', status);
+    if (businessId) params.set('businessId', String(businessId));
+    const qs = params.toString();
+    return `${this.base}/export${qs ? '?' + qs : ''}`;
   }
 
   /** Blob en vez de URL directa: el interceptor solo adjunta el Bearer token a peticiones HttpClient. */

@@ -1,4 +1,4 @@
-<div class="tickets-list">
+<div class="tickets-list anim-fade-up">
   <h1>Tickets</h1>
 
   <div class="filters">
@@ -16,6 +16,7 @@
       (keyup.enter)="onFilterChange()"
     />
     <button type="button" (click)="onFilterChange()">Buscar</button>
+    <button type="button" class="btn-ghost" (click)="export()">Exportar CSV</button>
   </div>
 
   @if (loading()) {
@@ -27,6 +28,7 @@
           <th>Asunto</th>
           <th>Negocio</th>
           <th>Autor</th>
+          <th>Prioridad</th>
           <th>Estado</th>
           <th>Actualizado</th>
         </tr>
@@ -37,11 +39,12 @@
             <td>{{ displaySubject(t) }}</td>
             <td>{{ t.businessName || '—' }}</td>
             <td>{{ t.requesterName }}</td>
+            <td><span class="priority-badge" [class]="'priority-' + t.priority.toLowerCase()">{{ t.priority }}</span></td>
             <td><span class="status-badge" [class]="'status-' + t.status.toLowerCase()">{{ t.status }}</span></td>
             <td>{{ t.updatedAt | date: 'dd/MM/yy HH:mm' }}</td>
           </tr>
         } @empty {
-          <tr><td colspan="5">No hay tickets que coincidan con el filtro.</td></tr>
+          <tr><td colspan="6" class="table-empty">No hay tickets que coincidan con el filtro.</td></tr>
         }
       </tbody>
     </table>

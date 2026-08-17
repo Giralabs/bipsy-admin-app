@@ -1,7 +1,9 @@
-import { Component, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ReputationBadge } from '../../../shared/components/reputation-badge/reputation-badge';
+import { downloadCsv } from '../../../shared/utils/download';
 import { CustomerListItem, Reputation } from '../models/customer.model';
 import { UsersService } from '../users.service';
 
@@ -13,6 +15,7 @@ import { UsersService } from '../users.service';
   styleUrl: './users-list.scss',
 })
 export class UsersList {
+  private readonly http = inject(HttpClient);
   readonly customers = signal<CustomerListItem[]>([]);
   readonly loading = signal(false);
   readonly page = signal(0);
@@ -47,5 +50,10 @@ export class UsersList {
     if (next < 0 || next >= this.totalPages()) return;
     this.page.set(next);
     this.load();
+  }
+
+  export() {
+    const url = this.usersService.exportUrl(this.search.trim(), this.reputationFilter || null);
+    downloadCsv(this.http, url, 'usuarios.csv');
   }
 }

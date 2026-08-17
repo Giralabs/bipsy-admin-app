@@ -2,6 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 import { ReputationBadge } from '../../../shared/components/reputation-badge/reputation-badge';
 import { CustomerDetail, SanctionRequest } from '../models/customer.model';
@@ -20,6 +21,7 @@ export class UserDetail {
   private readonly route = inject(ActivatedRoute);
   private readonly usersService = inject(UsersService);
   private readonly fb = inject(FormBuilder);
+  protected readonly auth = inject(AuthService);
 
   readonly customerId = Number(this.route.snapshot.paramMap.get('id'));
   readonly customer = signal<CustomerDetail | null>(null);

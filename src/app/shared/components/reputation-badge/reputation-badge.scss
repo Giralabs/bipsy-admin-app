@@ -1,23 +1,27 @@
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 0.2rem 0.6rem;
-  border-radius: 999px;
+  padding: 4px 12px;
+  border-radius: var(--r-pill);
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
+  border: 1px solid transparent;
 
   &.green {
-    background: #dcfce7;
-    color: #166534;
+    background: var(--clr-green-dim);
+    color: var(--clr-green);
+    border-color: rgba(127,217,154,.30);
   }
 
   &.orange {
-    background: #ffedd5;
-    color: #9a3412;
+    background: var(--clr-orange-dim);
+    color: var(--clr-orange);
+    border-color: rgba(255,186,73,.30);
   }
 
   &.red {
-    background: #fee2e2;
-    color: #991b1b;
+    background: var(--clr-red-dim);
+    color: var(--clr-red);
+    border-color: rgba(255,138,138,.30);
   }
 }

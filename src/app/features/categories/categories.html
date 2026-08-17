@@ -1,0 +1,73 @@
+<div class="categories anim-fade-up">
+  <div class="header">
+    <h1>Categorías</h1>
+    @if (auth.canManage()) {
+      <button type="button" class="btn-mint" (click)="showForm.set(!showForm())">
+        {{ showForm() ? 'Cancelar' : '+ Nueva categoría' }}
+      </button>
+    }
+  </div>
+
+  @if (showForm()) {
+    <form class="category-form" [formGroup]="form" (ngSubmit)="submit()">
+      <label>
+        Código (mayúsculas, sin espacios)
+        <input type="text" formControlName="code" placeholder="TATTOO" />
+      </label>
+      <label>
+        Nombre
+        <input type="text" formControlName="name" placeholder="Tatuaje" />
+      </label>
+      <label>
+        Descripción
+        <textarea formControlName="description" rows="2"></textarea>
+      </label>
+      <button type="submit" class="btn-mint" [disabled]="form.invalid || saving()">
+        {{ saving() ? 'Creando…' : 'Crear categoría' }}
+      </button>
+    </form>
+  }
+
+  @if (loading()) {
+    <p>Cargando…</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Estado</th>
+          @if (auth.canManage()) {
+            <th></th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of categories(); track c.id) {
+          <tr>
+            <td>{{ c.code }}</td>
+            <td>{{ c.name }}</td>
+            <td>{{ c.description || '—' }}</td>
+            <td>
+              @if (c.active) {
+                <span class="badge badge--green">Activa</span>
+              } @else {
+                <span class="badge badge--neutral">Inactiva</span>
+              }
+            </td>
+            @if (auth.canManage()) {
+              <td>
+                <button type="button" (click)="toggleActive(c)" [disabled]="togglingId() === c.id">
+                  {{ c.active ? 'Desactivar' : 'Activar' }}
+                </button>
+              </td>
+            }
+          </tr>
+        } @empty {
+          <tr><td colspan="5" class="table-empty">No hay categorías.</td></tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>

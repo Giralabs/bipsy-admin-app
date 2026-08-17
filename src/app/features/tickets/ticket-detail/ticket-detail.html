@@ -1,4 +1,4 @@
-<div class="ticket-detail">
+<div class="ticket-detail anim-fade-up">
   <a routerLink="/tickets" class="back">← Volver a Tickets</a>
 
   @if (loading()) {
@@ -15,7 +15,21 @@
           · Abierto {{ t.createdAt | date: 'medium' }}
         </p>
       </div>
-      <span class="status-badge" [class]="'status-' + t.status.toLowerCase()">{{ t.status }}</span>
+      <div class="header-badges">
+        <select
+          class="priority-select"
+          [class]="'priority-' + t.priority.toLowerCase()"
+          [ngModel]="t.priority"
+          (ngModelChange)="setPriority($event)"
+          [disabled]="updatingPriority() || auth.isReadOnly()"
+        >
+          <option value="LOW">Baja</option>
+          <option value="MEDIUM">Media</option>
+          <option value="HIGH">Alta</option>
+          <option value="URGENT">Urgente</option>
+        </select>
+        <span class="status-badge" [class]="'status-' + t.status.toLowerCase()">{{ t.status }}</span>
+      </div>
     </header>
 
     @if (showBusinessPanel()) {
@@ -88,7 +102,7 @@
         </ul>
       }
 
-      @if (t.status !== 'CLOSED') {
+      @if (t.status !== 'CLOSED' && !auth.isReadOnly()) {
         <form class="reply-form" (ngSubmit)="sendReply()">
           <textarea
             [(ngModel)]="replyBody"
@@ -103,25 +117,27 @@
       }
     </section>
 
-    <section class="panel actions-panel">
-      <h3>Estado</h3>
-      <div class="actions">
-        <button type="button" [disabled]="updatingStatus() || t.status === 'IN_PROGRESS'" (click)="setStatus('IN_PROGRESS')">
-          Marcar en progreso
-        </button>
-        <button type="button" [disabled]="updatingStatus() || t.status === 'RESOLVED'" (click)="setStatus('RESOLVED')">
-          Marcar resuelto
-        </button>
-        <button
-          type="button"
-          class="danger"
-          [disabled]="updatingStatus() || t.status === 'CLOSED'"
-          (click)="showCloseConfirm.set(true)"
-        >
-          Cerrar ticket
-        </button>
-      </div>
-    </section>
+    @if (!auth.isReadOnly()) {
+      <section class="panel actions-panel">
+        <h3>Estado</h3>
+        <div class="actions">
+          <button type="button" [disabled]="updatingStatus() || t.status === 'IN_PROGRESS'" (click)="setStatus('IN_PROGRESS')">
+            Marcar en progreso
+          </button>
+          <button type="button" [disabled]="updatingStatus() || t.status === 'RESOLVED'" (click)="setStatus('RESOLVED')">
+            Marcar resuelto
+          </button>
+          <button
+            type="button"
+            class="danger"
+            [disabled]="updatingStatus() || t.status === 'CLOSED'"
+            (click)="showCloseConfirm.set(true)"
+          >
+            Cerrar ticket
+          </button>
+        </div>
+      </section>
+    }
 
     <app-confirm-modal
       [open]="showCloseConfirm()"

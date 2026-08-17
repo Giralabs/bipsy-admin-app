@@ -2,16 +2,26 @@
   <aside class="sidebar">
     <div class="brand">Bipsy Admin</div>
     <nav>
+      <a routerLink="/dashboard" routerLinkActive="active">Estadísticas</a>
       <a routerLink="/users" routerLinkActive="active">Usuarios</a>
+      <a routerLink="/businesses" routerLinkActive="active">Establecimientos</a>
       <a routerLink="/tickets" routerLinkActive="active">Tickets</a>
+      <a routerLink="/categories" routerLinkActive="active">Categorías</a>
+      <a routerLink="/audit-log" routerLinkActive="active">Auditoría</a>
     </nav>
     <div class="sidebar-footer">
       <span>{{ auth.username() }}</span>
+      @if (auth.scope() !== 'FULL') {
+        <span class="scope-pill">{{ auth.isReadOnly() ? 'Solo lectura' : 'Soporte' }}</span>
+      }
       <button type="button" (click)="auth.logout()">Salir</button>
     </div>
   </aside>
 
   <main class="content">
+    <div class="topbar">
+      <app-global-search />
+    </div>
     <router-outlet />
   </main>
 </div>

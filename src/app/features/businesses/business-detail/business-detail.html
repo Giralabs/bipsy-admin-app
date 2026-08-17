@@ -1,0 +1,138 @@
+<div class="business-detail anim-fade-up">
+  <a routerLink="/businesses" class="back">← Volver a Establecimientos</a>
+
+  @if (loading()) {
+    <p>Cargando…</p>
+  } @else if (business(); as b) {
+    <header class="header">
+      <div>
+        <h1>{{ b.name }}</h1>
+        <p class="subtitle">{{ b.email }} · {{ b.city || 'Sin ciudad' }}</p>
+      </div>
+      @if (b.banned) {
+        <span class="badge badge--red">Baneado</span>
+      } @else if (!b.setupComplete) {
+        <span class="badge badge--orange">Setup incompleto</span>
+      } @else {
+        <span class="badge badge--green">Activo</span>
+      }
+    </header>
+
+    <section class="panel">
+      <h3>Ficha</h3>
+      <dl class="profile-grid">
+        <dt>Teléfono</dt><dd>{{ b.phone }}</dd>
+        <dt>CIF</dt><dd>{{ b.cif || '—' }}</dd>
+        <dt>Dirección</dt><dd>{{ b.address || '—' }}</dd>
+        <dt>Ciudad</dt><dd>{{ b.city || '—' }}</dd>
+        <dt>Provincia</dt><dd>{{ b.province || '—' }}</dd>
+        <dt>Código postal</dt><dd>{{ b.postalCode || '—' }}</dd>
+        <dt>Autónomo</dt><dd>{{ b.autonomous ? 'Sí' : 'No' }}</dd>
+        <dt>Setup completo</dt><dd>{{ b.setupComplete ? 'Sí' : 'No' }}</dd>
+        <dt>Categorías</dt><dd>{{ b.categories.join(', ') || '—' }}</dd>
+        <dt>Alta</dt><dd>{{ b.createdAt | date: 'medium' }}</dd>
+      </dl>
+
+      @if (b.description) {
+        <h3>Descripción</h3>
+        <p class="description">{{ b.description }}</p>
+      }
+
+      <h3>Código de referido</h3>
+      <dl class="profile-grid">
+        <dt>Código</dt><dd>{{ b.referralCode || 'Sin fijar' }}</dd>
+        <dt>Clientes referidos</dt><dd>{{ b.referredCount }}</dd>
+      </dl>
+
+      @if (auth.canManage()) {
+        <h3>Estado de la cuenta</h3>
+        @if (b.banned) {
+          <button type="button" class="secondary" (click)="unban()" [disabled]="working()">
+            {{ working() ? 'Desbaneando…' : 'Quitar baneo' }}
+          </button>
+        } @else {
+          <button type="button" class="danger" (click)="showBanConfirm.set(true)">Banear negocio</button>
+        }
+      }
+    </section>
+
+    <section class="panel">
+      <h3>Suscripción</h3>
+
+      @if (loadingSubscriptions()) {
+        <p>Cargando…</p>
+      } @else if (subscriptions().length === 0) {
+        <p>Este negocio no ha tenido ninguna suscripción.</p>
+      } @else {
+        <table>
+          <thead>
+            <tr>
+              <th>Plan</th>
+              <th>Estado</th>
+              <th>Origen</th>
+              <th>Inicio</th>
+              <th>Fin de periodo</th>
+              @if (auth.canManage()) { <th></th> }
+            </tr>
+          </thead>
+          <tbody>
+            @for (s of subscriptions(); track s.id) {
+              <tr>
+                <td>{{ s.planName }}</td>
+                <td>
+                  <span class="pill" [class.danger]="s.status === 'ACTIVE'">{{ s.status }}</span>
+                </td>
+                <td>{{ s.source }}</td>
+                <td>{{ s.startAt | date: 'short' }}</td>
+                <td>{{ s.currentPeriodEnd ? (s.currentPeriodEnd | date: 'short') : 'Sin caducidad' }}</td>
+                @if (auth.canManage()) {
+                  <td>
+                    @if (s.status === 'ACTIVE') {
+                      <button type="button" (click)="cancelSubscription(s.id)" [disabled]="cancellingId() === s.id">
+                        Cancelar
+                      </button>
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+
+      @if (auth.canManage()) {
+        <h3>Asignar plan</h3>
+        <div class="sanction-form">
+          <label>
+            Plan
+            <select [(ngModel)]="selectedPlanCode">
+              <option value="" disabled>Elige un plan…</option>
+              @for (p of plans(); track p.code) {
+                <option [value]="p.code">{{ p.name }} ({{ p.code }})</option>
+              }
+            </select>
+          </label>
+          <div class="actions">
+            <button
+              type="button"
+              class="secondary"
+              (click)="assignPlan()"
+              [disabled]="!selectedPlanCode || assigningPlan()"
+            >
+              {{ assigningPlan() ? 'Asignando…' : 'Asignar' }}
+            </button>
+          </div>
+        </div>
+      }
+    </section>
+
+    <app-confirm-modal
+      [open]="showBanConfirm()"
+      title="Banear establecimiento"
+      message="El negocio no podrá iniciar sesión mientras esté baneado. Puedes revertirlo cuando quieras."
+      confirmLabel="Banear"
+      (confirmed)="confirmBan()"
+      (cancelled)="showBanConfirm.set(false)"
+    />
+  }
+</div>
