@@ -1,6 +1,11 @@
 <div class="login-page">
-  <form class="login-card" [formGroup]="form" (ngSubmit)="submit()">
+  <div class="ambient-orb ambient-orb--a"></div>
+  <div class="ambient-orb ambient-orb--b"></div>
+
+  <form class="login-card glass-card anim-fade-up" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="brand-mark">B</div>
     <h1>Bipsy Admin</h1>
+    <p class="tagline">Panel de administración</p>
 
     <label>
       Usuario o email

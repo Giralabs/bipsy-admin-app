@@ -1,43 +1,56 @@
 .shell {
   display: flex;
-  min-height: 100vh;
+  /* height fija (no min-height): así el shell nunca crece con el contenido
+     y el sidebar se queda siempre a la vista, sea cual sea el largo de la
+     tabla/lista que haya en .content. Quien hace scroll es .content, no la
+     página entera. */
+  height: 100vh;
+  background: var(--clr-base);
 }
 
 .sidebar {
-  width: 220px;
+  width: 240px;
   flex-shrink: 0;
-  background: #1f2937;
-  color: #f3f4f6;
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--clr-surface);
+  border-right: 1px solid var(--clr-border);
+  color: var(--clr-text);
   display: flex;
   flex-direction: column;
-  padding: 1.25rem 1rem;
+  padding: 1.5rem 1.25rem;
 
   .brand {
-    font-weight: 700;
-    font-size: 1.1rem;
-    margin-bottom: 1.5rem;
+    font-weight: 800;
+    font-size: 1.15rem;
+    letter-spacing: -.3px;
+    color: var(--clr-mint);
+    margin-bottom: 2rem;
   }
 
   nav {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.35rem;
     flex: 1;
 
     a {
-      padding: 0.5rem 0.75rem;
-      border-radius: 6px;
-      color: inherit;
+      padding: 0.6rem 0.9rem;
+      border-radius: var(--r-md);
+      color: var(--clr-text-2);
       text-decoration: none;
-      font-size: 0.95rem;
+      font-size: 0.92rem;
+      font-weight: 600;
+      transition: all .2s ease;
 
       &.active {
-        background: rgba(255, 255, 255, 0.12);
-        font-weight: 600;
+        background: var(--clr-mint-dim);
+        color: var(--clr-mint);
       }
 
-      &:hover {
-        background: rgba(255, 255, 255, 0.08);
+      &:hover:not(.active) {
+        background: var(--clr-input);
+        color: var(--clr-text);
       }
     }
   }
@@ -45,27 +58,52 @@
   .sidebar-footer {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.6rem;
     font-size: 0.85rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
-    padding-top: 0.75rem;
+    color: var(--clr-text-2);
+    border-top: 1px solid var(--clr-border);
+    padding-top: 1rem;
 
     button {
       align-self: flex-start;
       background: none;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      color: inherit;
-      padding: 0.3rem 0.6rem;
-      border-radius: 6px;
+      border: 1.2px solid var(--clr-border);
+      color: var(--clr-text);
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--r-pill);
       cursor: pointer;
       font-size: 0.8rem;
+      font-family: var(--ff);
+      transition: all .2s ease;
+
+      &:hover {
+        border-color: var(--clr-border-hover);
+        background: var(--clr-input);
+      }
     }
+  }
+
+  .scope-pill {
+    align-self: flex-start;
+    padding: 3px 10px;
+    border-radius: var(--r-pill);
+    background: var(--clr-orange-dim);
+    color: var(--clr-orange);
+    border: 1px solid rgba(255,186,73,.30);
+    font-size: 0.72rem;
+    font-weight: 700;
   }
 }
 
 .content {
   flex: 1;
-  padding: 1.5rem 2rem;
-  background: #f9fafb;
+  padding: 2rem 2.5rem;
   overflow-y: auto;
+  color: var(--clr-text);
+}
+
+.topbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.5rem;
 }
