@@ -1,0 +1,66 @@
+<div class="businesses-list anim-fade-up">
+  <h1>Establecimientos</h1>
+
+  <div class="filters">
+    <input
+      type="text"
+      placeholder="Buscar por nombre, email o ciudad…"
+      [(ngModel)]="search"
+      (keyup.enter)="onFilterChange()"
+    />
+    <select [(ngModel)]="bannedFilter" (ngModelChange)="onFilterChange()">
+      <option value="">Todos</option>
+      <option value="false">Activos</option>
+      <option value="true">Baneados</option>
+    </select>
+    <button type="button" (click)="onFilterChange()">Buscar</button>
+    <button type="button" class="btn-ghost" (click)="export()">Exportar CSV</button>
+  </div>
+
+  @if (loading()) {
+    <p>Cargando…</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Ciudad</th>
+          <th>Categorías</th>
+          <th>Código referido</th>
+          <th>Referidos</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (b of businesses(); track b.id) {
+          <tr [routerLink]="['/businesses', b.id]">
+            <td>{{ b.name }}</td>
+            <td>{{ b.email }}</td>
+            <td>{{ b.city || '—' }}</td>
+            <td>{{ b.categories.join(', ') || '—' }}</td>
+            <td>{{ b.referralCode || '—' }}</td>
+            <td>{{ b.referredCount }}</td>
+            <td>
+              @if (b.banned) {
+                <span class="badge badge--red">Baneado</span>
+              } @else if (!b.setupComplete) {
+                <span class="badge badge--orange">Setup incompleto</span>
+              } @else {
+                <span class="badge badge--green">Activo</span>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="7" class="table-empty">No hay establecimientos que coincidan con el filtro.</td></tr>
+        }
+      </tbody>
+    </table>
+
+    <div class="pagination">
+      <button type="button" (click)="goToPage(-1)" [disabled]="page() === 0">Anterior</button>
+      <span>Página {{ page() + 1 }} de {{ totalPages() || 1 }}</span>
+      <button type="button" (click)="goToPage(1)" [disabled]="page() + 1 >= totalPages()">Siguiente</button>
+    </div>
+  }
+</div>
