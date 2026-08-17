@@ -1,0 +1,39 @@
+<div class="audit-log anim-fade-up">
+  <h1>Auditoría</h1>
+  <p class="subtitle">Registro de acciones de escritura hechas desde el panel de admin.</p>
+
+  @if (loading()) {
+    <p>Cargando…</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Admin</th>
+          <th>Acción</th>
+          <th>Entidad</th>
+          <th>Detalles</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (e of entries(); track e.id) {
+          <tr>
+            <td>{{ e.createdAt | date: 'medium' }}</td>
+            <td>{{ e.adminName }}</td>
+            <td>{{ actionLabel(e) }}</td>
+            <td>{{ entityLabel(e) }}{{ e.entityId ? ' #' + e.entityId : '' }}</td>
+            <td>{{ e.details || '—' }}</td>
+          </tr>
+        } @empty {
+          <tr><td colspan="5" class="table-empty">Sin acciones registradas todavía.</td></tr>
+        }
+      </tbody>
+    </table>
+
+    <div class="pagination">
+      <button type="button" (click)="goToPage(-1)" [disabled]="page() === 0">Anterior</button>
+      <span>Página {{ page() + 1 }} de {{ totalPages() || 1 }}</span>
+      <button type="button" (click)="goToPage(1)" [disabled]="page() + 1 >= totalPages()">Siguiente</button>
+    </div>
+  }
+</div>
