@@ -1,0 +1,159 @@
+<div class="page page--narrow">
+  <header class="page-head">
+    <div class="page-head__text">
+      <h1 class="t-display">Mi cuenta</h1>
+      <p class="page-head__sub">Tus permisos y cómo quieres ver el panel en este navegador.</p>
+    </div>
+  </header>
+
+  <div class="profile acc-me">
+    <app-avatar [name]="auth.displayName()" [size]="64" />
+    <div class="profile__text">
+      <h2 class="t-h3">{{ auth.displayName() }}</h2>
+      <p class="profile__sub">
+        @if (auth.email()) { <span>{{ auth.email() }}</span> }
+        <span>&#64;{{ auth.username() }}</span>
+      </p>
+      <div class="cluster profile__pills"><app-pill [meta]="scope(auth.scope())" [icon]="false" /></div>
+    </div>
+  </div>
+
+  <div class="stack stack--lg">
+    <!-- ── Diseño ── -->
+    <section>
+      <p class="group__header overline">Diseño del panel</p>
+      <div class="acc-layouts" role="radiogroup" aria-label="Diseño del panel">
+        @for (l of layouts; track l.value) {
+          <button type="button" class="acc-layout" role="radio" [attr.aria-checked]="prefs.layout() === l.value"
+            [class.is-on]="prefs.layout() === l.value" (click)="setLayout(l.value)">
+            <span class="acc-preview" [class]="'acc-preview acc-preview--' + l.value" aria-hidden="true">
+              @switch (l.value) {
+                @case ('sidebar') {
+                  <span class="acc-preview__side"><i></i><i></i><i></i><i></i></span>
+                  <span class="acc-preview__main"><b></b><b></b><b></b></span>
+                }
+                @case ('rail') {
+                  <span class="acc-preview__side acc-preview__side--rail"><i></i><i></i><i></i><i></i></span>
+                  <span class="acc-preview__main"><b></b><b></b><b></b></span>
+                }
+                @case ('topbar') {
+                  <span class="acc-preview__top"><i></i><i></i><i></i><i></i></span>
+                  <span class="acc-preview__main"><b></b><b></b><b></b></span>
+                }
+                @default {
+                  <span class="acc-preview__bar"></span>
+                  <span class="acc-preview__grid"><b class="wide"></b><b></b><b></b><b class="tall"></b><b></b><b></b></span>
+                }
+              }
+            </span>
+            <span class="acc-layout__text">
+              <strong>
+                {{ l.label }}
+                @if (prefs.layout() === l.value) { <span class="material-symbols-rounded fill">check_circle</span> }
+              </strong>
+              <small>{{ l.hint }}</small>
+            </span>
+          </button>
+        }
+      </div>
+    </section>
+
+    <section>
+      <p class="group__header overline">Apariencia</p>
+      <div class="group__box">
+        <div class="row acc-row">
+          <span class="material-symbols-rounded row__icon">dark_mode</span>
+          <span class="row__label">Tema</span>
+          <span class="row__trail"><app-segmented class="acc-seg" [options]="themeOptions" [value]="theme.preference()" (valueChange)="theme.set($event)" /></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Accesibilidad ── -->
+    <section>
+      <p class="group__header overline">Accesibilidad</p>
+      <div class="group__box">
+        <div class="row acc-row">
+          <span class="material-symbols-rounded row__icon">format_size</span>
+          <span class="row__label">Tamaño de letra<small>Agranda todo el panel, no solo el texto.</small></span>
+          <span class="row__trail"><app-segmented class="acc-seg" [options]="textOptions" [value]="prefs.prefs().textSize" (valueChange)="prefs.set('textSize', $event)" /></span>
+        </div>
+        <div class="row acc-row">
+          <span class="material-symbols-rounded row__icon">animation</span>
+          <span class="row__label">Animaciones<small>«Sistema» sigue el ajuste de tu ordenador.</small></span>
+          <span class="row__trail"><app-segmented class="acc-seg" [options]="motionOptions" [value]="prefs.prefs().motion" (valueChange)="prefs.set('motion', $event)" /></span>
+        </div>
+        @for (t of toggles; track t.key) {
+          <label class="row acc-row acc-switch">
+            <span class="material-symbols-rounded row__icon">{{ t.icon }}</span>
+            <span class="row__label">{{ t.label }}<small>{{ t.hint }}</small></span>
+            <input type="checkbox" role="switch" [checked]="prefs.prefs()[t.key]" (change)="toggle(t.key, $any($event.target).checked)" />
+          </label>
+        }
+      </div>
+      <div class="cluster acc-reset">
+        <p class="group__footer">Se guarda en este navegador. En otro equipo puedes elegir otra cosa.</p>
+        <span class="spacer"></span>
+        <button type="button" class="btn btn--ghost btn--sm" (click)="resetA11y()">
+          <span class="material-symbols-rounded">restart_alt</span>Restablecer
+        </button>
+      </div>
+    </section>
+
+    <!-- ── Permisos ── -->
+    <section>
+      <p class="group__header overline">Qué puedes hacer</p>
+      <div class="card">
+        <ul class="acc-perms">
+          @for (p of permissions; track p.label) {
+            <li>
+              @if (p.scopes.includes(auth.scope())) {
+                <span class="material-symbols-rounded yes">check_circle</span>
+              } @else {
+                <span class="material-symbols-rounded no">block</span>
+              }
+              {{ p.label }}
+            </li>
+          }
+        </ul>
+      </div>
+      <p class="group__footer">Los permisos los asigna un admin con acceso completo desde «Equipo del panel».</p>
+    </section>
+
+    <!-- ── Conexión ── -->
+    <section>
+      <p class="group__header overline">Conexión</p>
+      <div class="group__box">
+        <button type="button" class="row" (click)="checkApi()">
+          <span class="material-symbols-rounded row__icon">dns</span>
+          <span class="row__label">API<small class="t-mono">{{ apiUrl }}</small></span>
+          <span class="row__trail">
+            <span class="acc-dot" [class.acc-dot--up]="health() === 'up'" [class.acc-dot--down]="health() === 'down'"></span>
+            <span class="t-caption">
+              @switch (health()) {
+                @case ('checking') { Comprobando… }
+                @case ('up') { En línea · {{ latency() }} ms }
+                @case ('down') { Sin respuesta }
+              }
+            </span>
+          </span>
+        </button>
+        <a class="row" [href]="webUrl" target="_blank" rel="noopener">
+          <span class="material-symbols-rounded row__icon">public</span>
+          <span class="row__label">Web de clientes<small class="t-mono">{{ webUrl }}</small></span>
+          <span class="row__trail"><span class="material-symbols-rounded row__chevron">open_in_new</span></span>
+        </a>
+      </div>
+    </section>
+
+    <section>
+      <div class="group__box">
+        <button type="button" class="row row--danger" (click)="auth.logout()">
+          <span class="material-symbols-rounded">logout</span>
+          <span class="row__label">Cerrar sesión</span>
+        </button>
+      </div>
+      <p class="group__footer">Cierra la sesión en este navegador e invalida su token de renovación en el servidor.</p>
+    </section>
+  </div>
+</div>
