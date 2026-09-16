@@ -1,113 +1,186 @@
-<div class="dashboard anim-fade-up">
-  <h1>Estadísticas</h1>
+<div class="page">
+  <header class="page-head">
+    <div class="page-head__text">
+      <h1 class="t-display">{{ greeting() }}</h1>
+      <p class="page-head__sub">{{ now | date: "EEEE, d 'de' MMMM" }} · Así está Bipsy ahora mismo.</p>
+    </div>
+    <div class="page-head__actions">
+      <button type="button" class="btn" (click)="load()" [disabled]="loading()">
+        <span class="material-symbols-rounded">refresh</span> Actualizar
+      </button>
+    </div>
+  </header>
 
-  @if (loading()) {
-    <section class="stat-grid">
-      @for (i of [1,2,3,4,5,6,7,8]; track i) {
-        <div class="stat-tile stat-tile--skeleton">
-          <span class="skeleton-line skeleton-line--label"></span>
-          <span class="skeleton-line skeleton-line--value"></span>
-          <span class="skeleton-line skeleton-line--sub"></span>
-        </div>
+  @if (error(); as e) {
+    <div class="card">
+      <div class="empty">
+        <span class="material-symbols-rounded">cloud_off</span>
+        <h3>No se ha podido cargar el resumen</h3>
+        <p>{{ e }}</p>
+        <button type="button" class="btn btn--primary" (click)="load()">Reintentar</button>
+      </div>
+    </div>
+  } @else {
+    <!-- Lo que pide atención -->
+    <section class="attention">
+      @if (loading() && !stats()) {
+        @for (i of [1, 2, 3, 4]; track i) { <span class="skeleton attention__skeleton"></span> }
+      } @else {
+        @for (a of attention(); track a.label) {
+          <a class="attention__item" [class.is-hot]="a.hot" [routerLink]="a.link" [queryParams]="a.query">
+            <span class="material-symbols-rounded attention__icon">{{ a.icon }}</span>
+            <span class="attention__value t-num">{{ fmt.int(a.value) }}</span>
+            <span class="attention__label">{{ a.label }}</span>
+          </a>
+        }
       }
     </section>
-  } @else if (error(); as e) {
-    <div class="error-panel">
-      <p>{{ e }}</p>
-      <button type="button" class="btn-mint" (click)="load()">Reintentar</button>
-    </div>
-  } @else if (stats(); as s) {
-    <section class="stat-grid">
-      <div class="stat-tile">
-        <span class="stat-label">Clientes totales</span>
-        <span class="stat-value">{{ s.customers.total }}</span>
-        <span class="stat-sub">+{{ s.customers.newLast30Days }} en 30 días</span>
-      </div>
-      <div class="stat-tile">
-        <span class="stat-label">Clientes referidos</span>
-        <span class="stat-value">{{ s.customers.referred }}</span>
-        <span class="stat-sub">llegaron con un código</span>
-      </div>
-      <div class="stat-tile">
-        <span class="stat-label">Establecimientos</span>
-        <span class="stat-value">{{ s.businesses.total }}</span>
-        <span class="stat-sub">+{{ s.businesses.newLast30Days }} en 30 días</span>
-      </div>
-      <div class="stat-tile" [class.stat-tile--warn]="s.businesses.banned > 0">
-        <span class="stat-label">Negocios baneados</span>
-        <span class="stat-value">{{ s.businesses.banned }}</span>
-        <span class="stat-sub">{{ s.businesses.setupIncomplete }} con setup incompleto</span>
-      </div>
-      <div class="stat-tile">
-        <span class="stat-label">Con código de referido</span>
-        <span class="stat-value">{{ s.businesses.withReferralCode }}</span>
-        <span class="stat-sub">de {{ s.businesses.total }} negocios</span>
-      </div>
-      <div class="stat-tile">
-        <span class="stat-label">Reservas totales</span>
-        <span class="stat-value">{{ s.bookings.total }}</span>
-        <span class="stat-sub">+{{ s.bookings.last30Days }} en 30 días</span>
-      </div>
-      <div class="stat-tile">
-        <span class="stat-label">Suscripciones activas</span>
-        <span class="stat-value">{{ s.subscriptions.active }}</span>
-        <span class="stat-sub">MRR estimado {{ formatEur(s.subscriptions.estimatedMrr) }}</span>
-      </div>
-      <div class="stat-tile" [class.stat-tile--warn]="(s.tickets.byStatus['OPEN'] || 0) > 0">
-        <span class="stat-label">Tickets de soporte</span>
-        <span class="stat-value">{{ s.tickets.total }}</span>
-        <span class="stat-sub">{{ s.tickets.byStatus['OPEN'] || 0 }} abiertos</span>
-      </div>
-    </section>
 
-    <section class="breakdown-grid">
-      <div class="breakdown-panel">
-        <h3>Reservas por estado</h3>
-        @if (s.bookings.total === 0) {
-          <p class="empty">Aún no hay reservas.</p>
-        } @else {
-          @for (e of bookingStatusEntries(s.bookings.byStatus); track e.label) {
-            <div class="bar-row">
-              <span class="bar-label">{{ e.label }}</span>
-              <div class="bar-track">
-                <div
-                  class="bar-fill"
-                  [class.bar-fill--pending]="e.label === 'Pendientes'"
-                  [class.bar-fill--confirmed]="e.label === 'Confirmadas'"
-                  [class.bar-fill--canceled]="e.label === 'Canceladas'"
-                  [class.bar-fill--noshow]="e.label === 'No presentados'"
-                  [style.width.%]="(e.count / s.bookings.total) * 100"
-                ></div>
-              </div>
-              <span class="bar-count">{{ e.count }}</span>
-            </div>
-          }
-        }
-      </div>
+    <!-- Cifras -->
+    @if (stats(); as s) {
+      <section class="stats">
+        <a class="stat" routerLink="/users">
+          <span class="stat__label"><span class="material-symbols-rounded">group</span>Clientes</span>
+          <span class="stat__value">{{ fmt.int(s.customers.total) }}</span>
+          <span class="stat__sub"><strong>+{{ fmt.int(s.customers.newLast30Days) }}</strong> en 30 días · {{ fmt.int(s.customers.referred) }} referidos</span>
+        </a>
+        <a class="stat" routerLink="/businesses">
+          <span class="stat__label"><span class="material-symbols-rounded">storefront</span>Negocios</span>
+          <span class="stat__value">{{ fmt.int(s.businesses.total) }}</span>
+          <span class="stat__sub"><strong>+{{ fmt.int(s.businesses.newLast30Days) }}</strong> en 30 días · {{ fmt.int(s.businesses.withReferralCode) }} con código</span>
+        </a>
+        <div class="stat">
+          <span class="stat__label"><span class="material-symbols-rounded">event_available</span>Reservas</span>
+          <span class="stat__value">{{ fmt.int(s.bookings.total) }}</span>
+          <span class="stat__sub"><strong>+{{ fmt.int(s.bookings.last30Days) }}</strong> en 30 días</span>
+        </div>
+        <a class="stat" routerLink="/plans">
+          <span class="stat__label"><span class="material-symbols-rounded">workspace_premium</span>MRR estimado</span>
+          <span class="stat__value">{{ fmt.eur(s.subscriptions.estimatedMrr) }}</span>
+          <span class="stat__sub">{{ fmt.int(s.subscriptions.active) }} suscripciones activas</span>
+        </a>
+      </section>
 
-      <div class="breakdown-panel">
-        <h3>Tickets por estado</h3>
-        @if (s.tickets.total === 0) {
-          <p class="empty">Aún no hay tickets de soporte.</p>
-        } @else {
-          @for (e of ticketStatusEntries(s.tickets.byStatus); track e.label) {
-            <div class="bar-row">
-              <span class="bar-label">{{ e.label }}</span>
-              <div class="bar-track">
-                <div
-                  class="bar-fill"
-                  [class.bar-fill--pending]="e.label === 'Abiertos'"
-                  [class.bar-fill--confirmed]="e.label === 'Resueltos'"
-                  [class.bar-fill--inprogress]="e.label === 'En curso'"
-                  [class.bar-fill--noshow]="e.label === 'Cerrados'"
-                  [style.width.%]="(e.count / s.tickets.total) * 100"
-                ></div>
-              </div>
-              <span class="bar-count">{{ e.count }}</span>
+      <div class="split dash-split">
+        <div class="stack">
+          <section class="card">
+            <div class="card__head">
+              <h2 class="card__title">Reservas por estado</h2>
+              <span class="t-caption t-num">{{ fmt.int(s.bookings.total) }} en total</span>
             </div>
+            @if (s.bookings.total === 0) {
+              <p class="t-body">Aún no hay reservas.</p>
+            } @else {
+              <div class="bars">
+                @for (b of bookingBars(); track b.label) {
+                  <div class="bar">
+                    <span class="bar__label">{{ b.label }}</span>
+                    <span class="bar__track"><span class="bar__fill" [class]="'bar__fill fill--' + b.tone" [style.width.%]="b.percent"></span></span>
+                    <span class="bar__count">{{ fmt.int(b.count) }}</span>
+                  </div>
+                }
+              </div>
+            }
+          </section>
+
+          <section class="card card--flush">
+            <div class="card__head">
+              <h2 class="card__title">Soporte sin atender</h2>
+              <a routerLink="/tickets" [queryParams]="{ status: 'OPEN' }" class="card__link">Ver todos<span class="material-symbols-rounded">chevron_right</span></a>
+            </div>
+            @if (openTickets().length === 0) {
+              <div class="empty dash-clear">
+                <img src="brand/bip-hello.webp" alt="" class="dash-clear__bip" loading="lazy" />
+                <h3>Todo al día</h3>
+                <p>No queda ningún ticket abierto.</p>
+              </div>
+            } @else {
+              <div class="dash-list">
+                @for (t of openTickets(); track t.id) {
+                  <a class="row" [routerLink]="['/tickets', t.id]">
+                    <span class="row__label">
+                      <span class="t-clip">{{ subject(t) }}</span>
+                      <small>{{ t.businessName || t.requesterName }} · {{ fmt.ago(t.createdAt) }}</small>
+                    </span>
+                    <span class="row__trail">
+                      <app-pill [meta]="labels.ticketPriority(t.priority)" />
+                      <span class="material-symbols-rounded row__chevron">chevron_right</span>
+                    </span>
+                  </a>
+                }
+              </div>
+            }
+          </section>
+        </div>
+
+        <div class="stack">
+          <section class="card">
+            <div class="card__head">
+              <h2 class="card__title">Tickets por estado</h2>
+              <span class="t-caption t-num">{{ fmt.int(s.tickets.total) }}</span>
+            </div>
+            @if (s.tickets.total === 0) {
+              <p class="t-body">Aún no hay tickets de soporte.</p>
+            } @else {
+              <div class="bars bars--compact">
+                @for (b of ticketBars(); track b.label) {
+                  <div class="bar">
+                    <span class="bar__label">{{ b.label }}</span>
+                    <span class="bar__track"><span [class]="'bar__fill fill--' + b.tone" [style.width.%]="b.percent"></span></span>
+                    <span class="bar__count">{{ fmt.int(b.count) }}</span>
+                  </div>
+                }
+              </div>
+            }
+          </section>
+
+          @if (pendingReports().length > 0) {
+            <section class="card card--flush">
+              <div class="card__head">
+                <h2 class="card__title">Reportes pendientes</h2>
+                <a routerLink="/reports" class="card__link">Revisar<span class="material-symbols-rounded">chevron_right</span></a>
+              </div>
+              <div class="dash-list">
+                @for (r of pendingReports(); track r.id) {
+                  <a class="row" routerLink="/reports">
+                    <span class="row__label">
+                      <span class="t-clip">{{ r.reportedName }}</span>
+                      <small>{{ labels.reportReason(r.reason).label }} · {{ fmt.ago(r.createdAt) }}</small>
+                    </span>
+                  </a>
+                }
+              </div>
+            </section>
           }
-        }
+
+          <section class="card card--flush">
+            <div class="card__head">
+              <h2 class="card__title">Actividad del equipo</h2>
+              <a routerLink="/audit-log" class="card__link">Auditoría<span class="material-symbols-rounded">chevron_right</span></a>
+            </div>
+            @if (activity().length === 0) {
+              <p class="t-body dash-pad">Todavía no hay acciones registradas.</p>
+            } @else {
+              <ul class="feed">
+                @for (e of activity(); track e.id) {
+                  <li class="feed__item">
+                    <span class="feed__icon material-symbols-rounded">{{ labels.auditAction(e.action).icon || 'bolt' }}</span>
+                    <span class="feed__text">
+                      <strong>{{ e.adminName }}</strong> {{ labels.auditAction(e.action).label | lowercase }}
+                      @if (entityRoute(e.entityType, e.entityId); as route) {
+                        <a [routerLink]="route">{{ labels.entityType(e.entityType).label }} #{{ e.entityId }}</a>
+                      } @else {
+                        {{ labels.entityType(e.entityType).label }}{{ e.entityId ? ' #' + e.entityId : '' }}
+                      }
+                      <small>{{ fmt.ago(e.createdAt) }}</small>
+                    </span>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+        </div>
       </div>
-    </section>
+    }
   }
 </div>
