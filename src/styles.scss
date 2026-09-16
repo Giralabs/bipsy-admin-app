@@ -1,269 +1,786 @@
 /* ============================================================
-   BIPSY ADMIN — Global Design System
-   Matches bipsy-web-app / mobile Flutter app aesthetics
+   BIPSY ADMIN — sistema de diseño
+   Mismos tokens que bipsy-web-app y bipsy-business-web-app (y que
+   gipsi_shared_ui en Flutter): modo "lift". Una superficie se lee
+   como superficie porque es MÁS CLARA que el suelo; sin cristal,
+   sin bordes y sin sombras. Lo único que flota (diálogos, avisos,
+   buscador) conserva la sombra.
+
+   El tema lo decide ThemeService escribiendo data-theme en <html>
+   (un script en index.html lo pone antes del primer pintado para
+   que no parpadee). Por eso aquí no hay prefers-color-scheme.
    ============================================================ */
+
+@mixin light-tokens {
+  --clr-base: #ECEEED;
+  --clr-band: #F6F7F6;
+  --clr-surface: #FFFFFF;
+  --clr-surface-2: #F0F3F1;
+  --clr-field: #F0F3F1;
+  --clr-subtle: #DFE5E1;
+  --clr-border: #E4E8E6;
+  --clr-hairline: rgba(0, 0, 0, 0.07);
+
+  --clr-accent: #2E343B;
+  --clr-accent-hover: #44544B;
+  --clr-on-accent: #C0EED3;
+  --clr-accent-dim: rgba(46, 52, 59, 0.08);
+  --clr-accent-text: #2E343B;
+
+  --clr-text: #1A2529;
+  --clr-text-2: #4C5A54;
+  --clr-text-3: #8A958F;
+
+  --clr-success-text: #2F8A5C;
+  --clr-warn-text: #A85B00;
+  --clr-danger-text: #D70015;
+  --clr-info-text: #3D7A93;
+
+  --shadow-float: 0 18px 48px rgba(29, 41, 47, 0.16);
+  --clr-scrim: rgba(30, 36, 40, 0.32);
+  color-scheme: light;
+}
+
 :root {
-  /* ── Base Colors (matching GipsiColors in Flutter) ── */
-  --clr-base:     #21242a;   /* main background */
-  --clr-surface:  #23282f;   /* card surface */
-  --clr-card:     rgba(255,255,255,0.055);  /* glass card bg */
-  --clr-border:   rgba(255,255,255,0.10);   /* card border */
-  --clr-border-hover: rgba(185,235,208,0.30);
-  --clr-input:    rgba(255,255,255,0.06);
+  /* Suelo y superficies (GipsiColors lift*) */
+  --clr-base: #23282E;
+  --clr-band: #2A3036;
+  --clr-surface: #333A41;
+  --clr-surface-2: #3F464E;
+  --clr-field: rgba(255, 255, 255, 0.07);
+  --clr-subtle: rgba(255, 255, 255, 0.10);
+  --clr-border: #454C54;
+  --clr-hairline: rgba(255, 255, 255, 0.07);
 
-  /* ── Brand Mint (GipsiColors.primary) ── */
-  --clr-mint:       #b9ebd0;
-  --clr-mint-hover: #cef2df;
-  --clr-mint-dim:   rgba(185,235,208,0.12);
-  --clr-mint-glow:  rgba(185,235,208,0.35);
-  --clr-mint-text:  #0c1a11;
+  /* Acento: menta en oscuro, pizarra en claro (primary / onPrimary) */
+  --clr-accent: #C0EED3;
+  --clr-accent-hover: #D4F7E3;
+  --clr-on-accent: #2E343B;
+  --clr-accent-dim: rgba(192, 238, 211, 0.12);
+  --clr-accent-text: #C0EED3;
 
-  /* ── Text ── */
-  --clr-text:      #f0f4f8;
-  --clr-text-2:    #8e9aaa;
-  --clr-text-3:    #5a6470;
+  --clr-mint: #C0EED3;
+  --clr-sage: #83A38E;
 
-  /* ── Semantic (reputation / ticket status) ── */
-  --clr-green:      #7fd99a;
-  --clr-green-dim:  rgba(127,217,154,0.14);
-  --clr-orange:     #FFBA49;
-  --clr-orange-dim: rgba(255,186,73,0.14);
-  --clr-red:        #ff8a8a;
-  --clr-red-dim:    rgba(255,138,138,0.14);
-  --clr-blue:       #7fb8ff;
-  --clr-blue-dim:   rgba(127,184,255,0.14);
+  --clr-text: #F5F7F6;
+  --clr-text-2: #B5C3BE;
+  --clr-text-3: #7F8E89;
 
-  /* ── Radii (matching GipsiRadii) ── */
-  --r-xs:   6px;
-  --r-sm:   12px;
-  --r-md:   16px;
-  --r-lg:   20px;
-  --r-xl:   24px;
+  /* Semánticos: relleno (sin -text) y texto legible sobre tarjeta (-text) */
+  --clr-success: #5FB98A;
+  --clr-warn: #E8B657;
+  --clr-danger: #E67676;
+  --clr-info: #7FB2C7;
+  --clr-success-text: #7FD1A6;
+  --clr-warn-text: #FFB84D;
+  --clr-danger-text: #FF8A80;
+  --clr-info-text: #9CCBDD;
+
+  --r-xs: 10px;
+  --r-sm: 16px;
+  --r-md: 20px;
+  --r-lg: 24px;
+  --r-xl: 28px;
   --r-pill: 999px;
 
-  /* ── Shadows ── */
-  --shadow-card: 0 6px 24px rgba(0,0,0,0.30), 0 1px 0 rgba(255,255,255,0.04) inset;
-  --shadow-glow: 0 0 24px rgba(185,235,208,0.40);
+  --shadow-float: 0 18px 48px rgba(0, 0, 0, 0.45);
+  --clr-scrim: rgba(13, 16, 20, 0.6);
 
-  /* ── Blur ── */
-  --blur-glass: blur(16px) saturate(1.4);
+  --ff: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ff-display: 'Bricolage Grotesque', 'Plus Jakarta Sans', system-ui, sans-serif;
 
-  /* ── Typography ── */
-  --ff: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --sidebar-w: 256px;
 
-  --clr-btn-sec-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
-  --clr-btn-sec-border: rgba(255, 255, 255, 0.16);
-  --clr-btn-sec-bg-hover: linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.05) 100%);
-  --clr-btn-sec-border-hover: rgba(255, 255, 255, 0.26);
-
-  --clr-btn-prim-bg: linear-gradient(135deg, var(--clr-mint) 0%, rgba(185, 235, 208, 0.70) 100%);
-  --clr-btn-prim-shadow: 0 4px 12px rgba(185, 235, 208, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  --clr-btn-prim-bg-hover: linear-gradient(135deg, var(--clr-mint-hover) 0%, rgba(185, 235, 208, 0.80) 100%);
+  color-scheme: dark;
 }
 
-*, *::before, *::after { box-sizing: border-box; }
+:root[data-theme='light'] { @include light-tokens; }
 
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  background-color: var(--clr-base);
+/* ----- RESET -------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; }
+
+body {
+  background: var(--clr-base);
   color: var(--clr-text);
   font-family: var(--ff);
+  font-size: 0.9375rem;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, p, dl, dd, dt {
-  margin: 0;
-}
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; }
+button, input, select, textarea { font: inherit; color: inherit; }
 
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: var(--clr-base); }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--clr-mint); }
+::selection { background: var(--clr-mint); color: #2E343B; }
 
-/* Foco de teclado visible en todo el panel: sin esto el anillo por defecto
-   del navegador (azul, pensado para fondos claros) es casi invisible sobre
-   el tema oscuro. */
 :focus-visible {
-  outline: 2px solid var(--clr-mint);
+  outline: 2px solid var(--clr-accent);
   outline-offset: 2px;
-  border-radius: var(--r-xs);
+  border-radius: 6px;
 }
 
-a, button {
-  font-family: var(--ff);
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--clr-border); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: var(--clr-text-3); }
+
+.material-symbols-rounded {
+  font-family: 'Material Symbols Rounded';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+  user-select: none;
+  flex-shrink: 0;
+}
+.material-symbols-rounded.fill { font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
+
+/* Visibilidad por tema: solo esconden, nunca imponen display. */
+:root[data-theme='light'] .only-dark { display: none !important; }
+:root:not([data-theme='light']) .only-light { display: none !important; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
 }
 
 /* ============================================================
-   GLASSMORPHISM CARD  — matches Flutter BusinessCard
+   TIPOGRAFÍA — GipsiTypography
    ============================================================ */
-.glass-card {
-  background: var(--clr-card);
-  border: 1.2px solid var(--clr-border);
-  border-radius: var(--r-xl);
-  backdrop-filter: var(--blur-glass);
-  -webkit-backdrop-filter: var(--blur-glass);
-  box-shadow: var(--shadow-card);
+.t-display { font-family: var(--ff-display); font-size: 2rem; font-weight: 800; line-height: 1.05; letter-spacing: -1.2px; }
+.t-h2 { font-family: var(--ff-display); font-size: 1.5rem; font-weight: 700; line-height: 1.15; letter-spacing: -0.6px; }
+.t-h3 { font-family: var(--ff-display); font-size: 1.125rem; font-weight: 700; line-height: 1.2; letter-spacing: -0.3px; }
+.t-body { font-size: 0.875rem; font-weight: 500; color: var(--clr-text-2); line-height: 1.55; }
+.t-caption { font-size: 0.75rem; font-weight: 500; color: var(--clr-text-3); }
+.t-muted { color: var(--clr-text-2); }
+.t-faint { color: var(--clr-text-3); }
+.t-num { font-variant-numeric: tabular-nums; }
+.t-mono { font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace; font-size: 0.8125rem; }
+.t-danger { color: var(--clr-danger-text); }
+.t-success { color: var(--clr-success-text); }
+.t-clip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.overline {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--clr-text-2);
 }
 
 /* ============================================================
-   BUTTONS
+   PÁGINA
    ============================================================ */
-.btn-mint {
+.page {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 36px 40px 96px;
+  /* `backwards` y no `both`: con el fotograma final retenido, el transform
+     seguía activo y convertía la página en el marco de los `position: fixed`
+     de dentro. El velo de los diálogos quedaba recortado a la página en vez
+     de cubrir la ventana. */
+  animation: fade-up .35s var(--ease-out) backwards;
+}
+.page--narrow { max-width: 860px; }
+
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.page-head__text { min-width: 0; }
+.page-head__sub { margin-top: 8px; font-size: 0.875rem; font-weight: 500; color: var(--clr-text-2); }
+.page-head__actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 4px 8px 4px 0;
+  color: var(--clr-text-2);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+.back-link:hover { color: var(--clr-text); }
+.back-link .material-symbols-rounded { font-size: 18px; }
+
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.stack--lg { gap: 24px; }
+.cluster { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.spacer { flex: 1; }
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 24px;
+  align-items: start;
+}
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+
+@media (max-width: 1100px) {
+  .split { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .page { padding: 24px 16px 96px; }
+  .grid-2 { grid-template-columns: minmax(0, 1fr); }
+  .t-display { font-size: 1.625rem; }
+}
+
+/* ============================================================
+   SUPERFICIES
+   ============================================================ */
+.card {
+  background: var(--clr-surface);
+  border-radius: var(--r-md);
+  padding: 20px 22px;
+}
+.card--flush { padding: 0; overflow: hidden; }
+
+.card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.card--flush .card__head { padding: 18px 22px 0; }
+.card__title { font-family: var(--ff-display); font-size: 1.0625rem; font-weight: 700; letter-spacing: -0.3px; }
+.card__link {
+  font-size: 0.8125rem; font-weight: 700; color: var(--clr-accent-text);
+  text-decoration: none; display: inline-flex; align-items: center; gap: 2px;
+}
+.card__link:hover { text-decoration: underline; }
+
+/* ── Bloque agrupado (Ajustes de iOS / GipsiGroupedSection) ── */
+.group__header { padding: 0 4px 6px; }
+.group__box { background: var(--clr-surface); border-radius: var(--r-sm); overflow: hidden; }
+.group__footer { padding: 8px 4px 0; font-size: 0.75rem; font-weight: 500; color: var(--clr-text-2); max-width: 64ch; }
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 10px 16px;
+  font-size: 0.875rem;
+  width: 100%;
+  border: none;
+  background: none;
+  text-align: left;
+  text-decoration: none;
+  color: var(--clr-text);
+}
+.row + .row { box-shadow: inset 0 0.5px 0 var(--clr-border); }
+button.row, a.row { cursor: pointer; transition: background-color .15s ease; }
+button.row:hover, a.row:hover { background: var(--clr-surface-2); }
+.row__icon { font-size: 20px; color: var(--clr-accent-text); }
+.row__label { display: flex; flex-direction: column; gap: 1px; min-width: 0; font-weight: 500; }
+.row__label small { font-size: 0.75rem; color: var(--clr-text-2); font-weight: 500; }
+.row__value {
+  margin-left: auto; color: var(--clr-text-2); font-weight: 500; text-align: right;
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%;
+}
+.row__trail { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; }
+.row__chevron { font-size: 18px; color: var(--clr-text-3); }
+.row--danger { color: var(--clr-danger-text); }
+
+/* ============================================================
+   BOTONES — GipsiButton en modo plano
+   ============================================================ */
+.btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 11px 22px;
-  border-radius: var(--r-pill);
-  background: var(--clr-btn-prim-bg);
-  color: var(--clr-mint-text);
-  font-weight: 700;
-  font-size: 0.9rem;
-  font-family: var(--ff);
+  gap: 6px;
+  height: 42px;
+  padding: 0 18px;
   border: none;
-  cursor: pointer;
-  box-shadow: var(--clr-btn-prim-shadow);
-  transition: all .25s cubic-bezier(.4,0,.2,1);
-  letter-spacing: -.2px;
-
-  &:hover:not(:disabled) {
-    background: var(--clr-btn-prim-bg-hover);
-    transform: translateY(-1px);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: default;
-  }
-}
-
-.btn-ghost {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
   border-radius: var(--r-pill);
-  border: 1.2px solid var(--clr-border);
-  background: var(--clr-btn-sec-bg);
-  color: var(--clr-text);
-  font-weight: 600;
-  font-size: 0.85rem;
-  font-family: var(--ff);
-  cursor: pointer;
-  transition: all .2s ease;
-
-  &:hover:not(:disabled) {
-    background: var(--clr-btn-sec-bg-hover);
-    border-color: var(--clr-btn-sec-border-hover);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: default;
-  }
-}
-
-.btn-danger {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  border-radius: var(--r-pill);
-  border: none;
-  background: var(--clr-red);
-  color: #3a0a0a;
+  font-size: 0.8125rem;
   font-weight: 700;
-  font-size: 0.85rem;
-  font-family: var(--ff);
-  cursor: pointer;
-  transition: all .2s ease;
-
-  &:hover:not(:disabled) { filter: brightness(1.08); }
-  &:disabled { opacity: 0.5; cursor: default; }
-}
-
-/* ============================================================
-   BADGE / PILL — matches GipsiChip / RatingBadge
-   ============================================================ */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 12px;
-  border-radius: var(--r-pill);
-  font-size: 0.75rem;
-  font-weight: 700;
-  border: 1px solid transparent;
+  letter-spacing: -0.1px;
   white-space: nowrap;
-
-  &--green  { background: var(--clr-green-dim);  color: var(--clr-green);  border-color: rgba(127,217,154,.30); }
-  &--orange { background: var(--clr-orange-dim); color: var(--clr-orange); border-color: rgba(255,186,73,.30); }
-  &--red    { background: var(--clr-red-dim);    color: var(--clr-red);    border-color: rgba(255,138,138,.30); }
-  &--blue   { background: var(--clr-blue-dim);   color: var(--clr-blue);   border-color: rgba(127,184,255,.30); }
-  &--neutral{ background: var(--clr-input);      color: var(--clr-text-2); border-color: var(--clr-border); }
-}
-
-/* ============================================================
-   FORM INPUTS
-   ============================================================ */
-.input-field, select.input-field, textarea.input-field {
-  width: 100%;
-  padding: 12px 16px;
-  background: var(--clr-input);
-  border: 1.2px solid var(--clr-border);
-  border-radius: var(--r-md);
+  text-decoration: none;
+  cursor: pointer;
+  background: var(--clr-surface);
   color: var(--clr-text);
-  font-family: var(--ff);
-  font-size: 0.9rem;
-  outline: none;
-  transition: border-color .2s ease, box-shadow .2s ease;
+  transition: background-color .18s ease, color .18s ease, transform .1s ease, opacity .18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:active:not(:disabled) { transform: scale(0.96); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn .material-symbols-rounded { font-size: 18px; }
 
-  &:focus {
-    border-color: var(--clr-mint);
-    box-shadow: 0 0 0 3px var(--clr-mint-dim);
-  }
+.btn--primary { background: var(--clr-accent); color: var(--clr-on-accent); }
+.btn--primary:hover:not(:disabled) { background: var(--clr-accent-hover); }
+.btn--secondary:hover:not(:disabled), .btn:not([class*='btn--']):hover:not(:disabled) { background: var(--clr-surface-2); }
+.btn--subtle { background: var(--clr-subtle); }
+.btn--subtle:hover:not(:disabled) { background: var(--clr-surface-2); }
+.btn--ghost { background: transparent; color: var(--clr-text-2); }
+.btn--ghost:hover:not(:disabled) { background: var(--clr-field); color: var(--clr-text); }
+.btn--danger { background: rgba(230, 118, 118, 0.16); color: var(--clr-danger-text); }
+.btn--danger:hover:not(:disabled) { background: rgba(230, 118, 118, 0.26); }
+.btn--sm { height: 34px; padding: 0 14px; font-size: 0.78rem; }
+.btn--block { width: 100%; }
+.btn--icon { width: 38px; height: 38px; padding: 0; }
+.btn--icon.btn--sm { width: 32px; height: 32px; }
 
-  &::placeholder { color: var(--clr-text-3); }
+.card .btn:not([class*='btn--primary']):not([class*='btn--danger']):not([class*='btn--ghost']),
+.group__box .btn:not([class*='btn--primary']):not([class*='btn--danger']):not([class*='btn--ghost']) {
+  background: var(--clr-field);
+}
+.card .btn:not([class*='btn--primary']):not([class*='btn--danger']):not([class*='btn--ghost']):hover:not(:disabled) {
+  background: var(--clr-subtle);
 }
 
-/* Divider */
-.divider {
-  height: 1px;
-  background: var(--clr-border);
-}
-
-/* Fila "sin resultados" de una tabla: centrada y en tono apagado, en vez de
-   texto plano a la izquierda como si fuera una fila de datos más. */
-.table-empty {
-  text-align: center !important;
-  padding: 2.5rem 1rem !important;
-  color: var(--clr-text-3);
-  font-size: 0.85rem;
+.spinner {
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 2px solid currentColor; border-right-color: transparent;
+  animation: spin .7s linear infinite;
 }
 
 /* ============================================================
-   ANIMATIONS
+   CAMPOS — sin bordes; el foco se dice con el relleno
    ============================================================ */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field__label { font-size: 0.75rem; font-weight: 700; color: var(--clr-text-2); padding: 0 2px; }
+.field__hint { font-size: 0.75rem; color: var(--clr-text-3); padding: 0 2px; }
+
+.input {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 14px;
+  background: var(--clr-field);
+  color: var(--clr-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  outline: none;
+  transition: background-color .18s ease, box-shadow .18s ease;
+}
+.input::placeholder { color: var(--clr-text-3); }
+.input:focus { background: var(--clr-subtle); box-shadow: inset 0 0 0 1.5px var(--clr-accent-dim); }
+.input:disabled { opacity: .55; }
+textarea.input { resize: vertical; line-height: 1.5; min-height: 88px; }
+select.input {
+  appearance: none;
+  padding-right: 36px;
+  cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--clr-text-2) 50%),
+    linear-gradient(135deg, var(--clr-text-2) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 55%, calc(100% - 13px) 55%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
+select.input option { background: var(--clr-surface); color: var(--clr-text); }
+
+/* Sobre el suelo el campo necesita el relleno de tarjeta para verse. */
+.toolbar .input { background: var(--clr-surface); }
+.toolbar .input:focus { background: var(--clr-surface-2); }
+
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 260px;
+  max-width: 420px;
+}
+.search .material-symbols-rounded {
+  position: absolute; left: 12px; color: var(--clr-text-3); pointer-events: none;
+}
+.search .input { padding-left: 40px; }
+
+.check {
+  display: flex; align-items: center; gap: 10px; cursor: pointer;
+  font-size: 0.875rem; font-weight: 500;
+}
+.check input { width: 18px; height: 18px; accent-color: var(--clr-sage); }
+
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.form-grid .field--full { grid-column: 1 / -1; }
+@media (max-width: 640px) { .form-grid { grid-template-columns: minmax(0, 1fr); } }
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
 }
 
-.anim-fade-up {
-  animation: fadeUp .35s cubic-bezier(.16,1,.3,1) both;
+/* ============================================================
+   PASTILLAS — GipsiStatusPill
+   ============================================================ */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  background: var(--clr-subtle);
+  color: var(--clr-text-2);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+.pill .material-symbols-rounded { font-size: 13px; font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 20; }
+.pill--mint { background: var(--clr-accent-dim); color: var(--clr-accent-text); }
+.pill--success { background: rgba(95, 185, 138, 0.16); color: var(--clr-success-text); }
+.pill--warn { background: rgba(232, 182, 87, 0.18); color: var(--clr-warn-text); }
+.pill--danger { background: rgba(230, 118, 118, 0.16); color: var(--clr-danger-text); }
+.pill--info { background: rgba(127, 178, 199, 0.18); color: var(--clr-info-text); }
+
+.count-badge {
+  min-width: 20px; height: 20px; padding: 0 6px; border-radius: var(--r-pill);
+  background: var(--clr-danger); color: #fff; font-size: 0.6875rem; font-weight: 800;
+  display: inline-flex; align-items: center; justify-content: center;
 }
 
-@keyframes shimmer {
-  0%   { background-position: -200px 0; }
-  100% { background-position: calc(200px + 100%) 0; }
+/* ============================================================
+   TABLAS — filas con separador sangrado, como una lista agrupada
+   ============================================================ */
+.table-card { background: var(--clr-surface); border-radius: var(--r-md); overflow: hidden; }
+.table-scroll { overflow-x: auto; }
+
+.table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.table th {
+  padding: 14px 16px 10px;
+  text-align: left;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--clr-text-3);
+  white-space: nowrap;
+}
+.table td {
+  padding: 12px 16px;
+  vertical-align: middle;
+  box-shadow: inset 0 0.5px 0 var(--clr-border);
+}
+.table th:first-child, .table td:first-child { padding-left: 22px; }
+.table th:last-child, .table td:last-child { padding-right: 22px; }
+.table tr.is-link { cursor: pointer; transition: background-color .12s ease; }
+.table tr.is-link:hover td { background: var(--clr-surface-2); }
+.table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.table .nowrap { white-space: nowrap; }
+
+.cell-main { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.cell-main__text { display: flex; flex-direction: column; min-width: 0; }
+.cell-main__text strong { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cell-main__text small { font-size: 0.75rem; color: var(--clr-text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.table-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 16px 12px 22px;
+  box-shadow: inset 0 0.5px 0 var(--clr-border);
+  font-size: 0.8125rem; color: var(--clr-text-2);
 }
 
-.skeleton-line {
-  display: block;
-  border-radius: var(--r-xs);
-  background: linear-gradient(90deg, var(--clr-input) 25%, rgba(255,255,255,0.10) 50%, var(--clr-input) 75%);
-  background-size: 200px 100%;
-  animation: shimmer 1.4s ease-in-out infinite;
+.skeleton-row td { padding: 16px; }
+.skeleton-row .skeleton { height: 18px; }
+
+/* Recargando con datos ya pintados: se atenúa en vez de saltar a esqueleto. */
+.table-card.is-loading tbody { opacity: .55; transition: opacity .2s ease; pointer-events: none; }
+
+/* ============================================================
+   CHIPS DE OPCIÓN — GipsiChip: relleno de tarjeta, el elegido con acento
+   ============================================================ */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border: none;
+  border-radius: var(--r-pill);
+  background: var(--clr-field);
+  color: var(--clr-text);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color .18s ease, color .18s ease;
+}
+.chip:hover { background: var(--clr-subtle); }
+.chip.is-on { background: var(--clr-accent); color: var(--clr-on-accent); font-weight: 700; }
+.chip .material-symbols-rounded { font-size: 16px; }
+
+/* ============================================================
+   CABECERA DE FICHA (cliente, negocio)
+   ============================================================ */
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 22px;
+  border-radius: var(--r-lg);
+  background: var(--clr-surface);
+  margin-bottom: 16px;
+}
+.profile__text { flex: 1; min-width: 0; }
+.profile__sub {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--clr-text-2);
+}
+.profile__copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+
+  .material-symbols-rounded { font-size: 14px; opacity: 0; transition: opacity .15s ease; }
+  &:hover { color: var(--clr-text); }
+  &:hover .material-symbols-rounded { opacity: 1; }
+}
+.profile__pills { margin-top: 10px; }
+.profile__actions { display: flex; gap: 8px; flex-wrap: wrap; align-self: flex-start; }
+
+@media (max-width: 760px) {
+  .profile { flex-wrap: wrap; align-items: flex-start; }
+  .profile__actions { width: 100%; }
+}
+
+/* ============================================================
+   AVATAR
+   ============================================================ */
+.avatar {
+  --size: 36px;
+  width: var(--size); height: var(--size); border-radius: 50%;
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--clr-field); color: var(--clr-text-2);
+  font-size: calc(var(--size) * 0.36); font-weight: 700; overflow: hidden;
+  letter-spacing: 0.3px;
+}
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.avatar--mint { background: var(--clr-accent); color: var(--clr-on-accent); }
+.avatar--square { border-radius: 30%; }
+
+/* ============================================================
+   ESTADÍSTICAS
+   ============================================================ */
+.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+.stat {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 18px 20px; border-radius: var(--r-md); background: var(--clr-surface);
+  text-decoration: none; color: inherit; transition: background-color .18s ease;
+}
+a.stat:hover { background: var(--clr-surface-2); }
+.stat__label { display: flex; align-items: center; gap: 8px; font-size: 0.8125rem; font-weight: 600; color: var(--clr-text-2); }
+.stat__label .material-symbols-rounded { font-size: 18px; color: var(--clr-text-3); }
+.stat__value {
+  font-family: var(--ff-display); font-size: 2rem; font-weight: 800; letter-spacing: -1px;
+  line-height: 1.05; font-variant-numeric: tabular-nums;
+}
+.stat__sub { font-size: 0.75rem; font-weight: 500; color: var(--clr-text-3); }
+.stat__sub strong { color: var(--clr-success-text); font-weight: 700; }
+.stat--warn .stat__sub strong { color: var(--clr-warn-text); }
+
+.bars { display: flex; flex-direction: column; gap: 12px; }
+.bar { display: grid; grid-template-columns: 120px 1fr 48px; align-items: center; gap: 12px; font-size: 0.8125rem; }
+.bar__label { color: var(--clr-text-2); font-weight: 500; }
+.bar__track { height: 8px; border-radius: var(--r-pill); background: var(--clr-field); overflow: hidden; }
+/* block: son <span> y, en línea, el ancho en % no se aplica y la barra sale vacía. */
+.bar__track, .bar__fill { display: block; }
+.bar__fill { height: 100%; border-radius: inherit; background: var(--clr-text-3); transition: width .6s var(--ease-out); }
+.bar__count { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.fill--success { background: var(--clr-success); }
+.fill--warn { background: var(--clr-warn); }
+.fill--danger { background: var(--clr-danger); }
+.fill--info { background: var(--clr-info); }
+.fill--mint { background: var(--clr-sage); }
+
+/* ============================================================
+   ESTADOS: vacío, error, carga
+   ============================================================ */
+.empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; gap: 6px; padding: 48px 24px; color: var(--clr-text-2);
+}
+.empty > .material-symbols-rounded { font-size: 40px; color: var(--clr-text-3); margin-bottom: 6px; }
+.empty h3 { font-family: var(--ff-display); font-size: 1.125rem; font-weight: 700; letter-spacing: -0.3px; color: var(--clr-text); }
+.empty p { font-size: 0.875rem; max-width: 420px; }
+.empty .btn { margin-top: 12px; }
+
+.skeleton {
+  display: block; border-radius: 10px; background: var(--clr-subtle);
+  animation: pulse 1.4s ease-in-out infinite alternate;
+}
+
+.notice {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px 14px; border-radius: var(--r-sm);
+  background: var(--clr-surface); font-size: 0.8125rem; font-weight: 500; color: var(--clr-text-2);
+}
+.notice .material-symbols-rounded { font-size: 20px; color: var(--clr-info-text); }
+.notice--warn .material-symbols-rounded { color: var(--clr-warn-text); }
+.notice--danger .material-symbols-rounded { color: var(--clr-danger-text); }
+
+.kbd {
+  display: inline-flex; align-items: center; height: 20px; padding: 0 6px;
+  border-radius: 6px; background: var(--clr-subtle); color: var(--clr-text-2);
+  font-size: 0.6875rem; font-weight: 700; font-family: var(--ff);
+}
+
+.divider { height: 0.5px; background: var(--clr-border); border: none; }
+
+/* ============================================================
+   DIÁLOGOS — lo único con velo y sombra
+   ============================================================ */
+/* Con un diálogo abierto, lo de detrás no se desplaza. */
+html:has(.scrim) { overflow: hidden; }
+
+.scrim {
+  position: fixed; inset: 0; z-index: 900;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+  background: var(--clr-scrim);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  animation: fade-in .18s ease both;
+}
+.dialog {
+  width: 100%; max-width: 460px; max-height: 88vh; overflow-y: auto;
+  padding: 24px; border-radius: var(--r-xl);
+  background: var(--clr-surface); box-shadow: var(--shadow-float);
+  animation: pop .22s var(--ease-out) backwards;
+}
+.dialog--wide { max-width: 560px; }
+.dialog__title { font-family: var(--ff-display); font-size: 1.25rem; font-weight: 700; letter-spacing: -0.4px; }
+.dialog__text { margin-top: 8px; font-size: 0.875rem; color: var(--clr-text-2); }
+.dialog__body { margin-top: 18px; display: flex; flex-direction: column; gap: 14px; }
+.dialog__actions { margin-top: 22px; display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+
+/* ============================================================
+   ANIMACIÓN
+   ============================================================ */
+@keyframes fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pop { from { opacity: 0; transform: scale(.96) translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes pulse { from { opacity: .45; } to { opacity: .9; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ============================================================
+   ACCESIBILIDAD — preferencias de Mi cuenta (PreferencesService)
+   ============================================================ */
+@mixin no-motion {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* "Sistema" sigue al sistema operativo; "Reducir" y "Completas" lo fuerzan. */
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-motion='full']) { @include no-motion; }
+}
+html[data-motion='reduce'] { @include no-motion; }
+
+/* Tamaño de letra: casi todo va en rem, así que escala el panel entero. */
+html[data-text='large'] { font-size: 112.5%; }
+html[data-text='xlarge'] { font-size: 125%; }
+
+/* Alto contraste: textos secundarios más legibles y bordes que separan cada
+   superficie, que en modo plano solo se distinguen por el tono. */
+:root[data-contrast='high'] {
+  --clr-text-2: #E1E8E5;
+  --clr-text-3: #BAC6C1;
+  --clr-border: #7A838C;
+  --clr-subtle: rgba(255, 255, 255, 0.18);
+  --clr-field: rgba(255, 255, 255, 0.12);
+  --clr-danger-text: #FFB3AB;
+  --clr-warn-text: #FFD08A;
+  --clr-success-text: #A6E8C4;
+}
+:root[data-theme='light'][data-contrast='high'] {
+  --clr-text-2: #243029;
+  --clr-text-3: #4A5751;
+  --clr-border: #7F8A85;
+  --clr-subtle: #C5CFCA;
+  --clr-field: #E3E8E5;
+  --clr-danger-text: #A3000F;
+  --clr-warn-text: #7A4200;
+  --clr-success-text: #1D6B45;
+}
+html[data-contrast='high'] {
+  .card, .table-card, .group__box, .stat, .profile, .dialog, .attention__item, .tile, .tabs,
+  .input, .chip, .btn:not(.btn--primary):not(.btn--ghost) {
+    box-shadow: inset 0 0 0 1px var(--clr-border);
+  }
+  .pill { box-shadow: inset 0 0 0 1px currentColor; }
+}
+
+/* Enlaces subrayados: el color solo no basta para quien no distingue tonos. */
+html[data-links='underline'] {
+  a:not(.btn):not(.row):not(.stat):not(.side__link):not(.side__brand):not(.side__me):not(.tile):not(.attention__item):not(.topbar__me):not(.topbar__brand) {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+/* Dianas grandes: WCAG 2.5.5 pide 44 px; aquí se va a 48. */
+html[data-targets='large'] {
+  .btn { height: 48px; padding: 0 22px; font-size: 0.875rem; }
+  .btn--sm { height: 42px; }
+  .btn--icon { width: 48px; }
+  .btn--icon.btn--sm { width: 42px; height: 42px; }
+  .row { min-height: 56px; }
+  .input { min-height: 50px; }
+  .chip { height: 42px; padding: 0 18px; }
+  .table td { padding-top: 16px; padding-bottom: 16px; }
+}
+
+/* Foco muy visible: grueso, con halo y siempre por fuera. */
+html[data-focus='strong'] :focus-visible {
+  outline: 3px solid var(--clr-accent) !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 6px var(--clr-accent-dim) !important;
+}
+
+/* Flechas nativas de los campos numéricos: fuera. Donde hacen falta se usa
+   app-number-input, con botones − y + del tamaño de un dedo. */
+input[type='number'] { -moz-appearance: textfield; appearance: textfield; }
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* Autocompletado de Chrome: sin esto pinta el campo de azul/blanco. */
+.input:-webkit-autofill {
+  -webkit-text-fill-color: var(--clr-text);
+  -webkit-box-shadow: 0 0 0 1000px var(--clr-field) inset;
+  transition: background-color 100000s ease-in-out 0s;
 }
