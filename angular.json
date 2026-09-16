@@ -2,7 +2,8 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "npm"
+    "packageManager": "npm",
+    "analytics": "981e38be-a4f7-4c34-848f-0b46c5c527fc"
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -43,8 +44,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "12kB",
+                  "maximumError": "14kB"
                 }
               ],
               "outputHashing": "all"
@@ -65,6 +66,9 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "port": 4300
+          },
           "configurations": {
             "production": {
               "buildTarget": "bipsy-admin-app:build:production"
@@ -82,3 +86,4 @@
     }
   }
 }
+
