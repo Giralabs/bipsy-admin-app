@@ -1,235 +1,352 @@
-<div class="user-detail anim-fade-up">
-  <a routerLink="/users" class="back">← Volver a Usuarios</a>
+<div class="page">
+  <a routerLink="/users" class="back-link"><span class="material-symbols-rounded">arrow_back</span>Clientes</a>
 
-  @if (loading()) {
-    <p>Cargando…</p>
-  } @else if (customer(); as c) {
-    <header class="header">
-      <div>
-        <h1>{{ c.name }}</h1>
-        <p class="subtitle">&#64;{{ c.username }} · {{ c.email }}</p>
+  @if (loading() && !customer()) {
+    <div class="stack">
+      <span class="skeleton" style="height: 112px; border-radius: 20px"></span>
+      <span class="skeleton" style="height: 88px; border-radius: 20px"></span>
+      <span class="skeleton" style="height: 240px; border-radius: 20px"></span>
+    </div>
+  } @else if (error(); as e) {
+    <div class="card">
+      <div class="empty">
+        <span class="material-symbols-rounded">person_off</span>
+        <h3>No se ha podido abrir el cliente</h3>
+        <p>{{ e }}</p>
+        <button type="button" class="btn btn--primary" (click)="load()">Reintentar</button>
       </div>
-      <app-reputation-badge [reputation]="c.reputation" />
+    </div>
+  } @else if (customer(); as c) {
+    <header class="profile">
+      <app-avatar [name]="c.name" [src]="c.profileImageUrl" [size]="72" />
+      <div class="profile__text">
+        <h1 class="t-h2">{{ c.name }}</h1>
+        <p class="profile__sub">
+          <span>&#64;{{ c.username }}</span>
+          <button type="button" class="profile__copy" (click)="copy(c.email, 'Email')" title="Copiar email">
+            {{ c.email }}<span class="material-symbols-rounded">content_copy</span>
+          </button>
+        </p>
+        <div class="cluster profile__pills">
+          <app-pill [meta]="accountState()" />
+          <app-pill [meta]="labels.reputation(c.reputation)" />
+          @if (!c.emailVerified) { <span class="pill pill--warn"><span class="material-symbols-rounded">mail</span>Email sin verificar</span> }
+        </div>
+      </div>
+      @if (auth.canManage() && !c.deleted) {
+        <div class="profile__actions">
+          <button type="button" class="btn btn--ghost" (click)="confirmReset.set(true)">
+            <span class="material-symbols-rounded">restart_alt</span>Restablecer
+          </button>
+          <button type="button" class="btn btn--ghost" (click)="notifyOpen.set(true)">
+            <span class="material-symbols-rounded">notifications</span>Enviar aviso
+          </button>
+          <button type="button" class="btn btn--danger" (click)="openSanction()">
+            <span class="material-symbols-rounded">gavel</span>Sancionar
+          </button>
+        </div>
+      }
     </header>
 
-    <nav class="tabs">
-      <button type="button" [class.active]="tab() === 'perfil'" (click)="tab.set('perfil')">Perfil</button>
-      <button type="button" [class.active]="tab() === 'interacciones'" (click)="tab.set('interacciones')">
-        Interacciones
-      </button>
-      <button type="button" [class.active]="tab() === 'sanciones'" (click)="tab.set('sanciones')">Sanciones</button>
-      <button type="button" [class.active]="tab() === 'pagos'" (click)="tab.set('pagos')">Pagos</button>
-    </nav>
+    @if (activeSanction(); as s) {
+      <p class="notice notice--danger ud-banner">
+        <span class="material-symbols-rounded fill">gavel</span>
+        <span>
+          <strong>{{ s.type === 'BAN' ? 'Baneo permanente' : 'Suspendido hasta el ' + (s.endsAt | date: "d 'de' MMMM, HH:mm") }}</strong>
+          · {{ s.reason || 'Sin motivo indicado' }} · por {{ s.createdByName }}
+        </span>
+      </p>
+    }
+
+    <section class="stats ud-stats">
+      <div class="stat">
+        <span class="stat__label">Reservas</span>
+        <span class="stat__value">{{ int(c.totalBookings) }}</span>
+      </div>
+      <div class="stat" [class.stat--warn]="c.noShowCount > 0">
+        <span class="stat__label">No acudió</span>
+        <span class="stat__value">{{ int(c.noShowCount) }}</span>
+        @if (c.totalBookings > 0) { <span class="stat__sub">{{ (c.noShowCount / c.totalBookings * 100).toFixed(0) }} % de sus citas</span> }
+      </div>
+      <div class="stat">
+        <span class="stat__label">Negocios visitados</span>
+        <span class="stat__value">{{ c.interactions.length }}</span>
+      </div>
+      <div class="stat">
+        <span class="stat__label">Cobrado neto</span>
+        <span class="stat__value">{{ cents(chargedCents()) }}</span>
+      </div>
+    </section>
+
+    <app-tabs class="ud-tabs" [options]="tabs()" [value]="tab()" (valueChange)="setTab($event)" />
 
     @switch (tab()) {
-      @case ('perfil') {
-        <section class="panel">
-          <dl class="profile-grid">
-            <dt>Teléfono</dt><dd>{{ c.phone }}</dd>
-            <dt>Ciudad</dt><dd>{{ c.city || '—' }}</dd>
-            <dt>Provincia</dt><dd>{{ c.province || '—' }}</dd>
-            <dt>Proveedor de acceso</dt><dd>{{ c.authProvider }}</dd>
-            <dt>Email verificado</dt><dd>{{ c.emailVerified ? 'Sí' : 'No' }}</dd>
-            <dt>Cuenta baneada (legacy)</dt><dd>{{ c.banned ? 'Sí' : 'No' }}</dd>
-            <dt>Cuenta eliminada</dt><dd>{{ c.deleted ? 'Sí' : 'No' }}</dd>
-            <dt>Alta</dt><dd>{{ c.createdAt | date: 'medium' }}</dd>
-            <dt>No-shows</dt><dd>{{ c.noShowCount }}</dd>
-            <dt>Reservas totales</dt><dd>{{ c.totalBookings }}</dd>
-          </dl>
-
-          @if (auth.canManage()) {
-            <button type="button" class="danger" (click)="showResetConfirm.set(true)">Restablecer cuenta</button>
-          }
-        </section>
-      }
-
-      @case ('interacciones') {
-        <section class="panel">
-          @if (c.interactions.length === 0) {
-            <p>Este cliente aún no ha reservado en ningún negocio.</p>
-          } @else {
-            <table>
-              <thead>
-                <tr>
-                  <th>Negocio</th>
-                  <th>Visitas</th>
-                  <th>Servicios elegidos</th>
-                  <th>Vetado</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (i of c.interactions; track i.businessId) {
-                  <tr>
-                    <td>{{ i.businessName }}</td>
-                    <td>{{ i.visits }}</td>
-                    <td>{{ i.servicesChosen.join(', ') || '—' }}</td>
-                    <td>
-                      @if (i.vetoed) {
-                        <span class="pill danger">Sí{{ i.vetoReason ? ' · ' + i.vetoReason : '' }}</span>
-                      } @else {
-                        <span class="pill">No</span>
-                      }
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          }
-        </section>
-      }
-
-      @case ('sanciones') {
-        <section class="panel">
-          @if (auth.canManage()) {
-          <button type="button" (click)="showSanctionForm.set(true)">Sancionar</button>
-          }
-
-          @if (showSanctionForm()) {
-            <form class="sanction-form" [formGroup]="sanctionForm" (ngSubmit)="submitSanction()">
-              <label>
-                Tipo
-                <select formControlName="type">
-                  <option value="SUSPENSION">Expulsión temporal</option>
-                  <option value="BAN">Baneo permanente</option>
-                </select>
-              </label>
-
-              @if (isSuspension()) {
-                <label>
-                  Duración
-                  <select formControlName="durationPreset">
-                    <option value="7">7 días</option>
-                    <option value="15">15 días</option>
-                    <option value="30">30 días</option>
-                    <option value="custom">Fecha personalizada</option>
-                  </select>
-                </label>
-
-                @if (sanctionForm.controls.durationPreset.value === 'custom') {
-                  <label>
-                    Fecha de fin
-                    <input type="datetime-local" formControlName="customEndsAt" />
-                  </label>
-                }
-              }
-
-              <label>
-                Motivo
-                <textarea formControlName="reason" rows="2"></textarea>
-              </label>
-
-              <div class="actions">
-                <button type="button" class="secondary" (click)="showSanctionForm.set(false)">Cancelar</button>
-                <button type="submit" class="danger" [disabled]="sanctioning()">
-                  {{ sanctioning() ? 'Aplicando…' : 'Aplicar sanción' }}
-                </button>
+      @case ('summary') {
+        <div class="grid-2">
+          <section>
+            <p class="group__header overline">Contacto</p>
+            <div class="group__box">
+              <button type="button" class="row" (click)="copy(c.phone, 'Teléfono')">
+                <span class="material-symbols-rounded row__icon">call</span>
+                <span class="row__label">Teléfono</span>
+                <span class="row__value">{{ c.phone || '—' }}</span>
+              </button>
+              <button type="button" class="row" (click)="copy(c.email, 'Email')">
+                <span class="material-symbols-rounded row__icon">mail</span>
+                <span class="row__label">Email</span>
+                <span class="row__value">{{ c.email }}</span>
+              </button>
+              <div class="row">
+                <span class="material-symbols-rounded row__icon">location_on</span>
+                <span class="row__label">Ubicación</span>
+                <span class="row__value">{{ c.city || '—' }}{{ c.province ? ', ' + c.province : '' }}</span>
               </div>
-            </form>
-          }
-
-          @if (c.sanctions.length === 0) {
-            <p>Sin sanciones registradas.</p>
-          } @else {
-            <table>
-              <thead>
-                <tr>
-                  <th>Tipo</th>
-                  <th>Motivo</th>
-                  <th>Desde</th>
-                  <th>Hasta</th>
-                  <th>Estado</th>
-                  <th>IPs bloqueadas</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (s of c.sanctions; track s.id) {
-                  <tr>
-                    <td>{{ s.type === 'BAN' ? 'Baneo' : 'Expulsión temporal' }}</td>
-                    <td>{{ s.reason || '—' }}</td>
-                    <td>{{ s.createdAt | date: 'short' }}</td>
-                    <td>{{ s.endsAt ? (s.endsAt | date: 'short') : 'Permanente' }}</td>
-                    <td>
-                      @if (s.liftedAt) {
-                        <span class="pill">Levantada</span>
-                      } @else if (s.active) {
-                        <span class="pill danger">Activa</span>
-                      } @else {
-                        <span class="pill">Expirada</span>
-                      }
-                    </td>
-                    <td>{{ s.bannedIps.join(', ') || '—' }}</td>
-                    <td>
-                      @if (s.active && auth.canManage()) {
-                        <button type="button" (click)="liftSanction(s.id)" [disabled]="liftingSanctionId() === s.id">
-                          Levantar
-                        </button>
-                      }
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          }
-        </section>
+            </div>
+          </section>
+          <section>
+            <p class="group__header overline">Cuenta</p>
+            <div class="group__box">
+              <div class="row"><span class="row__label">Cliente nº</span><span class="row__value t-num">{{ c.id }}</span></div>
+              <div class="row"><span class="row__label">Acceso con</span><span class="row__value">{{ labels.authProvider(c.authProvider).label }}</span></div>
+              <div class="row"><span class="row__label">Email verificado</span><span class="row__value">{{ c.emailVerified ? 'Sí' : 'No' }}</span></div>
+              <div class="row"><span class="row__label">Alta</span><span class="row__value">{{ c.createdAt | date: "d MMM y" }} · {{ ago(c.createdAt) }}</span></div>
+            </div>
+            @if (auth.canManage()) {
+              <p class="group__footer">«Restablecer» borra la foto, la ciudad y los favoritos. No toca reservas, pagos ni contraseña.</p>
+            }
+          </section>
+        </div>
       }
 
-      @case ('pagos') {
-        <section class="panel">
-          <h3>Cargos</h3>
-          @if (c.charges.length === 0) {
-            <p>Sin cargos registrados.</p>
+      @case ('businesses') {
+        <div class="table-card">
+          @if (c.interactions.length === 0) {
+            <div class="empty"><span class="material-symbols-rounded">storefront</span><h3>Sin reservas todavía</h3><p>Este cliente aún no ha ido a ningún negocio.</p></div>
           } @else {
-            <table>
-              <thead>
-                <tr>
-                  <th>Concepto</th>
-                  <th>Negocio</th>
-                  <th>Importe</th>
-                  <th>Estado</th>
-                  <th>Fecha</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (charge of c.charges; track charge.id) {
-                  <tr>
-                    <td>{{ charge.kind }}</td>
-                    <td>{{ charge.businessName || '—' }}</td>
-                    <td>{{ formatAmount(charge.amountCents, charge.currency) }}</td>
-                    <td>{{ charge.status }}</td>
-                    <td>{{ charge.createdAt | date: 'short' }}</td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          }
-
-          <h3>Métodos de pago</h3>
-          @if (c.paymentMethods.length === 0) {
-            <p>No tiene tarjetas guardadas.</p>
-          } @else {
-            <ul class="payment-methods">
-              @for (pm of c.paymentMethods; track pm.id) {
-                <li>
-                  {{ pm.brand }} •••• {{ pm.last4 }} ({{ pm.expMonth }}/{{ pm.expYear }})
-                  @if (pm.isDefault) {
-                    <span class="pill">Predeterminada</span>
+            <div class="table-scroll">
+              <table class="table">
+                <thead><tr><th>Negocio</th><th class="num">Visitas</th><th>Servicios</th><th>Veto del negocio</th></tr></thead>
+                <tbody>
+                  @for (i of c.interactions; track i.businessId) {
+                    <tr>
+                      <td><a class="ud-link" [routerLink]="['/businesses', i.businessId]">{{ i.businessName }}</a></td>
+                      <td class="num">{{ i.visits }}</td>
+                      <td class="t-muted">{{ i.servicesChosen.join(', ') || '—' }}</td>
+                      <td>
+                        @if (i.vetoed) {
+                          <span class="pill pill--danger" [title]="i.vetoReason || ''"><span class="material-symbols-rounded">block</span>Vetado</span>
+                          @if (i.vetoReason) { <small class="ud-reason">{{ i.vetoReason }}</small> }
+                        } @else { <span class="t-faint">—</span> }
+                      </td>
+                    </tr>
                   }
-                </li>
-              }
-            </ul>
+                </tbody>
+              </table>
+            </div>
           }
-        </section>
+        </div>
+      }
+
+      @case ('sanctions') {
+        <div class="table-card">
+          @if (c.sanctions.length === 0) {
+            <div class="empty">
+              <span class="material-symbols-rounded">verified_user</span>
+              <h3>Sin sanciones</h3>
+              <p>Nunca se ha suspendido ni baneado a este cliente.</p>
+            </div>
+          } @else {
+            <div class="table-scroll">
+              <table class="table">
+                <thead><tr><th>Tipo</th><th>Motivo</th><th>Desde</th><th>Hasta</th><th>Estado</th><th>IPs</th><th></th></tr></thead>
+                <tbody>
+                  @for (s of c.sanctions; track s.id) {
+                    <tr>
+                      <td class="nowrap"><strong>{{ s.type === 'BAN' ? 'Baneo' : 'Suspensión' }}</strong><small class="ud-reason">por {{ s.createdByName }}</small></td>
+                      <td class="t-muted">{{ s.reason || '—' }}</td>
+                      <td class="nowrap t-muted">{{ s.createdAt | date: 'd MMM y' }}</td>
+                      <td class="nowrap t-muted">{{ s.endsAt ? (s.endsAt | date: 'd MMM y, HH:mm') : 'Permanente' }}</td>
+                      <td>
+                        <app-pill [meta]="sanctionState(s)" [icon]="false" />
+                        @if (s.liftedByName) { <small class="ud-reason">por {{ s.liftedByName }}</small> }
+                      </td>
+                      <td class="t-mono t-muted">{{ s.bannedIps.join(', ') || '—' }}</td>
+                      <td class="num">
+                        @if (s.active && !s.liftedAt && auth.canManage()) {
+                          <button type="button" class="btn btn--sm" (click)="liftTarget.set(s)">Levantar</button>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      }
+
+      @case ('bookings') { <app-bookings-table [customerId]="c.id" /> }
+      @case ('reviews') { <app-reviews-list [customerId]="c.id" /> }
+
+      @case ('payments') {
+        <div class="stack">
+          <div class="cluster">
+            <a class="btn btn--sm" [routerLink]="['/payments']" [queryParams]="{ customerId: c.id }"><span class="material-symbols-rounded">payments</span>Abrir en Cobros: devolver o cobrar</a>
+          </div>
+          <div class="table-card">
+            @if (c.charges.length === 0) {
+              <div class="empty"><span class="material-symbols-rounded">receipt_long</span><h3>Sin cobros</h3><p>No se le ha cobrado nada a este cliente.</p></div>
+            } @else {
+              <div class="table-scroll">
+                <table class="table">
+                  <thead><tr><th>Concepto</th><th>Negocio</th><th class="num">Importe</th><th>Estado</th><th>Fecha</th></tr></thead>
+                  <tbody>
+                    @for (ch of c.charges; track ch.id) {
+                      <tr class="is-link" [routerLink]="['/payments', ch.id]" tabindex="0">
+                        <td>
+                          <strong>{{ labels.chargeKind(ch.kind).label }}</strong>
+                          @if (ch.description) { <small class="ud-reason">{{ ch.description }}</small> }
+                        </td>
+                        <td>
+                          @if (ch.businessId) { <a class="ud-link" [routerLink]="['/businesses', ch.businessId]">{{ ch.businessName }}</a> } @else { — }
+                        </td>
+                        <td class="num nowrap">
+                          {{ cents(ch.amountCents, ch.currency) }}
+                          @if (ch.refundedCents > 0) { <small class="ud-reason">−{{ cents(ch.refundedCents, ch.currency) }} devuelto</small> }
+                        </td>
+                        <td>
+                          <app-pill [meta]="labels.chargeStatus(ch.status)" [icon]="false" />
+                          @if (ch.failureReason) { <small class="ud-reason t-danger">{{ ch.failureReason }}</small> }
+                        </td>
+                        <td class="nowrap t-muted">{{ ch.createdAt | date: 'd MMM y, HH:mm' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+
+          <section>
+            <p class="group__header overline">Tarjetas guardadas</p>
+            <div class="group__box">
+              @for (pm of c.paymentMethods; track pm.id) {
+                <div class="row">
+                  <span class="material-symbols-rounded row__icon">credit_card</span>
+                  <span class="row__label">{{ pm.brand | lowercase }} •••• {{ pm.last4 }}<small>Caduca {{ pm.expMonth }}/{{ pm.expYear }}</small></span>
+                  <span class="row__trail">
+                    @if (pm.isDefault) { <span class="pill pill--mint">Predeterminada</span> }
+                    @if (!pm.keepSaved) { <span class="pill">Temporal</span> }
+                  </span>
+                </div>
+              } @empty {
+                <div class="row t-muted">No tiene tarjetas guardadas.</div>
+              }
+            </div>
+          </section>
+        </div>
+      }
+
+      @case ('history') {
+        <div class="card card--flush">
+          @if (history() === null) {
+            <div class="empty"><span class="spinner"></span></div>
+          } @else if (historyUnavailable()) {
+            <p class="notice ud-pad"><span class="material-symbols-rounded">update</span>El historial por cliente necesita la versión nueva del backend (GET /admin/audit-log/entity).</p>
+          } @else if (history()!.length === 0) {
+            <div class="empty"><span class="material-symbols-rounded">history</span><h3>Sin acciones</h3><p>Nadie del equipo ha tocado esta cuenta desde el panel.</p></div>
+          } @else {
+            @for (e of history(); track e.id) {
+              <div class="row ud-hist">
+                <span class="material-symbols-rounded row__icon">{{ labels.auditAction(e.action).icon || 'bolt' }}</span>
+                <span class="row__label">
+                  <span><strong>{{ e.adminName }}</strong> {{ labels.auditAction(e.action).label | lowercase }} este cliente</span>
+                  @if (e.details) { <small>{{ e.details }}</small> }
+                </span>
+                <span class="row__value">{{ e.createdAt | date: 'd MMM y, HH:mm' }}</span>
+              </div>
+            }
+          }
+        </div>
       }
     }
 
+    <!-- ── Sancionar ── -->
+    @if (sanctionOpen()) {
+      <div class="scrim" (click)="!sanctioning() && sanctionOpen.set(false)">
+        <form class="dialog dialog--wide" (click)="$event.stopPropagation()" (submit)="$event.preventDefault(); submitSanction()">
+          <h2 class="dialog__title">Sancionar a {{ c.name }}</h2>
+          <p class="dialog__text">Mientras dure, no podrá iniciar sesión ni reservar. Se bloquea también su última IP conocida.</p>
+
+          <div class="dialog__body">
+            <app-segmented [options]="sanctionTypeOptions" [value]="sanctionType()" (valueChange)="sanctionType.set($event)" />
+
+            @if (sanctionType() === 'SUSPENSION') {
+              <div class="field">
+                <span class="field__label">Duración</span>
+                <div class="cluster">
+                  @for (d of durations; track d.days) {
+                    <button type="button" class="chip" [class.is-on]="sanctionDays() === d.days" (click)="sanctionDays.set(d.days)">{{ d.label }}</button>
+                  }
+                  <button type="button" class="chip" [class.is-on]="sanctionDays() === 'custom'" (click)="sanctionDays.set('custom')">Hasta una fecha</button>
+                </div>
+              </div>
+              @if (sanctionDays() === 'custom') {
+                <label class="field">
+                  <span class="field__label">Termina el</span>
+                  <input class="input" type="datetime-local" [value]="sanctionUntil()" (input)="sanctionUntil.set($any($event.target).value)" required />
+                </label>
+              }
+            } @else {
+              <p class="notice notice--danger"><span class="material-symbols-rounded fill">warning</span>El baneo no caduca. Solo se quita levantándolo a mano.</p>
+            }
+
+            <label class="field">
+              <span class="field__label">Motivo</span>
+              <textarea class="input" rows="3" maxlength="1000" placeholder="Queda en el historial. Ej.: 3 no-shows seguidos en marzo"
+                [value]="sanctionReason()" (input)="sanctionReason.set($any($event.target).value)"></textarea>
+            </label>
+
+            <label class="field">
+              <span class="field__label">IPs adicionales (opcional)</span>
+              <input class="input t-mono" type="text" placeholder="83.44.12.9, 2a02:9130::1"
+                [value]="sanctionIps()" (input)="sanctionIps.set($any($event.target).value)" />
+              <span class="field__hint">Separadas por comas. Útil si ha creado cuentas nuevas desde otra conexión.</span>
+            </label>
+          </div>
+
+          <div class="dialog__actions">
+            <button type="button" class="btn btn--ghost" (click)="sanctionOpen.set(false)" [disabled]="sanctioning()">Cancelar</button>
+            <button type="submit" class="btn btn--danger" [disabled]="sanctioning() || !sanctionValid()">
+              @if (sanctioning()) { <span class="spinner"></span> }
+              {{ sanctionType() === 'BAN' ? 'Banear' : 'Suspender' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <app-notify-dialog [open]="notifyOpen()" [actorId]="c.id" [name]="c.name" audience="Bipsy" (closed)="notifyOpen.set(false)" />
+
     <app-confirm-modal
-      [open]="showResetConfirm()"
-      title="Restablecer cuenta"
-      message="Se borrarán la foto, ciudad, provincia y favoritos del cliente. No se tocan sus reservas, pagos ni contraseña."
+      [open]="confirmReset()"
+      [busy]="resetting()"
+      title="¿Restablecer la cuenta?"
+      message="Se borran la foto, la ciudad, la provincia y los favoritos. Las reservas, los pagos y la contraseña no se tocan."
       confirmLabel="Restablecer"
-      (confirmed)="confirmReset()"
-      (cancelled)="showResetConfirm.set(false)"
+      (confirmed)="reset()"
+      (cancelled)="confirmReset.set(false)"
+    />
+
+    <app-confirm-modal
+      [open]="!!liftTarget()"
+      [busy]="lifting()"
+      tone="primary"
+      title="¿Levantar la sanción?"
+      message="El cliente podrá volver a entrar y reservar inmediatamente."
+      confirmLabel="Levantar sanción"
+      (confirmed)="lift()"
+      (cancelled)="liftTarget.set(null)"
     />
   }
 </div>
