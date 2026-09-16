@@ -1,27 +1,168 @@
-<div class="shell">
-  <aside class="sidebar">
-    <div class="brand">Bipsy Admin</div>
-    <nav>
-      <a routerLink="/dashboard" routerLinkActive="active">Estadísticas</a>
-      <a routerLink="/users" routerLinkActive="active">Usuarios</a>
-      <a routerLink="/businesses" routerLinkActive="active">Establecimientos</a>
-      <a routerLink="/tickets" routerLinkActive="active">Tickets</a>
-      <a routerLink="/categories" routerLinkActive="active">Categorías</a>
-      <a routerLink="/audit-log" routerLinkActive="active">Auditoría</a>
-    </nav>
-    <div class="sidebar-footer">
-      <span>{{ auth.username() }}</span>
-      @if (auth.scope() !== 'FULL') {
-        <span class="scope-pill">{{ auth.isReadOnly() ? 'Solo lectura' : 'Soporte' }}</span>
-      }
-      <button type="button" (click)="auth.logout()">Salir</button>
-    </div>
-  </aside>
+<div class="shell" [attr.data-shell]="layout()" [class.shell--nav-open]="navOpen()">
+  <!-- Side menu: fixed in «panel lateral» and «compacto»; in «barra superior»
+       it only exists as the mobile drawer. «Bloques» does not use it. -->
+  @if (layout() !== 'tiles') {
+    <aside class="side" [class.side--rail]="layout() === 'rail'" [class.side--drawer]="layout() === 'topbar'" aria-label="Menú principal">
+      <a routerLink="/dashboard" class="side__brand" aria-label="Bipsy Admin, ir al resumen">
+        <img src="brand/logo-mint.webp" alt="Bipsy" class="side__logo only-dark" />
+        <img src="brand/logo-carbon.webp" alt="Bipsy" class="side__logo only-light" />
+        <img src="brand/symbol-mint.webp" alt="" class="side__symbol only-dark" />
+        <img src="brand/symbol-carbon.webp" alt="" class="side__symbol only-light" />
+        <span class="side__tag">Admin</span>
+      </a>
 
-  <main class="content">
-    <div class="topbar">
-      <app-global-search />
-    </div>
-    <router-outlet />
-  </main>
+      <nav class="side__nav">
+        @for (section of sections; track section.title) {
+          <div class="side__section">
+            @if (section.title) {
+              <p class="side__title overline">{{ section.title }}</p>
+            }
+            @for (item of section.items; track item.path) {
+              <a [routerLink]="item.path" routerLinkActive="is-active" class="side__link" [attr.data-tip]="item.label">
+                <span class="side__icon">
+                  <span class="material-symbols-rounded">{{ item.icon }}</span>
+                  @if (item.badge && badges.counts()[item.badge] > 0) {
+                    <span class="side__dot t-num">{{ badges.counts()[item.badge] }}</span>
+                  }
+                </span>
+                <span class="side__label">{{ item.label }}</span>
+                @if (item.badge && badges.counts()[item.badge] > 0) {
+                  <span class="side__badge t-num">{{ badges.counts()[item.badge] }}</span>
+                }
+              </a>
+            }
+          </div>
+        }
+      </nav>
+
+      <a routerLink="/account" routerLinkActive="is-active" class="side__me" data-tip="Mi cuenta">
+        <app-avatar [name]="auth.displayName()" [size]="34" />
+        <span class="side__me-text">
+          <strong class="t-clip">{{ auth.displayName() }}</strong>
+          <small>{{ scopeLabel(auth.scope()).label }}</small>
+        </span>
+        <span class="material-symbols-rounded side__me-chev">settings</span>
+      </a>
+    </aside>
+
+    <button type="button" class="side-scrim" aria-label="Cerrar menú" (click)="navOpen.set(false)"></button>
+  }
+
+  <div class="main">
+    <header class="topbar">
+      @switch (layout()) {
+        @case ('tiles') {
+          <a routerLink="/home" class="topbar__brand" aria-label="Inicio">
+            <img src="brand/logo-mint.webp" alt="Bipsy" class="topbar__logo only-dark" />
+            <img src="brand/logo-carbon.webp" alt="Bipsy" class="topbar__logo only-light" />
+          </a>
+          @if (!onHome()) {
+            <a routerLink="/home" class="btn btn--sm topbar__home">
+              <span class="material-symbols-rounded">apps</span>Inicio
+            </a>
+            @if (current(); as c) {
+              <span class="topbar__crumb">
+                <span class="material-symbols-rounded">chevron_right</span>
+                <span class="material-symbols-rounded">{{ c.icon }}</span>{{ c.label }}
+              </span>
+            }
+          }
+        }
+        @case ('topbar') {
+          <button type="button" class="btn btn--ghost btn--icon topbar__menu" (click)="navOpen.set(true)" aria-label="Abrir menú">
+            <span class="material-symbols-rounded">menu</span>
+          </button>
+          <a routerLink="/dashboard" class="topbar__brand" aria-label="Resumen">
+            <img src="brand/logo-mint.webp" alt="Bipsy" class="topbar__logo only-dark" />
+            <img src="brand/logo-carbon.webp" alt="Bipsy" class="topbar__logo only-light" />
+          </a>
+          <nav class="topnav" aria-label="Menú principal">
+            @for (section of sections; track section.title) {
+              @if (!section.title) {
+                @for (item of section.items; track item.path) {
+                  <a [routerLink]="item.path" routerLinkActive="is-active" class="topnav__btn">
+                    <span class="material-symbols-rounded">{{ item.icon }}</span>{{ item.label }}
+                  </a>
+                }
+              } @else {
+                <div class="topnav__group">
+                  <button type="button" class="topnav__btn" [class.is-active]="groupActive(section)" [class.is-open]="openGroup() === section.title"
+                    aria-haspopup="menu" [attr.aria-expanded]="openGroup() === section.title" (click)="toggleGroup(section.title!)">
+                    {{ section.title }}
+                    @if (groupBadge(section) > 0) { <span class="topnav__badge t-num">{{ groupBadge(section) }}</span> }
+                    <span class="material-symbols-rounded topnav__chev">expand_more</span>
+                  </button>
+                  @if (openGroup() === section.title) {
+                    <div class="topnav__menu" role="menu">
+                      @for (item of section.items; track item.path) {
+                        <a [routerLink]="item.path" routerLinkActive="is-active" class="topnav__item" role="menuitem">
+                          <span class="topnav__item-icon material-symbols-rounded">{{ item.icon }}</span>
+                          <span class="topnav__item-text">
+                            <strong>{{ item.label }}</strong>
+                            <small>{{ item.description }}</small>
+                          </span>
+                          @if (item.badge && badges.counts()[item.badge] > 0) {
+                            <span class="side__badge t-num">{{ badges.counts()[item.badge] }}</span>
+                          }
+                        </a>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            }
+          </nav>
+        }
+        @default {
+          <button type="button" class="btn btn--ghost btn--icon topbar__menu" (click)="navOpen.set(true)" aria-label="Abrir menú">
+            <span class="material-symbols-rounded">menu</span>
+          </button>
+        }
+      }
+
+      <button type="button" class="topbar__search" [class.topbar__search--compact]="!hasSide()" (click)="paletteOpen.set(true)" aria-label="Buscar">
+        <span class="material-symbols-rounded">search</span>
+        <span class="topbar__search-text">Buscar clientes, negocios, tickets…</span>
+        <span class="kbd">Ctrl K</span>
+      </button>
+
+      <span class="spacer"></span>
+
+      @if (auth.scope() !== 'FULL') {
+        <span class="pill pill--warn topbar__scope">
+          <span class="material-symbols-rounded">visibility</span>{{ scopeLabel(auth.scope()).label }}
+        </span>
+      }
+
+      <button type="button" class="btn btn--ghost btn--icon" (click)="toggleTheme()" aria-label="Cambiar tema" title="Cambiar tema">
+        <span class="material-symbols-rounded only-dark">light_mode</span>
+        <span class="material-symbols-rounded only-light">dark_mode</span>
+      </button>
+
+      @if (!hasSide()) {
+        <a routerLink="/account" class="topbar__me" title="Mi cuenta y ajustes">
+          <app-avatar [name]="auth.displayName()" [size]="32" />
+        </a>
+      }
+    </header>
+
+    <main class="content">
+      <router-outlet />
+    </main>
+
+    <footer class="credit">
+      <a class="credit__by" href="https://giralabs.es" target="_blank" rel="noopener">
+        <span>Una aplicación de</span>
+        <img src="assets_giralabs/giralabs_wordmark_dark.webp" alt="Giralabs" class="only-dark" />
+        <img src="assets_giralabs/giralabs_wordmark_light.webp" alt="Giralabs" class="only-light" />
+      </a>
+      <span class="credit__links">
+        <a routerLink="/legal">Legal</a>
+        <a routerLink="/legal" [queryParams]="{ doc: 'privacidad' }">Privacidad</a>
+        <span>Bipsy Admin</span>
+      </span>
+    </footer>
+  </div>
+
+  <app-command-palette [open]="paletteOpen()" (closed)="paletteOpen.set(false)" />
 </div>

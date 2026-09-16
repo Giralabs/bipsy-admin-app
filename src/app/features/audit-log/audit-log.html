@@ -1,39 +1,58 @@
-<div class="audit-log anim-fade-up">
-  <h1>Auditoría</h1>
-  <p class="subtitle">Registro de acciones de escritura hechas desde el panel de admin.</p>
+<div class="page page--narrow">
+  <header class="page-head">
+    <div class="page-head__text">
+      <h1 class="t-display">Auditoría</h1>
+      <p class="page-head__sub">Todo lo que el equipo cambia desde el panel: quién, qué y cuándo.</p>
+    </div>
+    <div class="page-head__actions">
+      @if (admins().length > 1) {
+        <app-select class="al-select" [block]="false" ariaLabel="Filtrar por admin" [options]="adminOptions()" [value]="admin()" (valueChange)="admin.set($event)" />
+      }
+      <button type="button" class="btn" (click)="load()" [disabled]="loading()"><span class="material-symbols-rounded">refresh</span>Actualizar</button>
+    </div>
+  </header>
 
-  @if (loading()) {
-    <p>Cargando…</p>
+  @if (error(); as e) {
+    <div class="card"><div class="empty"><span class="material-symbols-rounded">cloud_off</span><h3>No se ha podido cargar</h3><p>{{ e }}</p><button type="button" class="btn btn--primary" (click)="load()">Reintentar</button></div></div>
+  } @else if (loading() && !data()) {
+    <div class="stack"><span class="skeleton" style="height: 320px; border-radius: 20px"></span></div>
   } @else {
-    <table>
-      <thead>
-        <tr>
-          <th>Fecha</th>
-          <th>Admin</th>
-          <th>Acción</th>
-          <th>Entidad</th>
-          <th>Detalles</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (e of entries(); track e.id) {
-          <tr>
-            <td>{{ e.createdAt | date: 'medium' }}</td>
-            <td>{{ e.adminName }}</td>
-            <td>{{ actionLabel(e) }}</td>
-            <td>{{ entityLabel(e) }}{{ e.entityId ? ' #' + e.entityId : '' }}</td>
-            <td>{{ e.details || '—' }}</td>
-          </tr>
-        } @empty {
-          <tr><td colspan="5" class="table-empty">Sin acciones registradas todavía.</td></tr>
-        }
-      </tbody>
-    </table>
+    <div class="stack stack--lg" [style.opacity]="loading() ? 0.55 : 1">
+      @for (g of groups(); track g.day) {
+        <section>
+          <p class="group__header overline al-day">{{ dayLabel(g.day) }}</p>
+          <div class="group__box">
+            @for (e of g.entries; track e.id) {
+              <div class="al-entry">
+                <span class="al-icon material-symbols-rounded" [class]="'al-icon material-symbols-rounded tone--' + labels.auditAction(e.action).tone">
+                  {{ labels.auditAction(e.action).icon || 'bolt' }}
+                </span>
+                <div class="al-text">
+                  <p>
+                    <strong>{{ e.adminName }}</strong>
+                    {{ labels.auditAction(e.action).label | lowercase }}
+                    @if (entityRoute(e.entityType, e.entityId); as route) {
+                      <a [routerLink]="route">{{ labels.entityType(e.entityType).label }} #{{ e.entityId }}</a>
+                    } @else if (e.entityType !== 'DISCOVERY_SETTINGS') {
+                      {{ labels.entityType(e.entityType).label }}{{ e.entityId ? ' #' + e.entityId : '' }}
+                    }
+                  </p>
+                  @if (e.details) { <small>{{ e.details }}</small> }
+                </div>
+                <time class="al-time" [attr.datetime]="e.createdAt">{{ e.createdAt | date: 'HH:mm' }}</time>
+              </div>
+            }
+          </div>
+        </section>
+      } @empty {
+        <div class="card"><div class="empty"><span class="material-symbols-rounded">history</span><h3>Sin acciones</h3><p>Cuando alguien del equipo cambie algo desde el panel, aparecerá aquí.</p></div></div>
+      }
 
-    <div class="pagination">
-      <button type="button" (click)="goToPage(-1)" [disabled]="page() === 0">Anterior</button>
-      <span>Página {{ page() + 1 }} de {{ totalPages() || 1 }}</span>
-      <button type="button" (click)="goToPage(1)" [disabled]="page() + 1 >= totalPages()">Siguiente</button>
+      @if (data(); as d) {
+        @if (d.totalPages > 1) {
+          <div class="table-card"><app-pagination [page]="d.page" [size]="d.size" [total]="d.totalElements" [pages]="d.totalPages" (pageChange)="goTo($event)" /></div>
+        }
+      }
     </div>
   }
 </div>

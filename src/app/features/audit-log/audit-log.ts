@@ -1,76 +1,91 @@
-import { DatePipe } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
-import { AuditLogEntry } from './audit-log.model';
-import { AuditLogService } from './audit-log.service';
+import { DatePipe, LowerCasePipe } from '@angular/common';
+import { Component, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { AuditLogEntry, PageResponse } from '../../core/models/admin.models';
+import { AdminApi } from '../../core/services/admin-api.service';
+import { apiErrorMessage } from '../../core/utils/api-error';
+import { auditAction, entityRoute, entityType } from '../../core/utils/labels';
+import { Pagination } from '../../shared/components/pagination/pagination';
+import { Select, SelectOption } from '../../shared/components/select/select';
+import { listQuery } from '../../shared/utils/list-query';
+import { liveReload } from '../../core/services/live.service';
 
-const ACTION_LABELS: Record<string, string> = {
-  BAN: 'Baneó',
-  UNBAN: 'Desbaneó',
-  RESET_ACCOUNT: 'Restableció la cuenta de',
-  SANCTION: 'Sancionó a',
-  LIFT_SANCTION: 'Levantó la sanción de',
-  TICKET_STATUS: 'Cambió el estado de',
-  TICKET_PRIORITY: 'Cambió la prioridad de',
-  TICKET_REPLY: 'Respondió a',
-  CREATE_SUBSCRIPTION: 'Asignó una suscripción a',
-  CANCEL_SUBSCRIPTION: 'Canceló la suscripción de',
-  CREATE_GRANT: 'Creó un grant para',
-  REVOKE_GRANT: 'Revocó un grant de',
-  CREATE_CATEGORY: 'Creó la categoría',
-  UPDATE_CATEGORY: 'Actualizó la categoría',
-  DEACTIVATE_CATEGORY: 'Desactivó la categoría',
-};
-
-const ENTITY_LABELS: Record<string, string> = {
-  CUSTOMER: 'cliente',
-  BUSINESS: 'negocio',
-  TICKET: 'ticket',
-  CATEGORY: 'categoría',
-};
+interface DayGroup {
+  day: string;
+  entries: AuditLogEntry[];
+}
 
 @Component({
   selector: 'app-audit-log',
-  standalone: true,
-  imports: [DatePipe],
+  imports: [RouterLink, DatePipe, LowerCasePipe, Pagination, Select],
   templateUrl: './audit-log.html',
   styleUrl: './audit-log.scss',
 })
 export class AuditLog {
-  private readonly auditLogService = inject(AuditLogService);
+  private readonly api = inject(AdminApi);
+  private readonly query = listQuery();
 
-  readonly entries = signal<AuditLogEntry[]>([]);
-  readonly loading = signal(false);
-  readonly page = signal(0);
-  readonly totalPages = signal(0);
+  protected readonly data = signal<PageResponse<AuditLogEntry> | null>(null);
+  protected readonly loading = signal(true);
+  protected readonly error = signal<string | null>(null);
+  protected readonly page = signal(this.query.page());
+  protected readonly admin = signal('');
+
+  protected readonly labels = { auditAction, entityType };
+  protected readonly entityRoute = entityRoute;
+
+  /** Admins that appear on this page, used to filter by person. */
+  protected readonly admins = computed(() => [...new Set((this.data()?.content ?? []).map((e) => e.adminName))].sort());
+  protected readonly adminOptions = computed<SelectOption[]>(() => [
+    { value: '', label: 'Todo el equipo', icon: 'groups' },
+    ...this.admins().map((a) => ({ value: a, label: a, icon: 'person' })),
+  ]);
+
+  protected readonly groups = computed<DayGroup[]>(() => {
+    const groups: DayGroup[] = [];
+    for (const e of this.data()?.content ?? []) {
+      if (this.admin() && e.adminName !== this.admin()) continue;
+      const day = e.createdAt.slice(0, 10);
+      let g = groups.find((x) => x.day === day);
+      if (!g) groups.push((g = { day, entries: [] }));
+      g.entries.push(e);
+    }
+    return groups;
+  });
+
+  // Real time: reloads quietly when this data changes.
+  private readonly live = liveReload(['audit'], () => this.load());
 
   constructor() {
     this.load();
   }
 
-  load() {
+  protected load() {
     this.loading.set(true);
-    this.auditLogService.list(this.page()).subscribe({
-      next: (res) => {
-        this.entries.set(res.content);
-        this.totalPages.set(res.totalPages);
+    this.error.set(null);
+    this.query.set({ page: this.page() });
+    this.api.auditLog(this.page(), 40).subscribe({
+      next: (r) => {
+        this.data.set(r);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: (err) => {
+        this.loading.set(false);
+        this.error.set(apiErrorMessage(err, 'No se ha podido cargar la auditoría.'));
+      },
     });
   }
 
-  goToPage(delta: number) {
-    const next = this.page() + delta;
-    if (next < 0 || next >= this.totalPages()) return;
-    this.page.set(next);
+  protected goTo(page: number) {
+    this.page.set(page);
     this.load();
   }
 
-  actionLabel(entry: AuditLogEntry): string {
-    return ACTION_LABELS[entry.action] ?? entry.action;
-  }
-
-  entityLabel(entry: AuditLogEntry): string {
-    return ENTITY_LABELS[entry.entityType] ?? entry.entityType.toLowerCase();
+  protected dayLabel(day: string): string {
+    const today = new Date().toISOString().slice(0, 10);
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    if (day === today) return 'Hoy';
+    if (day === yesterday) return 'Ayer';
+    return new Date(day + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   }
 }

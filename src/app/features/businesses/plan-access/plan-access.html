@@ -1,0 +1,201 @@
+<div class="stack stack--lg">
+  <!-- ----- WHAT THEIR APP SHOWS -------------------- -->
+  <section class="pa-card" [class.is-blocked]="access()?.status?.blocked">
+    @if (accessUnavailable()) {
+      <p class="notice"><span class="material-symbols-rounded">update</span>Ver y gestionar el acceso necesita la versión nueva del backend (GET /admin/businesses/&#123;id&#125;/access).</p>
+    } @else if (accessError(); as e) {
+      <div class="empty"><span class="material-symbols-rounded">cloud_off</span><p>{{ e }}</p><button type="button" class="btn" (click)="loadAccess()">Reintentar</button></div>
+    } @else if (!access()) {
+      <span class="skeleton" style="height: 120px"></span>
+    } @else {
+      @let a = access()!;
+      <div class="pa-head">
+        <span class="pa-icon material-symbols-rounded" [class.is-blocked]="a.status.blocked">{{ a.status.blocked ? 'lock' : 'lock_open' }}</span>
+        <div class="pa-head__text">
+          <h2 class="t-h3">{{ a.status.blocked ? 'Su app está bloqueada' : 'Su app está abierta' }}</h2>
+          <p class="t-body">
+            @if (a.superAccess) {
+              Tiene acceso permanente: no se bloquea nunca, pague o no.
+            } @else if (a.status.blocked) {
+              Ve el muro de pago. Para seguir usando Bipsy Business tiene que contratar un plan.
+            } @else if (liveFree()) {
+              Tiene un plan regalado desde el panel. No paga nada mientras dure.
+            } @else if (livePaid()) {
+              Paga su plan. Se gestiona en {{ labels.subscriptionSource(livePaid()!.source).label }}.
+            } @else if (!a.billingEnabled && !a.status.planName) {
+              No tiene ningún plan. Entra igualmente porque este backend no cobra a nadie.
+            } @else {
+              Tiene acceso.
+            }
+          </p>
+        </div>
+        <app-pill [meta]="labels.accessState(a.status.state)" />
+      </div>
+
+      <div class="group__box pa-rows">
+        <div class="row">
+          <span class="row__label">Plan</span>
+          <span class="row__value">
+            @if (a.status.planName) { {{ a.status.planName }} · {{ a.status.priceCents ? eur(a.status.priceCents / 100) : 'gratis' }} } @else { Ninguno }
+          </span>
+        </div>
+        <div class="row">
+          <span class="row__label">Hasta</span>
+          <span class="row__value">
+            @if (a.status.currentPeriodEnd) {
+              {{ a.status.currentPeriodEnd | date: "d 'de' MMMM y" }}
+              @if (a.status.daysLeft != null) { · {{ a.status.daysLeft === 1 ? 'queda 1 día' : 'quedan ' + a.status.daysLeft + ' días' }} }
+            } @else if (a.status.planName) {
+              Sin fecha de fin
+            } @else { — }
+          </span>
+        </div>
+        @if (a.status.trialEndsAt) {
+          <div class="row"><span class="row__label">Prueba hasta</span><span class="row__value">{{ a.status.trialEndsAt | date: "d 'de' MMMM y" }}</span></div>
+        }
+        <label class="row pa-switch">
+          <span class="row__label">
+            Acceso permanente
+            <small>Para cuentas internas o de demostración: nunca ven el muro de pago.</small>
+          </span>
+          <input type="checkbox" role="switch" [checked]="a.superAccess" (change)="toggleSuper($any($event.target).checked)"
+            [disabled]="!auth.canManage() || togglingSuper()" />
+        </label>
+      </div>
+
+      @if (!a.billingEnabled) {
+        <p class="notice notice--warn">
+          <span class="material-symbols-rounded fill">info</span>
+          <span>Este backend no tiene cobro configurado (Stripe o tiendas), así que no bloquea a nadie: aunque le quites el plan, su app seguirá abierta. En producción sí vería el muro de pago.</span>
+        </p>
+      }
+
+      @if (auth.canManage()) {
+        <div class="cluster pa-actions">
+          <button type="button" class="btn btn--primary" (click)="openGrant()">
+            <span class="material-symbols-rounded">redeem</span>{{ liveFree() ? 'Cambiar plan regalado' : 'Regalar un plan' }}
+          </button>
+          @if (liveFree()) {
+            <button type="button" class="btn" (click)="openExtend()">
+              <span class="material-symbols-rounded">event</span>Cambiar fecha de fin
+            </button>
+            <span class="spacer"></span>
+            <button type="button" class="btn btn--danger" (click)="confirmRevoke.set(true)">
+              <span class="material-symbols-rounded">lock</span>Quitar acceso gratis
+            </button>
+          }
+        </div>
+      }
+    }
+  </section>
+
+  <!-- ----- HISTORY -------------------- -->
+  <section>
+    <p class="group__header overline">Historial de suscripciones</p>
+    <div class="table-card">
+      @if (subscriptions() === null) {
+        <div class="empty"><span class="spinner"></span></div>
+      } @else if (subscriptions()!.length === 0) {
+        <div class="empty"><span class="material-symbols-rounded">workspace_premium</span><h3>Sin suscripciones</h3><p>Este negocio nunca ha tenido un plan.</p></div>
+      } @else {
+        <div class="table-scroll">
+          <table class="table">
+            <thead><tr><th>Plan</th><th>Origen</th><th>Estado</th><th>Inicio</th><th>Fin</th></tr></thead>
+            <tbody>
+              @for (s of subscriptions(); track s.id) {
+                <tr>
+                  <td><strong>{{ s.planName }}</strong></td>
+                  <td>
+                    <span class="t-muted">{{ labels.subscriptionSource(s.source).label }}</span>
+                    @if (!isFree(s.source)) { <small class="pa-small">Se gestiona en su pasarela, no desde aquí</small> }
+                  </td>
+                  <td>
+                    <app-pill [meta]="labels.subscriptionStatus(s.status)" [icon]="false" />
+                    @if (s.cancelAtPeriodEnd && s.status === 'ACTIVE') { <small class="pa-small">No renueva</small> }
+                  </td>
+                  <td class="t-muted nowrap">{{ s.startAt | date: 'd MMM y' }}</td>
+                  <td class="t-muted nowrap">{{ s.currentPeriodEnd ? (s.currentPeriodEnd | date: 'd MMM y') : 'Sin fin' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </section>
+</div>
+
+<!-- ----- GIFT / CHANGE END DATE -------------------- -->
+@if (dialog(); as mode) {
+  <div class="scrim" (click)="!saving() && dialog.set(null)">
+    <form class="dialog dialog--wide" (click)="$event.stopPropagation()" (submit)="$event.preventDefault(); save()">
+      <h2 class="dialog__title">{{ mode === 'grant' ? 'Regalar un plan a ' + businessName() : 'Cambiar la fecha de fin' }}</h2>
+      <p class="dialog__text">
+        @if (mode === 'grant') {
+          Tendrá el plan sin pagar durante el tiempo que elijas. Si ya tenía un plan regalado, este lo sustituye.
+          @if (livePaid()) { Ya paga un plan: mientras le dure, manda lo que paga. }
+        } @else {
+          @if (liveFree()?.currentPeriodEnd) { Ahora termina el {{ liveFree()!.currentPeriodEnd | date: "d 'de' MMMM y" }}. Lo que elijas se suma a esa fecha. } @else { Ahora no tiene fecha de fin. }
+        }
+      </p>
+
+      <div class="dialog__body">
+        @if (mode === 'grant') {
+          <div class="field">
+            <span class="field__label">Plan</span>
+            <app-select ariaLabel="Plan" placeholder="Elige un plan…" [options]="planOptions()" [value]="planCode()" (valueChange)="planCode.set($event)" />
+          </div>
+        }
+
+        <div class="field">
+          <span class="field__label">{{ mode === 'grant' ? 'Durante' : 'Añadir' }}</span>
+          <div class="cluster">
+            @for (d of durations; track d.key) {
+              <button type="button" class="chip" [class.is-on]="durationKey() === d.key" (click)="durationKey.set(d.key)">
+                {{ mode === 'extend' && d.months ? '+ ' + d.label : d.label }}
+              </button>
+            }
+          </div>
+        </div>
+
+        @if (durationKey() === 'date') {
+          <label class="field">
+            <span class="field__label">Último día con acceso</span>
+            <input class="input" type="date" [value]="customDate()" (input)="customDate.set($any($event.target).value)" />
+          </label>
+        }
+
+        <p class="pa-result">
+          <span class="material-symbols-rounded">event_available</span>
+          <span>
+            @switch (true) {
+              @case (resultingEnd() === 'invalid') { Elige un día a partir de mañana. }
+              @case (resultingEnd() === null) { Sin fecha de fin: lo tendrá hasta que se lo quites. }
+              @default { Tendrá acceso hasta el <strong>{{ $any(resultingEnd()) | date: "d 'de' MMMM y" }}</strong>. }
+            }
+          </span>
+        </p>
+      </div>
+
+      <div class="dialog__actions">
+        <button type="button" class="btn btn--ghost" (click)="dialog.set(null)" [disabled]="saving()">Cancelar</button>
+        <button type="submit" class="btn btn--primary" [disabled]="!canSave() || saving()">
+          @if (saving()) { <span class="spinner"></span> }
+          {{ mode === 'grant' ? 'Regalar plan' : 'Guardar fecha' }}
+        </button>
+      </div>
+    </form>
+  </div>
+}
+
+<app-confirm-modal
+  [open]="confirmRevoke()"
+  [busy]="revoking()"
+  [title]="'¿Quitar el acceso gratis a ' + businessName() + '?'"
+  [message]="livePaid()
+    ? 'Se cancela lo regalado ahora mismo. Como también paga un plan, seguirá entrando con ese.'
+    : 'Se cancela lo regalado ahora mismo. Su app mostrará el muro de pago y tendrá que contratar un plan para seguir.'"
+  confirmLabel="Quitar acceso"
+  (confirmed)="revoke()"
+  (cancelled)="confirmRevoke.set(false)"
+/>

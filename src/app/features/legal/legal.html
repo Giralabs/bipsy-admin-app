@@ -1,0 +1,117 @@
+<div class="page legal">
+  <div class="lg-layout">
+    <!-- ----- SIDEBAR: DOCUMENTS, MOST CONSULTED AND TABLE OF CONTENTS -------------------- -->
+    <aside class="lg-side" aria-label="Documentos legales">
+      <label class="search lg-search">
+        <span class="material-symbols-rounded">search</span>
+        <input class="input" type="search" placeholder="Buscar en los textos" [value]="search()" (input)="search.set($any($event.target).value)" aria-label="Buscar en los textos legales" />
+      </label>
+
+      @for (g of groups; track g.label) {
+        <nav class="lg-side__group" [attr.aria-label]="g.label">
+          <p class="lg-side__title">{{ g.label }}</p>
+          @for (d of g.docs; track d.slug) {
+            <button type="button" class="lg-side__link" [class.is-on]="doc().slug === d.slug && !results()"
+              [attr.aria-current]="doc().slug === d.slug ? 'page' : null" (click)="open(d.slug)">
+              {{ d.title }}
+              @if (d.version.includes('borrador')) { <span class="lg-side__draft" title="Borrador">·&nbsp;borrador</span> }
+            </button>
+          }
+        </nav>
+      }
+
+      <nav class="lg-side__group" aria-label="Lo más consultado">
+        <p class="lg-side__title">Lo más consultado</p>
+        @for (q of quick; track q.label) {
+          <button type="button" class="lg-side__anchor" (click)="open(q.slug, q.section)">{{ q.label }}</button>
+        }
+      </nav>
+
+      @if (!results()) {
+        <nav class="lg-side__group lg-side__toc" aria-label="Índice del documento">
+          <p class="lg-side__title">En esta página</p>
+          @for (s of doc().sections; track s.id) {
+            <button type="button" class="lg-side__anchor" (click)="open(doc().slug, s.id)">{{ s.title }}</button>
+          }
+        </nav>
+      }
+    </aside>
+
+    <!-- ----- DOCUMENT -------------------- -->
+    <article class="lg-doc" #reader>
+      @if (results(); as hits) {
+        <h1 class="lg-title">Buscar</h1>
+        <p class="lg-subtitle">{{ hits.length }} {{ hits.length === 1 ? 'apartado contiene' : 'apartados contienen' }} «{{ search() }}».</p>
+        @for (h of hits; track h.doc.slug + h.section.id) {
+          <button type="button" class="lg-hit" (click)="open(h.doc.slug, h.section.id)">
+            <small>{{ h.doc.title }}</small>
+            <strong>{{ h.section.title }}</strong>
+            <span>{{ h.snippet }}</span>
+          </button>
+        } @empty {
+          <p class="lg-subtitle">Nada coincide. Prueba con otra palabra.</p>
+        }
+      } @else {
+        @let d = doc();
+        <h1 class="lg-title">{{ d.title }}</h1>
+        <p class="lg-subtitle">{{ d.subtitle }}</p>
+
+        <div class="lg-meta">
+          <span class="pill pill--mint">Versión {{ d.version }}</span>
+          <span class="lg-updated">Actualizado el {{ d.updatedAt }}</span>
+          <span class="spacer"></span>
+          @if (publicUrl(); as url) {
+            <a class="btn btn--sm btn--ghost" [href]="url" target="_blank" rel="noopener"><span class="material-symbols-rounded">open_in_new</span>Publicado</a>
+          }
+          <button type="button" class="btn btn--sm btn--ghost" (click)="print()"><span class="material-symbols-rounded">print</span>Imprimir</button>
+        </div>
+
+        @if (d.version.includes('borrador')) {
+          <div class="lg-draft" role="note">
+            <span class="material-symbols-rounded">gavel</span>
+            <p>Borrador pendiente de revisión jurídica. Describe lo que hace la app hoy, pero no es definitivo.
+              @if (isBusinessDoc()) { Solo lo aceptan los negocios, en la web de Bipsy Business. }
+            </p>
+          </div>
+        } @else if (isBusinessDoc()) {
+          <div class="lg-draft lg-draft--info" role="note">
+            <span class="material-symbols-rounded">storefront</span>
+            <p>Solo lo aceptan los negocios, en la web de Bipsy Business.</p>
+          </div>
+        }
+
+        @for (s of d.sections; track s.id) {
+          <section class="lg-section" [id]="'legal-' + s.id">
+            <h2>
+              {{ s.title }}
+              <button type="button" class="lg-copy" (click)="copySection(s)" title="Copiar este apartado para pegarlo en una respuesta" aria-label="Copiar este apartado">
+                <span class="material-symbols-rounded">content_copy</span>
+              </button>
+            </h2>
+            @for (p of s.paragraphs; track $index) { <p>{{ p }}</p> }
+            @if (s.bullets?.length) {
+              <ul>@for (b of s.bullets; track $index) { <li>{{ b }}</li> }</ul>
+            }
+            @for (p of s.closingParagraphs ?? []; track $index) { <p>{{ p }}</p> }
+          </section>
+        }
+      }
+
+      <!-- ----- OWNER -------------------- -->
+      <footer class="lg-owner">
+        <a class="lg-owner__by" href="https://giralabs.es" target="_blank" rel="noopener">
+          <span>Una aplicación de</span>
+          <img src="assets_giralabs/giralabs_wordmark_dark.webp" alt="Giralabs" class="only-dark" />
+          <img src="assets_giralabs/giralabs_wordmark_light.webp" alt="Giralabs" class="only-light" />
+        </a>
+        <p>
+          {{ company.legalName }} · NIF {{ company.taxId }}<br />
+          {{ company.address }} · <a [href]="'mailto:' + company.email">{{ company.email }}</a>
+        </p>
+        @if (companyIncomplete) {
+          <p class="t-danger">Faltan datos obligatorios del prestador: el aviso legal no es válido hasta completarlos.</p>
+        }
+      </footer>
+    </article>
+  </div>
+</div>

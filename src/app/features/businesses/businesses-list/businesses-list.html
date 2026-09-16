@@ -1,66 +1,92 @@
-<div class="businesses-list anim-fade-up">
-  <h1>Establecimientos</h1>
+<div class="page">
+  <header class="page-head">
+    <div class="page-head__text">
+      <h1 class="t-display">Negocios</h1>
+      <p class="page-head__sub">
+        @if (data(); as d) { {{ int(d.totalElements) }} negocios en Bipsy Business } @else { Negocios de Bipsy Business }
+      </p>
+    </div>
+    <div class="page-head__actions">
+      <button type="button" class="btn" (click)="export()" [disabled]="exporting()">
+        @if (exporting()) { <span class="spinner"></span> } @else { <span class="material-symbols-rounded">download</span> }
+        Exportar CSV
+      </button>
+    </div>
+  </header>
 
-  <div class="filters">
-    <input
-      type="text"
-      placeholder="Buscar por nombre, email o ciudad…"
-      [(ngModel)]="search"
-      (keyup.enter)="onFilterChange()"
-    />
-    <select [(ngModel)]="bannedFilter" (ngModelChange)="onFilterChange()">
-      <option value="">Todos</option>
-      <option value="false">Activos</option>
-      <option value="true">Baneados</option>
-    </select>
-    <button type="button" (click)="onFilterChange()">Buscar</button>
-    <button type="button" class="btn-ghost" (click)="export()">Exportar CSV</button>
+  <div class="toolbar">
+    <label class="search">
+      <span class="material-symbols-rounded">search</span>
+      <input class="input" type="search" placeholder="Nombre, email o ciudad" [value]="search()"
+        (input)="onSearch($any($event.target).value)" aria-label="Buscar negocios" />
+    </label>
+    <app-segmented [options]="banOptions" [value]="ban()" (valueChange)="setBan($event)" />
   </div>
 
-  @if (loading()) {
-    <p>Cargando…</p>
-  } @else {
-    <table>
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Email</th>
-          <th>Ciudad</th>
-          <th>Categorías</th>
-          <th>Código referido</th>
-          <th>Referidos</th>
-          <th>Estado</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (b of businesses(); track b.id) {
-          <tr [routerLink]="['/businesses', b.id]">
-            <td>{{ b.name }}</td>
-            <td>{{ b.email }}</td>
-            <td>{{ b.city || '—' }}</td>
-            <td>{{ b.categories.join(', ') || '—' }}</td>
-            <td>{{ b.referralCode || '—' }}</td>
-            <td>{{ b.referredCount }}</td>
-            <td>
-              @if (b.banned) {
-                <span class="badge badge--red">Baneado</span>
-              } @else if (!b.setupComplete) {
-                <span class="badge badge--orange">Setup incompleto</span>
-              } @else {
-                <span class="badge badge--green">Activo</span>
+  <div class="table-card" [class.is-loading]="loading() && !!data()">
+    @if (error(); as e) {
+      <div class="empty">
+        <span class="material-symbols-rounded">cloud_off</span>
+        <h3>No se han podido cargar</h3>
+        <p>{{ e }}</p>
+        <button type="button" class="btn btn--primary" (click)="load()">Reintentar</button>
+      </div>
+    } @else {
+      <div class="table-scroll">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Negocio</th>
+              <th>Ciudad</th>
+              <th>Código de referido</th>
+              <th class="num">Referidos</th>
+              <th>Alta</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (loading() && !data()) {
+              @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+                <tr class="skeleton-row"><td colspan="6"><span class="skeleton" style="height: 18px"></span></td></tr>
               }
-            </td>
-          </tr>
-        } @empty {
-          <tr><td colspan="7" class="table-empty">No hay establecimientos que coincidan con el filtro.</td></tr>
-        }
-      </tbody>
-    </table>
-
-    <div class="pagination">
-      <button type="button" (click)="goToPage(-1)" [disabled]="page() === 0">Anterior</button>
-      <span>Página {{ page() + 1 }} de {{ totalPages() || 1 }}</span>
-      <button type="button" (click)="goToPage(1)" [disabled]="page() + 1 >= totalPages()">Siguiente</button>
-    </div>
-  }
+            } @else {
+              @for (b of data()?.content ?? []; track b.id) {
+                <tr class="is-link" (click)="open(b)" (keydown.enter)="open(b)" tabindex="0">
+                  <td>
+                    <div class="cell-main">
+                      <app-avatar [name]="b.name" [size]="34" [square]="true" />
+                      <span class="cell-main__text">
+                        <strong>{{ b.name }}</strong>
+                        <small>{{ b.categories.join(' · ') || b.email }}</small>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="t-muted">{{ b.city || '—' }}</td>
+                  <td>
+                    @if (b.referralCode) { <span class="t-mono">{{ b.referralCode }}</span> } @else { <span class="t-faint">—</span> }
+                  </td>
+                  <td class="num">{{ b.referredCount }}</td>
+                  <td class="t-muted nowrap">{{ b.createdAt | date: 'd MMM y' }}</td>
+                  <td><app-pill [meta]="state(b)" /></td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6">
+                    <div class="empty">
+                      <span class="material-symbols-rounded">store</span>
+                      <h3>Ningún negocio coincide</h3>
+                      <p>Prueba con otra búsqueda o cambia el filtro.</p>
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (data(); as d) {
+        <app-pagination [page]="d.page" [size]="d.size" [total]="d.totalElements" [pages]="d.totalPages" (pageChange)="goTo($event)" />
+      }
+    }
+  </div>
 </div>

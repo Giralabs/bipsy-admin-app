@@ -1,0 +1,53 @@
+<div class="page page--narrow">
+  <header class="page-head">
+    <div class="page-head__text">
+      <h1 class="t-display">Explorar</h1>
+      <p class="page-head__sub">Qué negocios ven destacados los clientes en la app y en la web. Se aplica al momento.</p>
+    </div>
+  </header>
+
+  @if (error(); as e) {
+    <div class="card"><div class="empty"><span class="material-symbols-rounded">cloud_off</span><h3>No se han podido cargar</h3><p>{{ e }}</p><button type="button" class="btn btn--primary" (click)="load()">Reintentar</button></div></div>
+  } @else if (!form()) {
+    <div class="stack"><span class="skeleton" style="height: 80px; border-radius: 20px"></span><span class="skeleton" style="height: 220px; border-radius: 20px"></span></div>
+  } @else {
+    <form class="stack stack--lg" (submit)="$event.preventDefault(); save()">
+      <p class="notice disc-summary">
+        <span class="material-symbols-rounded">travel_explore</span>
+        <span>{{ summary() }}</span>
+      </p>
+
+      @for (section of sections; track section.title) {
+        <section>
+          <p class="group__header overline">{{ section.title }}</p>
+          <div class="group__box">
+            @for (d of section.fields; track d.key) {
+              <label class="row disc-row">
+                <span class="row__label">
+                  {{ d.label }}
+                  <small>{{ d.hint }}</small>
+                </span>
+                <app-number-input [value]="value(d.key)" [min]="d.min" [max]="d.max" [step]="d.step" [unit]="d.unit"
+                  [ariaLabel]="d.label" [disabled]="!auth.canManage() || saving()" (valueChange)="setNumber(d.key, $event)" />
+              </label>
+            }
+          </div>
+          @if (section.footer) { <p class="group__footer">{{ section.footer }}</p> }
+        </section>
+      }
+
+      @if (auth.canManage()) {
+        <div class="disc-bar" [class.is-visible]="dirty()">
+          <span class="t-body">Tienes cambios sin guardar.</span>
+          <span class="spacer"></span>
+          <button type="button" class="btn btn--ghost" (click)="reset()" [disabled]="saving()">Descartar</button>
+          <button type="submit" class="btn btn--primary" [disabled]="invalid() || saving()">
+            @if (saving()) { <span class="spinner"></span> } Guardar ajustes
+          </button>
+        </div>
+      } @else {
+        <p class="notice"><span class="material-symbols-rounded">lock</span>Tu rol puede consultar estos ajustes, pero no cambiarlos.</p>
+      }
+    </form>
+  }
+</div>

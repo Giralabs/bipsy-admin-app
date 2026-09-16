@@ -1,0 +1,236 @@
+<div class="page">
+  <header class="page-head">
+    <div class="page-head__text">
+      <h1 class="t-display">Cobros</h1>
+      <p class="page-head__sub">Todo lo que se cobra a los clientes y lo que se les devuelve. Cada movimiento queda registrado.</p>
+    </div>
+    @if (auth.canManage()) {
+      <div class="page-head__actions">
+        <button type="button" class="btn btn--primary" (click)="chargeOpen.set(true)">
+          <span class="material-symbols-rounded">add_card</span>Cobrar a un cliente
+        </button>
+      </div>
+    }
+  </header>
+
+  <!-- ----- SUMMARY -------------------- -->
+  <section class="stats pay-stats" aria-label="Totales">
+    @if (summary(); as s) {
+      <div class="stat">
+        <span class="stat__label"><span class="material-symbols-rounded">savings</span>Cobrado</span>
+        <span class="stat__value t-num">{{ cents(s.collectedCents) }}</span>
+        <span class="stat__sub">{{ s.count }} movimientos en total</span>
+      </div>
+      <button type="button" class="stat pay-stat-btn" [class.is-on]="status() === 'REFUNDED'" (click)="setView('refunds')">
+        <span class="stat__label"><span class="material-symbols-rounded">currency_exchange</span>Devuelto</span>
+        <span class="stat__value t-num">{{ cents(s.refundedCents) }}</span>
+        <span class="stat__sub">Neto: <strong>{{ cents(s.netCents) }}</strong></span>
+      </button>
+      <button type="button" class="stat pay-stat-btn" [class.stat--warn]="s.failedCount > 0" [class.is-on]="status() === 'FAILED'" (click)="quickStatus('FAILED')">
+        <span class="stat__label"><span class="material-symbols-rounded">credit_card_off</span>Fallidos</span>
+        <span class="stat__value t-num">{{ s.failedCount }}</span>
+        <span class="stat__sub">Sin cobrar: <strong>{{ cents(s.failedCents) }}</strong></span>
+      </button>
+      <button type="button" class="stat pay-stat-btn" [class.stat--warn]="s.requiresActionCount > 0" [class.is-on]="status() === 'REQUIRES_ACTION'" (click)="quickStatus('REQUIRES_ACTION')">
+        <span class="stat__label"><span class="material-symbols-rounded">verified_user</span>Esperando al banco</span>
+        <span class="stat__value t-num">{{ s.requiresActionCount }}</span>
+        <span class="stat__sub">Piden verificación del cliente</span>
+      </button>
+    } @else {
+      @for (i of [1, 2, 3, 4]; track i) { <span class="skeleton" style="height: 112px; border-radius: 20px"></span> }
+    }
+  </section>
+
+  @if (summary(); as s) {
+    <section class="pay-kinds" aria-label="Por concepto">
+      @for (k of s.byKind; track k.kind) {
+        <button type="button" class="pay-kind" [class.is-on]="kind() === k.kind" (click)="view.set('charges'); setFilter('kind', kind() === k.kind ? '' : k.kind)">
+          <span class="pay-kind__label">{{ labels.chargeKind(k.kind).label }}</span>
+          <strong class="t-num">{{ cents(k.collectedCents - k.refundedCents) }}</strong>
+          <small>{{ k.count }} {{ k.count === 1 ? 'cobro' : 'cobros' }}</small>
+        </button>
+      }
+    </section>
+  }
+
+  <app-tabs class="pay-tabs" [options]="tabs()" [value]="view()" (valueChange)="setView($event)" />
+
+  @switch (view()) {
+    @case ('charges') {
+      <div class="toolbar">
+        <label class="search">
+          <span class="material-symbols-rounded">search</span>
+          <input class="input" type="search" placeholder="Cliente, email, negocio o concepto" [value]="q()"
+            (input)="onSearch($any($event.target).value)" aria-label="Buscar cobros" />
+        </label>
+        <app-select class="pay-filter" size="sm" [block]="false" ariaLabel="Concepto" [options]="kindOptions" [value]="kind()" (valueChange)="setFilter('kind', $event)" />
+        <app-select class="pay-filter" size="sm" [block]="false" ariaLabel="Estado" [options]="statusOptions" [value]="status()" (valueChange)="setFilter('status', $event)" />
+        <span class="pay-dates">
+          <input class="input" type="date" aria-label="Desde" [value]="from()" (change)="setFilter('from', $any($event.target).value)" />
+          <span class="t-faint">–</span>
+          <input class="input" type="date" aria-label="Hasta" [value]="to()" (change)="setFilter('to', $any($event.target).value)" />
+        </span>
+        @if (hasFilters()) {
+          <button type="button" class="btn btn--ghost btn--sm" (click)="clearFilters()"><span class="material-symbols-rounded">filter_alt_off</span>Quitar filtros</button>
+        }
+      </div>
+
+      @if (scopeChips().length) {
+        <div class="cluster pay-scope">
+          @for (c of scopeChips(); track c.key) {
+            <button type="button" class="chip is-on" (click)="removeScope(c.key)">{{ c.label }}<span class="material-symbols-rounded">close</span></button>
+          }
+        </div>
+      }
+
+      <div class="table-card" [class.is-loading]="loading() && !!charges()">
+        @if (error(); as e) {
+          <div class="empty">
+            <span class="material-symbols-rounded">cloud_off</span>
+            <h3>No se han podido cargar</h3>
+            <p>{{ e }}</p>
+            <button type="button" class="btn btn--primary" (click)="load()">Reintentar</button>
+          </div>
+        } @else if (!charges()) {
+          <div class="empty"><span class="spinner"></span></div>
+        } @else if (charges()!.totalElements === 0) {
+          <div class="empty">
+            <span class="material-symbols-rounded">receipt_long</span>
+            <h3>{{ hasFilters() ? 'Nada con estos filtros' : 'Todavía no hay cobros' }}</h3>
+            <p>{{ hasFilters() ? 'Prueba a quitar algún filtro.' : 'Cuando se cobre una tarifa o un pago de cita aparecerá aquí.' }}</p>
+          </div>
+        } @else {
+          <div class="table-scroll">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Concepto</th>
+                  <th>Negocio</th>
+                  <th>Estado</th>
+                  <th class="num">Importe</th>
+                  <th>Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (p of charges()!.content; track p.id) {
+                  <tr class="is-link" (click)="open(p)" (keydown.enter)="open(p)" tabindex="0">
+                    <td>
+                      <span class="cell-main__text">
+                        <strong>{{ p.customerName }}</strong>
+                        <small>{{ p.customerEmail }}</small>
+                      </span>
+                    </td>
+                    <td>
+                      <strong class="pay-concept">{{ labels.chargeKind(p.kind).label }}</strong>
+                      <small class="pay-small">{{ p.serviceName || p.description }}@if (p.manual) { · a mano }</small>
+                    </td>
+                    <td class="t-muted">{{ p.businessName || '—' }}</td>
+                    <td>
+                      <app-pill [meta]="labels.chargeStatus(p.status)" [icon]="false" />
+                      @if (p.failureReason && (p.status === 'FAILED' || p.status === 'REQUIRES_ACTION')) {
+                        <small class="pay-small t-danger" [title]="p.failureReason">{{ p.failureReason }}</small>
+                      }
+                    </td>
+                    <td class="num nowrap">
+                      <strong>{{ cents(p.amountCents, p.currency) }}</strong>
+                      @if (p.refundedCents > 0) { <small class="pay-small">−{{ cents(p.refundedCents, p.currency) }}</small> }
+                    </td>
+                    <td class="nowrap t-muted" [title]="(p.createdAt | date: 'd MMM y, HH:mm') ?? ''">{{ p.createdAt | date: 'd MMM y' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <app-pagination [page]="charges()!.page" [size]="charges()!.size" [total]="charges()!.totalElements" [pages]="charges()!.totalPages" (pageChange)="goTo($event)" />
+        }
+      </div>
+    }
+
+    @case ('refunds') {
+      <div class="table-card" [class.is-loading]="loading() && !!refunds()">
+        @if (error(); as e) {
+          <div class="empty"><span class="material-symbols-rounded">cloud_off</span><p>{{ e }}</p><button type="button" class="btn" (click)="load()">Reintentar</button></div>
+        } @else if (!refunds()) {
+          <div class="empty"><span class="spinner"></span></div>
+        } @else if (refunds()!.totalElements === 0) {
+          <div class="empty"><span class="material-symbols-rounded">currency_exchange</span><h3>Sin devoluciones</h3><p>No se ha devuelto nada todavía.</p></div>
+        } @else {
+          <div class="table-scroll">
+            <table class="table">
+              <thead>
+                <tr><th>Cliente</th><th>Motivo</th><th>Cómo</th><th>Estado</th><th class="num">Importe</th><th>Quién · cuándo</th></tr>
+              </thead>
+              <tbody>
+                @for (r of refunds()!.content; track r.id) {
+                  <tr class="is-link" [routerLink]="['/payments', r.paymentId]" tabindex="0">
+                    <td>
+                      <span class="cell-main__text"><strong>{{ r.customerName }}</strong><small>{{ r.businessName }}</small></span>
+                    </td>
+                    <td class="pay-reason">{{ r.reason || '—' }}</td>
+                    <td class="nowrap"><span class="pay-method"><span class="material-symbols-rounded">{{ labels.refundMethod(r.method).icon }}</span>{{ labels.refundMethod(r.method).label }}</span></td>
+                    <td>
+                      <app-pill [meta]="labels.refundStatus(r.status)" [icon]="false" />
+                      @if (r.failureReason) { <small class="pay-small t-danger">{{ r.failureReason }}</small> }
+                    </td>
+                    <td class="num nowrap"><strong>{{ cents(r.amountCents) }}</strong></td>
+                    <td class="nowrap t-muted">{{ r.createdByName || 'Sistema / negocio' }}<small class="pay-small">{{ r.createdAt | date: 'd MMM y, HH:mm' }}</small></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <app-pagination [page]="refunds()!.page" [size]="refunds()!.size" [total]="refunds()!.totalElements" [pages]="refunds()!.totalPages" (pageChange)="goTo($event)" />
+        }
+      </div>
+    }
+
+    @case ('invoices') {
+      <p class="notice pay-note">
+        <span class="material-symbols-rounded">info</span>
+        Lo que pagan los negocios por su plan con tarjeta (Stripe). Las compras en App Store y Google Play las cobran las tiendas y no aparecen aquí; las devoluciones de estas facturas se hacen desde Stripe.
+      </p>
+      <div class="table-card" [class.is-loading]="loading() && !!invoices()">
+        @if (error(); as e) {
+          <div class="empty"><span class="material-symbols-rounded">cloud_off</span><p>{{ e }}</p><button type="button" class="btn" (click)="load()">Reintentar</button></div>
+        } @else if (!invoices()) {
+          <div class="empty"><span class="spinner"></span></div>
+        } @else if (invoices()!.totalElements === 0) {
+          <div class="empty"><span class="material-symbols-rounded">workspace_premium</span><h3>Sin facturas</h3><p>Ningún negocio ha pagado todavía un plan con tarjeta.</p></div>
+        } @else {
+          <div class="table-scroll">
+            <table class="table">
+              <thead><tr><th>Negocio</th><th>Plan</th><th>Periodo</th><th>Estado</th><th class="num">Importe</th><th></th></tr></thead>
+              <tbody>
+                @for (i of invoices()!.content; track i.id) {
+                  <tr>
+                    <td>
+                      @if (i.businessId) { <a class="pay-link" [routerLink]="['/businesses', i.businessId]">{{ i.businessName }}</a> } @else { — }
+                    </td>
+                    <td>{{ i.planCode || '—' }}<small class="pay-small">{{ i.description }}</small></td>
+                    <td class="nowrap t-muted">
+                      @if (i.periodStart) { {{ i.periodStart | date: 'd MMM' }} – {{ i.periodEnd | date: 'd MMM y' }} } @else { {{ i.createdAt | date: 'd MMM y' }} }
+                    </td>
+                    <td>
+                      <app-pill [meta]="labels.chargeStatus(i.status)" [icon]="false" />
+                      @if (i.failureReason) { <small class="pay-small t-danger">{{ i.failureReason }}</small> }
+                    </td>
+                    <td class="num nowrap"><strong>{{ cents(i.amountCents, i.currency) }}</strong></td>
+                    <td class="num">
+                      @if (i.invoiceUrl) {
+                        <a class="btn btn--sm btn--ghost" [href]="i.invoiceUrl" target="_blank" rel="noopener"><span class="material-symbols-rounded">open_in_new</span>Factura</a>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <app-pagination [page]="invoices()!.page" [size]="invoices()!.size" [total]="invoices()!.totalElements" [pages]="invoices()!.totalPages" (pageChange)="goTo($event)" />
+        }
+      </div>
+    }
+  }
+</div>
+
+<app-charge-dialog [open]="chargeOpen()" (closed)="chargeOpen.set(false)" (charged)="onCharged($event)" />

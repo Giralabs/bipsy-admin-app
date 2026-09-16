@@ -1,28 +1,62 @@
-<div class="login-page">
-  <div class="ambient-orb ambient-orb--a"></div>
-  <div class="ambient-orb ambient-orb--b"></div>
+<div class="login">
+  <section class="login__panel">
+    <div class="login__inner">
+      <img src="brand/logo-mint.webp" alt="Bipsy" class="login__logo only-dark" />
+      <img src="brand/logo-carbon.webp" alt="Bipsy" class="login__logo only-light" />
 
-  <form class="login-card glass-card anim-fade-up" [formGroup]="form" (ngSubmit)="submit()">
-    <div class="brand-mark">B</div>
-    <h1>Bipsy Admin</h1>
-    <p class="tagline">Panel de administración</p>
+      <h1 class="t-display login__title">Panel de administración</h1>
+      <p class="login__sub">Clientes, negocios, soporte y ajustes de la plataforma, en un solo sitio.</p>
 
-    <label>
-      Usuario o email
-      <input type="text" formControlName="username" autocomplete="username" />
-    </label>
+      @if (expired()) {
+        <p class="notice notice--warn login__notice">
+          <span class="material-symbols-rounded fill">schedule</span>
+          Tu sesión ha caducado. Vuelve a entrar para seguir donde lo dejaste.
+        </p>
+      }
 
-    <label>
-      Contraseña
-      <input type="password" formControlName="password" autocomplete="current-password" />
-    </label>
+      <form class="login__form" (ngSubmit)="submit()" autocomplete="on">
+        <div class="group__box">
+          <label class="login__row">
+            <span class="login__label">Usuario</span>
+            <input class="login__input" type="text" name="username" autocomplete="username" required
+              placeholder="usuario o email" [(ngModel)]="username" [disabled]="submitting()" />
+          </label>
+          <label class="login__row">
+            <span class="login__label">Contraseña</span>
+            <input class="login__input" [type]="showPassword() ? 'text' : 'password'" name="password"
+              autocomplete="current-password" required [(ngModel)]="password" [disabled]="submitting()" />
+            <button type="button" class="login__eye" (click)="showPassword.set(!showPassword())"
+              [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+              <span class="material-symbols-rounded">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
+            </button>
+          </label>
+        </div>
 
-    @if (errorMessage()) {
-      <p class="error">{{ errorMessage() }}</p>
-    }
+        <label class="check login__remember">
+          <input type="checkbox" name="remember" [(ngModel)]="remember" />
+          Mantener la sesión en este equipo
+        </label>
 
-    <button type="submit" [disabled]="form.invalid || submitting()">
-      {{ submitting() ? 'Entrando…' : 'Entrar' }}
-    </button>
-  </form>
+        @if (error()) {
+          <p class="login__error" role="alert">
+            <span class="material-symbols-rounded fill">error</span>{{ error() }}
+          </p>
+        }
+
+        <button type="submit" class="btn btn--primary btn--block login__submit"
+          [disabled]="submitting() || !username.trim() || !password">
+          @if (submitting()) { <span class="spinner"></span> Entrando… } @else { Entrar }
+        </button>
+      </form>
+
+      <p class="login__foot">Acceso restringido al equipo de Bipsy. Cada acción queda registrada.</p>
+    </div>
+  </section>
+
+  <aside class="login__art" aria-hidden="true">
+    <div class="login__art-card">
+      <img src="brand/bip-hello.webp" alt="" class="login__bip" />
+      <p class="login__quote">«Hola, soy Bip. Aquí se cuida de que todo en Bipsy funcione bien.»</p>
+    </div>
+  </aside>
 </div>

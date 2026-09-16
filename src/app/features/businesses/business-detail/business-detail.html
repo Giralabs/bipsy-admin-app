@@ -1,138 +1,271 @@
-<div class="business-detail anim-fade-up">
-  <a routerLink="/businesses" class="back">← Volver a Establecimientos</a>
+<div class="page">
+  <a routerLink="/businesses" class="back-link"><span class="material-symbols-rounded">arrow_back</span>Negocios</a>
 
-  @if (loading()) {
-    <p>Cargando…</p>
-  } @else if (business(); as b) {
-    <header class="header">
-      <div>
-        <h1>{{ b.name }}</h1>
-        <p class="subtitle">{{ b.email }} · {{ b.city || 'Sin ciudad' }}</p>
+  @if (loading() && !business()) {
+    <div class="stack">
+      <span class="skeleton" style="height: 112px; border-radius: 20px"></span>
+      <span class="skeleton" style="height: 88px; border-radius: 20px"></span>
+      <span class="skeleton" style="height: 240px; border-radius: 20px"></span>
+    </div>
+  } @else if (error(); as e) {
+    <div class="card">
+      <div class="empty">
+        <span class="material-symbols-rounded">store</span>
+        <h3>No se ha podido abrir el negocio</h3>
+        <p>{{ e }}</p>
+        <button type="button" class="btn btn--primary" (click)="load()">Reintentar</button>
       </div>
-      @if (b.banned) {
-        <span class="badge badge--red">Baneado</span>
-      } @else if (!b.setupComplete) {
-        <span class="badge badge--orange">Setup incompleto</span>
-      } @else {
-        <span class="badge badge--green">Activo</span>
-      }
+    </div>
+  } @else if (business(); as b) {
+    <header class="profile">
+      <app-avatar [name]="b.name" [size]="72" [square]="true" />
+      <div class="profile__text">
+        <h1 class="t-h2">{{ b.name }}</h1>
+        <p class="profile__sub">
+          <button type="button" class="profile__copy" (click)="copy(b.email, 'Email')">{{ b.email }}<span class="material-symbols-rounded">content_copy</span></button>
+          <button type="button" class="profile__copy" (click)="copy(b.phone, 'Teléfono')">{{ b.phone }}<span class="material-symbols-rounded">content_copy</span></button>
+          <span>{{ b.city || 'Sin ciudad' }}</span>
+        </p>
+        <div class="cluster profile__pills">
+          <app-pill [meta]="state(b)" />
+          @if (activeSubscription(); as s) { <span class="pill pill--mint"><span class="material-symbols-rounded">workspace_premium</span>{{ s.planName }}</span> }
+          @for (cat of b.categories; track cat) { <span class="pill">{{ cat }}</span> }
+        </div>
+      </div>
+      <div class="profile__actions">
+        @if (auth.canManage()) {
+          <button type="button" class="btn btn--ghost" (click)="notifyOpen.set(true)">
+            <span class="material-symbols-rounded">notifications</span>Enviar aviso
+          </button>
+        }
+        <a class="btn btn--ghost" [href]="publicUrl()" target="_blank" rel="noopener">
+          <span class="material-symbols-rounded">open_in_new</span>Ver en la web
+        </a>
+        @if (auth.canManage()) {
+          <button type="button" class="btn" [class.btn--danger]="!b.banned" (click)="confirmBan.set(true)">
+            <span class="material-symbols-rounded">{{ b.banned ? 'lock_open' : 'block' }}</span>{{ b.banned ? 'Quitar baneo' : 'Banear' }}
+          </button>
+        }
+      </div>
     </header>
 
-    <section class="panel">
-      <h3>Ficha</h3>
-      <dl class="profile-grid">
-        <dt>Teléfono</dt><dd>{{ b.phone }}</dd>
-        <dt>CIF</dt><dd>{{ b.cif || '—' }}</dd>
-        <dt>Dirección</dt><dd>{{ b.address || '—' }}</dd>
-        <dt>Ciudad</dt><dd>{{ b.city || '—' }}</dd>
-        <dt>Provincia</dt><dd>{{ b.province || '—' }}</dd>
-        <dt>Código postal</dt><dd>{{ b.postalCode || '—' }}</dd>
-        <dt>Autónomo</dt><dd>{{ b.autonomous ? 'Sí' : 'No' }}</dd>
-        <dt>Setup completo</dt><dd>{{ b.setupComplete ? 'Sí' : 'No' }}</dd>
-        <dt>Categorías</dt><dd>{{ b.categories.join(', ') || '—' }}</dd>
-        <dt>Alta</dt><dd>{{ b.createdAt | date: 'medium' }}</dd>
-      </dl>
+    @if (b.banned) {
+      <p class="notice notice--danger bd-banner"><span class="material-symbols-rounded fill">block</span>Este negocio está baneado: ni el dueño ni sus profesionales pueden iniciar sesión.</p>
+    } @else if (!b.setupComplete) {
+      <p class="notice notice--warn bd-banner"><span class="material-symbols-rounded fill">pending</span>Aún no ha terminado el alta, así que no aparece en Explorar.</p>
+    }
 
-      @if (b.description) {
-        <h3>Descripción</h3>
-        <p class="description">{{ b.description }}</p>
-      }
+    <app-tabs class="bd-tabs" [options]="tabs()" [value]="tab()" (valueChange)="setTab($event)" />
 
-      <h3>Código de referido</h3>
-      <dl class="profile-grid">
-        <dt>Código</dt><dd>{{ b.referralCode || 'Sin fijar' }}</dd>
-        <dt>Clientes referidos</dt><dd>{{ b.referredCount }}</dd>
-      </dl>
-
-      @if (auth.canManage()) {
-        <h3>Estado de la cuenta</h3>
-        @if (b.banned) {
-          <button type="button" class="secondary" (click)="unban()" [disabled]="working()">
-            {{ working() ? 'Desbaneando…' : 'Quitar baneo' }}
-          </button>
-        } @else {
-          <button type="button" class="danger" (click)="showBanConfirm.set(true)">Banear negocio</button>
-        }
-      }
-    </section>
-
-    <section class="panel">
-      <h3>Suscripción</h3>
-
-      @if (loadingSubscriptions()) {
-        <p>Cargando…</p>
-      } @else if (subscriptions().length === 0) {
-        <p>Este negocio no ha tenido ninguna suscripción.</p>
-      } @else {
-        <table>
-          <thead>
-            <tr>
-              <th>Plan</th>
-              <th>Estado</th>
-              <th>Origen</th>
-              <th>Inicio</th>
-              <th>Fin de periodo</th>
-              @if (auth.canManage()) { <th></th> }
-            </tr>
-          </thead>
-          <tbody>
-            @for (s of subscriptions(); track s.id) {
-              <tr>
-                <td>{{ s.planName }}</td>
-                <td>
-                  <span class="pill" [class.danger]="s.status === 'ACTIVE'">{{ s.status }}</span>
-                </td>
-                <td>{{ s.source }}</td>
-                <td>{{ s.startAt | date: 'short' }}</td>
-                <td>{{ s.currentPeriodEnd ? (s.currentPeriodEnd | date: 'short') : 'Sin caducidad' }}</td>
-                @if (auth.canManage()) {
-                  <td>
-                    @if (s.status === 'ACTIVE') {
-                      <button type="button" (click)="cancelSubscription(s.id)" [disabled]="cancellingId() === s.id">
-                        Cancelar
-                      </button>
-                    }
-                  </td>
-                }
-              </tr>
-            }
-          </tbody>
-        </table>
-      }
-
-      @if (auth.canManage()) {
-        <h3>Asignar plan</h3>
-        <div class="sanction-form">
-          <label>
-            Plan
-            <select [(ngModel)]="selectedPlanCode">
-              <option value="" disabled>Elige un plan…</option>
-              @for (p of plans(); track p.code) {
-                <option [value]="p.code">{{ p.name }} ({{ p.code }})</option>
-              }
-            </select>
-          </label>
-          <div class="actions">
-            <button
-              type="button"
-              class="secondary"
-              (click)="assignPlan()"
-              [disabled]="!selectedPlanCode || assigningPlan()"
-            >
-              {{ assigningPlan() ? 'Asignando…' : 'Asignar' }}
+    @switch (tab()) {
+      @case ('profile') {
+        @if (overview(); as o) {
+          <section class="stats bd-stats">
+            <button type="button" class="stat bd-stat" (click)="setTab('clients')">
+              <span class="stat__label"><span class="material-symbols-rounded">contacts</span>Clientes en agenda</span>
+              <span class="stat__value">{{ o.customers }}</span>
             </button>
+            <button type="button" class="stat bd-stat" (click)="setTab('bookings')">
+              <span class="stat__label"><span class="material-symbols-rounded">event</span>Citas</span>
+              <span class="stat__value">{{ o.bookings }}</span>
+            </button>
+            <button type="button" class="stat bd-stat" (click)="setTab('reviews')">
+              <span class="stat__label"><span class="material-symbols-rounded">star</span>Valoración</span>
+              <span class="stat__value">{{ o.averageRating != null ? o.averageRating.toFixed(1) : '—' }}</span>
+              <span class="stat__sub">{{ o.reviewCount }} {{ o.reviewCount === 1 ? 'reseña' : 'reseñas' }}</span>
+            </button>
+            <button type="button" class="stat bd-stat" (click)="setTab('team')">
+              <span class="stat__label"><span class="material-symbols-rounded">groups</span>Equipo</span>
+              <span class="stat__value">{{ o.workers }}</span>
+              <span class="stat__sub">{{ o.activeServices }} de {{ o.services }} servicios publicados</span>
+            </button>
+          </section>
+        }
+        <div class="grid-2">
+          <section class="stack">
+            <div>
+              <p class="group__header overline">Datos fiscales y dirección</p>
+              <div class="group__box">
+                <div class="row"><span class="row__label">Negocio nº</span><span class="row__value t-num">{{ b.id }}</span></div>
+                <div class="row"><span class="row__label">Tipo</span><span class="row__value">{{ b.autonomous ? 'Autónomo' : 'Empresa' }}</span></div>
+                <button type="button" class="row" (click)="copy(b.cif, 'CIF')"><span class="row__label">CIF / NIF</span><span class="row__value t-mono">{{ b.cif || '—' }}</span></button>
+                <div class="row"><span class="row__label">Dirección</span><span class="row__value">{{ b.address || '—' }}</span></div>
+                <div class="row"><span class="row__label">Localidad</span><span class="row__value">{{ b.postalCode ? b.postalCode + ' ' : '' }}{{ b.city || '—' }}{{ b.province ? ' (' + b.province + ')' : '' }}</span></div>
+                <div class="row"><span class="row__label">Alta</span><span class="row__value">{{ b.createdAt | date: 'd MMM y' }} · {{ ago(b.createdAt) }}</span></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="stack">
+            <div>
+              <p class="group__header overline">Referidos</p>
+              <div class="group__box">
+                <button type="button" class="row" (click)="copy(b.referralCode, 'Código')" [disabled]="!b.referralCode">
+                  <span class="material-symbols-rounded row__icon">qr_code_2</span>
+                  <span class="row__label">Código</span>
+                  <span class="row__value t-mono">{{ b.referralCode || 'Sin fijar' }}</span>
+                </button>
+                <a class="row" routerLink="/referrals">
+                  <span class="material-symbols-rounded row__icon">group_add</span>
+                  <span class="row__label">Clientes traídos</span>
+                  <span class="row__trail"><strong class="t-num">{{ b.referredCount }}</strong><span class="material-symbols-rounded row__chevron">chevron_right</span></span>
+                </a>
+              </div>
+            </div>
+            <div>
+              <p class="group__header overline">Descripción</p>
+              <div class="card"><p class="t-body bd-desc">{{ b.description || 'Sin descripción.' }}</p></div>
+            </div>
+          </section>
+        </div>
+      }
+
+      @case ('subscriptions') {
+        <app-plan-access
+          [businessId]="b.id"
+          [businessName]="b.name"
+          [plans]="plans()"
+          [subscriptions]="subscriptions()"
+          (changed)="onAccessChanged()"
+        />
+      }
+
+      @case ('clients') { <app-business-clients [businessId]="b.id" /> }
+      @case ('bookings') { <app-bookings-table [businessId]="b.id" /> }
+      @case ('team') { <app-business-team [businessId]="b.id" /> }
+      @case ('services') { <app-business-services [businessId]="b.id" /> }
+      @case ('reviews') { <app-reviews-list [businessId]="b.id" /> }
+      @case ('photos') { <app-business-photos [businessId]="b.id" /> }
+      @case ('payments') { <app-business-payments [businessId]="b.id" /> }
+
+      @case ('grants') {
+        <div class="stack">
+          @if (grantsUnavailable()) {
+            <p class="notice"><span class="material-symbols-rounded">update</span>Ver las ofertas necesita la versión nueva del backend (GET /admin/grants). Crear ofertas sí funciona.</p>
+          }
+          <div class="table-card">
+            <div class="card__head bd-head">
+              <div>
+                <h2 class="card__title">Ofertas de acceso</h2>
+                <p class="t-caption">Planes o funciones gratis para este negocio durante un tiempo.</p>
+              </div>
+              @if (auth.canManage()) {
+                <button type="button" class="btn btn--primary btn--sm" (click)="grantOpen.set(true)"><span class="material-symbols-rounded">redeem</span>Nueva oferta</button>
+              }
+            </div>
+            @if (grants() === null) {
+              <div class="empty"><span class="spinner"></span></div>
+            } @else if (grants()!.length === 0) {
+              <div class="empty"><span class="material-symbols-rounded">redeem</span><h3>Sin ofertas</h3><p>No tiene ningún acceso regalado.</p></div>
+            } @else {
+              <div class="table-scroll">
+                <table class="table">
+                  <thead><tr><th>Concede</th><th>Estado</th><th>Desde</th><th>Hasta</th><th>Nota</th><th></th></tr></thead>
+                  <tbody>
+                    @for (g of grants(); track g.id) {
+                      <tr>
+                        <td><strong>{{ grantTarget(g) }}</strong></td>
+                        <td><app-pill [meta]="grantState(g)" [icon]="false" /></td>
+                        <td class="t-muted nowrap">{{ g.validFrom | date: 'd MMM y' }}</td>
+                        <td class="t-muted nowrap">{{ g.validUntil ? (g.validUntil | date: 'd MMM y') : 'Sin fin' }}</td>
+                        <td class="t-muted">{{ g.note || '—' }}</td>
+                        <td class="num">
+                          @if (g.active && auth.canManage()) { <button type="button" class="btn btn--sm" (click)="revokeTarget.set(g)">Revocar</button> }
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
           </div>
         </div>
       }
-    </section>
+
+      @case ('support') {
+        <div class="card card--flush">
+          @if (tickets() === null) {
+            <div class="empty"><span class="spinner"></span></div>
+          } @else if (tickets()!.length === 0) {
+            <div class="empty"><span class="material-symbols-rounded">support_agent</span><h3>Sin tickets</h3><p>Este negocio no ha escrito nunca a soporte.</p></div>
+          } @else {
+            @for (t of tickets(); track t.id) {
+              <a class="row bd-row" [routerLink]="['/tickets', t.id]">
+                <span class="row__label">
+                  <span class="t-clip">#{{ t.id }} · {{ t.subject || t.description }}</span>
+                  <small>{{ t.requesterName }} · {{ ago(t.updatedAt) }}</small>
+                </span>
+                <span class="row__trail">
+                  <app-pill [meta]="labels.ticketStatus(t.status)" [icon]="false" />
+                  <span class="material-symbols-rounded row__chevron">chevron_right</span>
+                </span>
+              </a>
+            }
+            @if (ticketsTotal() > tickets()!.length) {
+              <a class="row bd-row" routerLink="/tickets" [queryParams]="{ businessId: b.id }">
+                <span class="row__label t-muted">Ver los {{ ticketsTotal() }} tickets</span>
+                <span class="row__trail"><span class="material-symbols-rounded row__chevron">chevron_right</span></span>
+              </a>
+            }
+          }
+        </div>
+      }
+
+      @case ('history') {
+        <div class="card card--flush">
+          @if (history() === null) {
+            <div class="empty"><span class="spinner"></span></div>
+          } @else if (historyUnavailable()) {
+            <p class="notice bd-pad"><span class="material-symbols-rounded">update</span>El historial por negocio necesita la versión nueva del backend (GET /admin/audit-log/entity).</p>
+          } @else if (history()!.length === 0) {
+            <div class="empty"><span class="material-symbols-rounded">history</span><h3>Sin acciones</h3><p>Nadie del equipo ha tocado este negocio desde el panel.</p></div>
+          } @else {
+            @for (e of history(); track e.id) {
+              <div class="row bd-row">
+                <span class="material-symbols-rounded row__icon">{{ labels.auditAction(e.action).icon || 'bolt' }}</span>
+                <span class="row__label">
+                  <span><strong>{{ e.adminName }}</strong> {{ labels.auditAction(e.action).label | lowercase }} este negocio</span>
+                  @if (e.details) { <small>{{ e.details }}</small> }
+                </span>
+                <span class="row__value">{{ e.createdAt | date: 'd MMM y, HH:mm' }}</span>
+              </div>
+            }
+          }
+        </div>
+      }
+    }
+
+    <app-notify-dialog [open]="notifyOpen()" [actorId]="b.id" [name]="b.name" audience="Bipsy Business" (closed)="notifyOpen.set(false)" />
+
+    <app-grant-dialog
+      [open]="grantOpen()"
+      [businessId]="b.id"
+      [businessName]="b.name"
+      [plans]="plans()"
+      [features]="features()"
+      (created)="onGrantCreated()"
+      (cancelled)="grantOpen.set(false)"
+    />
 
     <app-confirm-modal
-      [open]="showBanConfirm()"
-      title="Banear establecimiento"
-      message="El negocio no podrá iniciar sesión mientras esté baneado. Puedes revertirlo cuando quieras."
-      confirmLabel="Banear"
-      (confirmed)="confirmBan()"
-      (cancelled)="showBanConfirm.set(false)"
+      [open]="confirmBan()"
+      [busy]="banning()"
+      [tone]="b.banned ? 'primary' : 'danger'"
+      [title]="b.banned ? '¿Quitar el baneo?' : '¿Banear ' + b.name + '?'"
+      [message]="b.banned ? 'El dueño y sus profesionales podrán volver a iniciar sesión.' : 'Ni el dueño ni sus profesionales podrán iniciar sesión mientras esté baneado. Puedes revertirlo cuando quieras.'"
+      [confirmLabel]="b.banned ? 'Quitar baneo' : 'Banear negocio'"
+      (confirmed)="toggleBan()"
+      (cancelled)="confirmBan.set(false)"
+    />
+
+    <app-confirm-modal
+      [open]="!!revokeTarget()"
+      [busy]="revoking()"
+      title="¿Revocar la oferta?"
+      message="El negocio pierde ese acceso en cuanto se refresque su sesión."
+      confirmLabel="Revocar"
+      (confirmed)="revoke()"
+      (cancelled)="revokeTarget.set(null)"
     />
   }
 </div>

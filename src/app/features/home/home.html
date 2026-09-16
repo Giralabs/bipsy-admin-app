@@ -1,0 +1,186 @@
+<div class="page home">
+  <!-- ----- HEADER: GREETING AND WHAT NEEDS ATTENTION -------------------- -->
+  <header class="hero">
+    <div class="hero__text">
+      <p class="overline hero__date">{{ now | date: "EEEE, d 'de' MMMM" }}</p>
+      <h1 class="t-display">{{ greeting() }}</h1>
+      <div class="hero__focus">
+        @for (f of focus(); track f.link) {
+          <a class="focus" [routerLink]="f.link" [queryParams]="{ status: f.link === '/reports' ? 'PENDING' : 'OPEN' }">
+            <span class="material-symbols-rounded">{{ f.icon }}</span>
+            <strong class="t-num">{{ f.value }}</strong> {{ f.label }}
+          </a>
+        } @empty {
+          <span class="focus focus--calm"><span class="material-symbols-rounded fill">check_circle</span>Todo al día: nada pendiente.</span>
+        }
+      </div>
+    </div>
+    <div class="hero__actions">
+      @if (editing()) {
+        @if (hiddenCount() > 0) {
+          <button type="button" class="btn btn--ghost btn--sm" (click)="showAll()">Mostrar todos</button>
+        }
+        <button type="button" class="btn btn--primary btn--sm" (click)="editing.set(false)">
+          <span class="material-symbols-rounded">check</span>Listo
+        </button>
+      } @else {
+        <button type="button" class="btn btn--sm" (click)="editing.set(true)">
+          <span class="material-symbols-rounded">dashboard_customize</span>Personalizar
+          @if (hiddenCount() > 0) { <span class="t-faint">· {{ hiddenCount() }} ocultos</span> }
+        </button>
+      }
+    </div>
+  </header>
+
+  @if (editing()) {
+    <p class="notice home__editing">
+      <span class="material-symbols-rounded">visibility</span>
+      Toca un bloque para ocultarlo o volver a mostrarlo. Solo cambia en este navegador.
+    </p>
+  }
+
+  <!-- ----- BENTO GRID -------------------- -->
+  <div class="bento" [class.is-editing]="editing()">
+    @for (t of visibleTiles(); track t.item.path) {
+      @let hidden = isHidden(t.item.path);
+      @if (editing()) {
+        <button type="button" [class]="'tile tile--' + t.size" [class.is-hidden]="hidden" (click)="prefs.toggleTile(t.item.path)"
+          [attr.aria-pressed]="!hidden" [attr.aria-label]="(hidden ? 'Mostrar ' : 'Ocultar ') + t.item.label">
+          <span class="tile__top">
+            <span class="tile__icon material-symbols-rounded">{{ t.item.icon }}</span>
+            <span class="tile__toggle material-symbols-rounded">{{ hidden ? 'visibility_off' : 'visibility' }}</span>
+          </span>
+          <span class="tile__label">{{ t.item.label }}</span>
+          <span class="tile__desc">{{ hidden ? 'Oculto' : t.item.description }}</span>
+        </button>
+      } @else {
+        <a [class]="'tile tile--' + t.size" [class.tile--hot]="isHot(t.item)" [routerLink]="t.item.path">
+          <span class="tile__top">
+            <span class="tile__icon material-symbols-rounded">{{ t.item.icon }}</span>
+            @if (t.section) { <span class="tile__section">{{ t.section }}</span> }
+            <span class="material-symbols-rounded tile__go">arrow_outward</span>
+          </span>
+          <span class="tile__label">{{ t.item.label }}</span>
+
+          <span class="tile__body">
+            @switch (t.item.path) {
+              @case ('/dashboard') {
+                @if (stats(); as s) {
+                  <span class="mini-stats">
+                    <span><strong class="t-num">{{ fmt.int(s.customers.total) }}</strong>clientes</span>
+                    <span><strong class="t-num">{{ fmt.int(s.businesses.total) }}</strong>negocios</span>
+                    <span><strong class="t-num">{{ fmt.int(s.bookings.last30Days) }}</strong>reservas · 30 días</span>
+                    <span><strong class="t-num">{{ fmt.eur(s.subscriptions.estimatedMrr) }}</strong>MRR estimado</span>
+                  </span>
+                  <span class="mini-bars">
+                    @for (b of bookingBars(); track b.label) {
+                      <span class="mini-bar">
+                        <span class="mini-bar__label">{{ b.label }}</span>
+                        <span class="bar__track"><span [class]="'bar__fill fill--' + b.tone" [style.width.%]="b.percent"></span></span>
+                        <span class="mini-bar__count t-num">{{ b.count }}</span>
+                      </span>
+                    }
+                  </span>
+                } @else { <span class="skeleton tile__skeleton"></span> }
+              }
+              @case ('/tickets') {
+                <span class="tile__metric"><strong class="t-num">{{ badges.counts().tickets }}</strong>{{ badges.counts().tickets === 1 ? 'abierto' : 'abiertos' }}</span>
+                <span class="mini-list">
+                  @for (tk of tickets() ?? []; track tk.id) {
+                    <span class="mini-list__row"><span class="t-clip">{{ subject(tk) }}</span><small>{{ tk.businessName }} · {{ fmt.ago(tk.createdAt) }}</small></span>
+                  } @empty { <span class="mini-list__empty">Ningún ticket esperando.</span> }
+                </span>
+              }
+              @case ('/improvements') {
+                <span class="tile__metric"><strong class="t-num">{{ badges.counts().improvements }}</strong>por revisar</span>
+                <span class="mini-list">
+                  @for (tk of improvements() ?? []; track tk.id) {
+                    <span class="mini-list__row"><span class="t-clip">{{ subject(tk) }}</span><small>{{ tk.businessName }} · {{ fmt.ago(tk.createdAt) }}</small></span>
+                  } @empty { <span class="mini-list__empty">Sin solicitudes nuevas.</span> }
+                </span>
+              }
+              @case ('/users') {
+                @if (stats(); as s) {
+                  <span class="tile__metric"><strong class="t-num">{{ fmt.int(s.customers.total) }}</strong>+{{ fmt.int(s.customers.newLast30Days) }} este mes</span>
+                }
+              }
+              @case ('/businesses') {
+                @if (stats(); as s) {
+                  <span class="tile__metric"><strong class="t-num">{{ fmt.int(s.businesses.total) }}</strong>{{ s.businesses.setupIncomplete }} sin terminar el alta</span>
+                }
+              }
+              @case ('/reports') {
+                <span class="tile__metric"><strong class="t-num">{{ badges.counts().reports }}</strong>{{ badges.counts().reports === 1 ? 'pendiente' : 'pendientes' }}</span>
+              }
+              @case ('/reviews') {
+                @if (review(); as r) {
+                  <span class="mini-review">
+                    <span class="mini-review__stars">
+                      @for (n of [1, 2, 3, 4, 5]; track n) { <span class="material-symbols-rounded" [class.fill]="n <= r.rating" [class.is-on]="n <= r.rating">star</span> }
+                    </span>
+                    <span class="mini-review__text">«{{ r.comment || 'Sin comentario' }}»</span>
+                    <small>{{ r.customerName }} en {{ r.businessName }}</small>
+                  </span>
+                }
+              }
+              @case ('/plans') {
+                @if (stats(); as s) {
+                  <span class="tile__metric"><strong class="t-num">{{ fmt.int(s.subscriptions.active) }}</strong>activas · {{ fmt.eur(s.subscriptions.estimatedMrr) }}/mes</span>
+                }
+              }
+              @case ('/discovery') {
+                @if (discovery(); as d) {
+                  <span class="mini-chips">
+                    <span>★ {{ d.minRating }}+</span><span>{{ d.minReviews }} reseñas</span><span>{{ d.featuredMaxDistanceKm }} km</span>
+                  </span>
+                }
+              }
+              @case ('/referrals') {
+                <span class="mini-list">
+                  @for (r of referrals() ?? []; track r.businessId; let i = $index) {
+                    <span class="mini-rank"><em>{{ i + 1 }}</em><span class="t-clip">{{ r.businessName }}</span><strong class="t-num">{{ r.referredCount }}</strong></span>
+                  } @empty { <span class="mini-list__empty">Sin referidos todavía.</span> }
+                </span>
+              }
+              @case ('/team') {
+                @if (team(); as members) {
+                  <span class="mini-team">
+                    <span class="mini-team__faces">
+                      @for (m of members.slice(0, 5); track m.id) { <app-avatar [name]="m.name" [size]="30" /> }
+                    </span>
+                    <small>{{ members.length }} {{ members.length === 1 ? 'cuenta' : 'cuentas' }} en el panel</small>
+                  </span>
+                }
+              }
+              @case ('/audit-log') {
+                <span class="mini-list">
+                  @for (e of activity() ?? []; track e.id) {
+                    <span class="mini-activity">
+                      <span class="material-symbols-rounded">{{ labels.auditAction(e.action).icon || 'bolt' }}</span>
+                      <span class="t-clip"><strong>{{ e.adminName }}</strong> {{ labels.auditAction(e.action).label | lowercase }} {{ labels.entityType(e.entityType).label }}</span>
+                      <small>{{ fmt.ago(e.createdAt) }}</small>
+                    </span>
+                  } @empty { <span class="mini-list__empty">Sin actividad todavía.</span> }
+                </span>
+              }
+              @default {
+                <span class="tile__desc">{{ t.item.description }}</span>
+              }
+            }
+          </span>
+        </a>
+      }
+    }
+
+    @if (!editing()) {
+      <a class="tile tile--md tile--account" routerLink="/account">
+        <span class="tile__top">
+          <app-avatar [name]="auth.displayName()" [size]="40" />
+          <span class="material-symbols-rounded tile__go">arrow_outward</span>
+        </span>
+        <span class="tile__label">Mi cuenta</span>
+        <span class="tile__desc">Diseño del panel, tema y accesibilidad.</span>
+      </a>
+    }
+  </div>
+</div>

@@ -1,0 +1,180 @@
+<div class="page page--narrow">
+  <header class="page-head">
+    <div class="page-head__text">
+      <h1 class="t-display">Equipo del panel</h1>
+      <p class="page-head__sub">
+        Quién entra a Bipsy Admin y qué puede hacer.
+        @if (members()) { {{ counts().active }} {{ counts().active === 1 ? 'cuenta activa' : 'cuentas activas' }}, {{ counts().full }} con acceso completo. }
+      </p>
+    </div>
+    @if (auth.canManage()) {
+      <div class="page-head__actions">
+        <button type="button" class="btn btn--primary" (click)="openCreate()"><span class="material-symbols-rounded">person_add</span>Nueva cuenta</button>
+      </div>
+    }
+  </header>
+
+  @if (!auth.canManage()) {
+    <p class="notice tm-notice"><span class="material-symbols-rounded">lock</span>Puedes ver el equipo, pero solo un admin con acceso completo puede crear cuentas o cambiar permisos.</p>
+  }
+
+  @if (error(); as e) {
+    <div class="card"><div class="empty"><span class="material-symbols-rounded">cloud_off</span><h3>No se ha podido cargar</h3><p>{{ e }}</p><button type="button" class="btn btn--primary" (click)="load()">Reintentar</button></div></div>
+  } @else if (!members()) {
+    <div class="stack">@for (i of [1, 2]; track i) { <span class="skeleton" style="height: 86px; border-radius: 20px"></span> }</div>
+  } @else {
+    <div class="stack">
+      @for (m of members(); track m.id) {
+        <article class="tm" [class.is-off]="!m.enabled">
+          <app-avatar [name]="m.name" [size]="46" />
+          <div class="tm__who">
+            <div class="cluster">
+              <strong>{{ m.name }}</strong>
+              @if (m.you) { <span class="pill pill--mint">Tú</span> }
+              @if (!m.enabled) { <span class="pill pill--danger">Desactivada</span> }
+            </div>
+            <span class="t-caption">&#64;{{ m.username }} · {{ m.email }} · desde {{ m.createdAt | date: 'd MMM y' }}</span>
+          </div>
+          <app-pill class="tm__scope" [meta]="scopeLabel(m.scope)" [icon]="false" />
+          @if (auth.canManage()) {
+            <div class="tm__actions">
+              <button type="button" class="btn btn--ghost btn--icon btn--sm" (click)="openEdit(m)" title="Editar nombre y permisos" aria-label="Editar">
+                <span class="material-symbols-rounded">edit</span>
+              </button>
+              <button type="button" class="btn btn--ghost btn--icon btn--sm" (click)="openPassword(m)" title="Cambiar contraseña" aria-label="Cambiar contraseña">
+                <span class="material-symbols-rounded">password</span>
+              </button>
+              @if (!m.you) {
+                <button type="button" class="btn btn--ghost btn--icon btn--sm" (click)="toggleTarget.set(m)"
+                  [title]="m.enabled ? 'Desactivar' : 'Reactivar'" [attr.aria-label]="m.enabled ? 'Desactivar' : 'Reactivar'">
+                  <span class="material-symbols-rounded">{{ m.enabled ? 'person_off' : 'person_check' }}</span>
+                </button>
+              }
+            </div>
+          }
+        </article>
+      }
+    </div>
+
+    <section class="tm-legend">
+      <p class="group__header overline">Qué permite cada rol</p>
+      <div class="tm-legend__grid">
+        @for (s of scopes; track s.value) {
+          <div class="tm-role">
+            <span class="tm-role__icon material-symbols-rounded">{{ s.icon }}</span>
+            <strong>{{ s.label }}</strong>
+            <ul>
+              @for (c of s.can; track c) { <li><span class="material-symbols-rounded yes">check</span>{{ c }}</li> }
+              @for (c of s.cannot; track c) { <li><span class="material-symbols-rounded no">close</span>{{ c }}</li> }
+            </ul>
+          </div>
+        }
+      </div>
+    </section>
+  }
+</div>
+
+@if (dialog(); as d) {
+  <div class="scrim" (click)="!saving() && dialog.set(null)">
+    <form class="dialog dialog--wide" (click)="$event.stopPropagation()" (submit)="$event.preventDefault(); save()" autocomplete="off">
+      <h2 class="dialog__title">
+        @switch (d.mode) {
+          @case ('create') { Nueva cuenta del panel }
+          @case ('edit') { Editar a {{ d.member.name }} }
+          @case ('password') { Nueva contraseña para {{ d.member.name }} }
+        }
+      </h2>
+      <p class="dialog__text">
+        @switch (d.mode) {
+          @case ('create') { Entrará en este panel con su usuario y la contraseña que le pases. Podrá cambiar de permisos cuando quieras. }
+          @case ('edit') { @if (d.member.you) { Tus propios permisos no se pueden cambiar desde tu cuenta. } @else { Los permisos se aplican en su siguiente petición al servidor. } }
+          @case ('password') { Se cierran las sesiones que tenga abiertas. Pásale la nueva por un canal seguro. }
+        }
+      </p>
+
+      <div class="dialog__body">
+        @if (d.mode !== 'password') {
+          <label class="field">
+            <span class="field__label">Nombre</span>
+            <input class="input" maxlength="120" [value]="fName()" (input)="fName.set($any($event.target).value)" placeholder="Nombre y apellido" />
+          </label>
+        }
+
+        @if (d.mode === 'create') {
+          <div class="form-grid">
+            <label class="field">
+              <span class="field__label">Email</span>
+              <input class="input" type="email" maxlength="255" [value]="fEmail()" (input)="onEmail($any($event.target).value)" placeholder="nombre@bipsy.es" />
+            </label>
+            <label class="field">
+              <span class="field__label">Usuario</span>
+              <input class="input t-mono" maxlength="50" [value]="fUsername()" (input)="fUsername.set($any($event.target).value)" />
+              <span class="field__hint">3-50 letras, números, punto o guion.</span>
+            </label>
+          </div>
+        }
+
+        @if (d.mode !== 'edit') {
+          <div class="field">
+            <span class="field__label">Contraseña</span>
+            <div class="tm-pass">
+              <input class="input t-mono" [type]="showPassword() ? 'text' : 'password'" maxlength="100" [value]="fPassword()"
+                (input)="fPassword.set($any($event.target).value)" autocomplete="new-password" />
+              <button type="button" class="btn btn--ghost btn--icon btn--sm" (click)="showPassword.set(!showPassword())" [attr.aria-label]="showPassword() ? 'Ocultar' : 'Mostrar'">
+                <span class="material-symbols-rounded">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
+              </button>
+              <button type="button" class="btn btn--ghost btn--icon btn--sm" (click)="regenerate()" title="Generar otra" aria-label="Generar otra">
+                <span class="material-symbols-rounded">casino</span>
+              </button>
+              <button type="button" class="btn btn--ghost btn--icon btn--sm" (click)="copyPassword()" title="Copiar" aria-label="Copiar">
+                <span class="material-symbols-rounded">content_copy</span>
+              </button>
+            </div>
+            <span class="field__hint" [class.t-danger]="fPassword() && !passwordOk()">Al menos 8 caracteres, con letras y números. Se ha generado una segura.</span>
+          </div>
+        }
+
+        @if (d.mode !== 'password') {
+          <div class="field">
+            <span class="field__label">Permisos</span>
+            <div class="tm-scopes" role="radiogroup">
+              @for (s of scopes; track s.value) {
+                <button type="button" role="radio" class="tm-scope" [class.is-on]="fScope() === s.value" [attr.aria-checked]="fScope() === s.value"
+                  [disabled]="d.mode === 'edit' && d.member.you" (click)="fScope.set(s.value)">
+                  <span class="material-symbols-rounded">{{ s.icon }}</span>
+                  <strong>{{ s.label }}</strong>
+                  <small>{{ s.can[0] }}</small>
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="dialog__actions">
+        <button type="button" class="btn btn--ghost" (click)="dialog.set(null)" [disabled]="saving()">Cancelar</button>
+        <button type="submit" class="btn btn--primary" [disabled]="!formValid() || saving()">
+          @if (saving()) { <span class="spinner"></span> }
+          @switch (d.mode) {
+            @case ('create') { Crear cuenta }
+            @case ('edit') { Guardar }
+            @case ('password') { Cambiar contraseña }
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+}
+
+<app-confirm-modal
+  [open]="!!toggleTarget()"
+  [busy]="toggling()"
+  [tone]="toggleTarget()?.enabled ? 'danger' : 'primary'"
+  [title]="toggleTarget()?.enabled ? '¿Desactivar a ' + toggleTarget()?.name + '?' : '¿Reactivar a ' + toggleTarget()?.name + '?'"
+  [message]="toggleTarget()?.enabled
+    ? 'No podrá entrar al panel y se cierran sus sesiones abiertas al momento. Sus acciones pasadas siguen en la auditoría.'
+    : 'Podrá volver a entrar con su contraseña de siempre.'"
+  [confirmLabel]="toggleTarget()?.enabled ? 'Desactivar' : 'Reactivar'"
+  (confirmed)="toggleEnabled()"
+  (cancelled)="toggleTarget.set(null)"
+/>

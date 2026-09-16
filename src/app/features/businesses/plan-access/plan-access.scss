@@ -1,0 +1,76 @@
+.pa-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 22px;
+  border-radius: var(--r-lg);
+  background: var(--clr-band);
+}
+
+.pa-head { display: flex; align-items: flex-start; gap: 16px; }
+.pa-head__text { flex: 1; min-width: 0; }
+.pa-head__text .t-body { margin-top: 4px; }
+
+.pa-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  background: rgba(95, 185, 138, 0.16);
+  color: var(--clr-success-text);
+
+  &.is-blocked { background: rgba(230, 118, 118, 0.16); color: var(--clr-danger-text); }
+}
+
+.pa-rows .row__value { max-width: 70%; }
+
+// Switch: the native checkbox styled like the app's one.
+.pa-switch { cursor: pointer; }
+.pa-switch .row__label { flex: 1; }
+.pa-switch input {
+  appearance: none;
+  flex-shrink: 0;
+  width: 44px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--clr-subtle);
+  position: relative;
+  cursor: pointer;
+  transition: background-color .2s ease;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    transition: transform .2s var(--ease-out);
+  }
+  &:checked { background: var(--clr-success); }
+  &:checked::after { transform: translateX(18px); }
+  &:disabled { opacity: .5; cursor: not-allowed; }
+}
+
+.pa-actions { padding-top: 2px; }
+
+.pa-small { display: block; margin-top: 2px; font-size: 0.75rem; color: var(--clr-text-3); }
+
+.pa-result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--clr-field);
+  font-size: 0.875rem;
+  color: var(--clr-text-2);
+
+  .material-symbols-rounded { color: var(--clr-accent-text); }
+  strong { color: var(--clr-text); }
+}

@@ -1,0 +1,47 @@
+<button #trigger type="button" class="sel" [class.sel--sm]="size() === 'sm'" [class.is-open]="open()"
+  [class.is-placeholder]="!selected()" [disabled]="disabled()"
+  role="combobox" aria-haspopup="listbox" [attr.aria-expanded]="open()" [attr.aria-controls]="id + '-list'"
+  [attr.aria-label]="ariaLabel()"
+  (click)="toggle()" (keydown)="onTriggerKeydown($event)">
+  @if (selected(); as s) {
+    @if (s.tone) { <span [class]="'sel__dot tone--' + s.tone"></span> }
+    @if (s.icon) { <span class="material-symbols-rounded sel__icon">{{ s.icon }}</span> }
+    <span class="sel__label">{{ s.label }}</span>
+  } @else {
+    <span class="sel__label">{{ placeholder() }}</span>
+  }
+  <span class="material-symbols-rounded sel__chevron">expand_more</span>
+</button>
+
+@if (open()) {
+  <div class="sel-panel" [class.is-up]="dropUp()" [style]="panelStyle()" (keydown)="onMenuKeydown($event)">
+    @if (showSearch()) {
+      <div class="sel-panel__search">
+        <span class="material-symbols-rounded">search</span>
+        <input #search type="text" autocomplete="off" placeholder="Buscar…" [value]="query()"
+          (input)="onSearch($any($event.target).value)"
+          role="searchbox" [attr.aria-controls]="id + '-list'"
+          [attr.aria-activedescendant]="active() >= 0 ? id + '-opt-' + active() : null" />
+      </div>
+    }
+    <ul #list class="sel-panel__list" role="listbox" tabindex="-1" [id]="id + '-list'"
+      [attr.aria-activedescendant]="active() >= 0 ? id + '-opt-' + active() : null">
+      @for (o of filtered(); track o.value; let i = $index) {
+        <li class="sel-opt" role="option" [id]="id + '-opt-' + i"
+          [class.is-active]="i === active()" [class.is-selected]="o.value === value()" [class.is-disabled]="o.disabled"
+          [attr.aria-selected]="o.value === value()" [attr.aria-disabled]="o.disabled || null"
+          (mousemove)="!o.disabled && active.set(i)" (click)="choose(o)">
+          @if (o.tone) { <span [class]="'sel__dot tone--' + o.tone"></span> }
+          @if (o.icon) { <span class="material-symbols-rounded sel-opt__icon">{{ o.icon }}</span> }
+          <span class="sel-opt__text">
+            <span class="sel-opt__label">{{ o.label }}</span>
+            @if (o.hint) { <small>{{ o.hint }}</small> }
+          </span>
+          @if (o.value === value()) { <span class="material-symbols-rounded sel-opt__check">check</span> }
+        </li>
+      } @empty {
+        <li class="sel-panel__empty">Nada coincide con «{{ query() }}».</li>
+      }
+    </ul>
+  </div>
+}

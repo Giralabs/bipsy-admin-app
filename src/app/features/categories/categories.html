@@ -1,73 +1,92 @@
-<div class="categories anim-fade-up">
-  <div class="header">
-    <h1>Categorías</h1>
+<div class="page page--narrow">
+  <header class="page-head">
+    <div class="page-head__text">
+      <h1 class="t-display">Categorías</h1>
+      <p class="page-head__sub">Los tipos de negocio que se ven en Explorar y en el alta de Bipsy Business.</p>
+    </div>
     @if (auth.canManage()) {
-      <button type="button" class="btn-mint" (click)="showForm.set(!showForm())">
-        {{ showForm() ? 'Cancelar' : '+ Nueva categoría' }}
-      </button>
+      <div class="page-head__actions">
+        <button type="button" class="btn btn--primary" (click)="openNew()"><span class="material-symbols-rounded">add</span>Nueva categoría</button>
+      </div>
     }
+  </header>
+
+  <div class="toolbar">
+    <label class="search">
+      <span class="material-symbols-rounded">search</span>
+      <input class="input" type="search" placeholder="Nombre o código" [value]="search()" (input)="search.set($any($event.target).value)" />
+    </label>
+    <app-segmented [options]="options()" [value]="filter()" (valueChange)="filter.set($event)" />
   </div>
 
-  @if (showForm()) {
-    <form class="category-form" [formGroup]="form" (ngSubmit)="submit()">
-      <label>
-        Código (mayúsculas, sin espacios)
-        <input type="text" formControlName="code" placeholder="TATTOO" />
-      </label>
-      <label>
-        Nombre
-        <input type="text" formControlName="name" placeholder="Tatuaje" />
-      </label>
-      <label>
-        Descripción
-        <textarea formControlName="description" rows="2"></textarea>
-      </label>
-      <button type="submit" class="btn-mint" [disabled]="form.invalid || saving()">
-        {{ saving() ? 'Creando…' : 'Crear categoría' }}
-      </button>
-    </form>
-  }
-
-  @if (loading()) {
-    <p>Cargando…</p>
-  } @else {
-    <table>
-      <thead>
-        <tr>
-          <th>Código</th>
-          <th>Nombre</th>
-          <th>Descripción</th>
-          <th>Estado</th>
-          @if (auth.canManage()) {
-            <th></th>
-          }
-        </tr>
-      </thead>
-      <tbody>
-        @for (c of categories(); track c.id) {
-          <tr>
-            <td>{{ c.code }}</td>
-            <td>{{ c.name }}</td>
-            <td>{{ c.description || '—' }}</td>
-            <td>
-              @if (c.active) {
-                <span class="badge badge--green">Activa</span>
-              } @else {
-                <span class="badge badge--neutral">Inactiva</span>
-              }
-            </td>
-            @if (auth.canManage()) {
-              <td>
-                <button type="button" (click)="toggleActive(c)" [disabled]="togglingId() === c.id">
-                  {{ c.active ? 'Desactivar' : 'Activar' }}
-                </button>
-              </td>
+  <div class="table-card">
+    @if (error(); as e) {
+      <div class="empty"><span class="material-symbols-rounded">cloud_off</span><h3>No se han podido cargar</h3><p>{{ e }}</p><button type="button" class="btn btn--primary" (click)="load()">Reintentar</button></div>
+    } @else if (categories() === null) {
+      <div class="empty"><span class="spinner"></span></div>
+    } @else {
+      <div class="table-scroll">
+        <table class="table">
+          <thead><tr><th>Nombre</th><th>Código</th><th>Descripción</th><th></th></tr></thead>
+          <tbody>
+            @for (c of visible(); track c.id) {
+              <tr [class.cat-off]="!c.active">
+                <td>
+                  <strong>{{ c.name }}</strong>
+                  @if (!c.active) { <span class="pill" style="margin-left: 8px">Oculta</span> }
+                </td>
+                <td class="cat-code">{{ c.code }}</td>
+                <td class="cat-desc">{{ c.description || '—' }}</td>
+                <td class="num nowrap">
+                  @if (auth.canManage()) {
+                    <button type="button" class="btn btn--ghost btn--icon btn--sm" (click)="openEdit(c)" aria-label="Editar" title="Editar">
+                      <span class="material-symbols-rounded">edit</span>
+                    </button>
+                    <button type="button" class="btn btn--sm" (click)="toggle(c)" [disabled]="togglingId() === c.id">
+                      {{ c.active ? 'Ocultar' : 'Activar' }}
+                    </button>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="4"><div class="empty"><span class="material-symbols-rounded">category</span><p>Ninguna categoría coincide.</p></div></td></tr>
             }
-          </tr>
-        } @empty {
-          <tr><td colspan="5" class="table-empty">No hay categorías.</td></tr>
-        }
-      </tbody>
-    </table>
-  }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
 </div>
+
+@if (editing(); as target) {
+  <div class="scrim" (click)="!saving() && editing.set(null)">
+    <form class="dialog" (click)="$event.stopPropagation()" (submit)="$event.preventDefault(); save()">
+      <h2 class="dialog__title">{{ target === 'new' ? 'Nueva categoría' : 'Editar categoría' }}</h2>
+      <div class="dialog__body">
+        <label class="field">
+          <span class="field__label">Nombre</span>
+          <input class="input" maxlength="100" placeholder="Tatuaje" [value]="formName()" (input)="formName.set($any($event.target).value)" required />
+        </label>
+        <label class="field">
+          <span class="field__label">Código</span>
+          <input class="input t-mono" maxlength="50" placeholder="TATTOO" [value]="formCode()" (input)="onCode($any($event.target).value)"
+            [disabled]="target !== 'new'" required />
+          <span class="field__hint">
+            @if (target === 'new') { Clave interna en MAYÚSCULAS. No se puede cambiar después. } @else { El código no se puede cambiar. }
+          </span>
+        </label>
+        <label class="field">
+          <span class="field__label">Descripción</span>
+          <textarea class="input" rows="3" maxlength="500" [value]="formDesc()" (input)="formDesc.set($any($event.target).value)"></textarea>
+        </label>
+      </div>
+      <div class="dialog__actions">
+        <button type="button" class="btn btn--ghost" (click)="editing.set(null)" [disabled]="saving()">Cancelar</button>
+        <button type="submit" class="btn btn--primary" [disabled]="!formValid() || saving()">
+          @if (saving()) { <span class="spinner"></span> }
+          {{ target === 'new' ? 'Crear' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+}

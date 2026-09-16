@@ -1,0 +1,194 @@
+<div class="page">
+  <header class="page-head">
+    <div class="page-head__text">
+      <h1 class="t-display">Bienvenidas</h1>
+      <p class="page-head__sub">Negocios recién llegados. Llámales mientras están en la cortesía o en la prueba, antes de que tengan que pagar, y apunta qué se habló.</p>
+    </div>
+    <div class="page-head__actions">
+      <app-select size="sm" [block]="false" ariaLabel="Periodo" [options]="dayOptions" [value]="days()" (valueChange)="setDays($event)" />
+    </div>
+  </header>
+
+  @if (data(); as d) {
+    <section class="ob-stats">
+      <div class="ob-stat" [class.is-hot]="d.summary.due > 0">
+        <span class="material-symbols-rounded">call</span>
+        <strong class="t-num">{{ d.summary.due }}</strong><small>por llamar</small>
+      </div>
+      <div class="ob-stat" [class.is-warn]="d.summary.endingSoon > 0">
+        <span class="material-symbols-rounded">timer</span>
+        <strong class="t-num">{{ d.summary.endingSoon }}</strong><small>gratis que acaba en ≤ 3 días</small>
+      </div>
+      <div class="ob-stat">
+        <span class="material-symbols-rounded">celebration</span>
+        <strong class="t-num">{{ d.summary.welcome }}</strong><small>en cortesía</small>
+      </div>
+      <div class="ob-stat">
+        <span class="material-symbols-rounded">hourglass_top</span>
+        <strong class="t-num">{{ d.summary.trial }}</strong><small>en prueba</small>
+      </div>
+      <div class="ob-stat">
+        <span class="material-symbols-rounded">lock</span>
+        <strong class="t-num">{{ d.summary.noPlan }}</strong><small>se quedaron sin plan</small>
+      </div>
+      <div class="ob-stat">
+        <span class="material-symbols-rounded">done_all</span>
+        <strong class="t-num">{{ d.summary.contactedThisWeek }}</strong><small>contactados esta semana</small>
+      </div>
+    </section>
+  }
+
+  <div class="toolbar">
+    <app-segmented [options]="filters()" [value]="filter()" (valueChange)="setFilter($event)" />
+  </div>
+
+  @if (error(); as e) {
+    <div class="card"><div class="empty"><span class="material-symbols-rounded">cloud_off</span><h3>No se ha podido cargar</h3><p>{{ e }}</p><button type="button" class="btn btn--primary" (click)="load()">Reintentar</button></div></div>
+  } @else if (!data()) {
+    <div class="stack">@for (i of [1, 2, 3]; track i) { <span class="skeleton" style="height: 150px; border-radius: 20px"></span> }</div>
+  } @else {
+    <div class="ob-list">
+      @for (i of items(); track i.businessId) {
+        <article class="ob-card" [class.is-due]="i.due" [class.is-urgent]="urgent(i)">
+          <div class="ob-card__main">
+            <div class="ob-card__head">
+              <a class="ob-name" [routerLink]="['/businesses', i.businessId]">{{ i.name }}</a>
+              <span [class]="'pill pill--' + labels.onboardingStage(i.stage).tone">
+                <span class="material-symbols-rounded">{{ labels.onboardingStage(i.stage).icon }}</span>{{ labels.onboardingStage(i.stage).label }}
+              </span>
+              @if (i.due) { <span class="pill pill--warn"><span class="material-symbols-rounded">call</span>Toca llamar</span> }
+            </div>
+            <p class="ob-meta">
+              {{ i.category || 'Sin categoría' }}@if (i.city) { · {{ i.city }} }
+              · alta {{ ago(i.createdAt) }}
+              @if (!i.setupComplete) { · <strong class="t-danger">alta sin terminar</strong> }
+              @if (i.planName) { · {{ i.planName }}@if (i.priceCents) { ({{ cents(i.priceCents) }}/mes) } }
+            </p>
+
+            @if (countdown(i); as c) {
+              <p class="ob-countdown" [class.is-urgent]="urgent(i)">
+                <span class="material-symbols-rounded">timer</span>{{ c }}
+                @if (i.endsAt) { <small>· hasta el {{ i.endsAt | date: "d 'de' MMMM" }}</small> }
+              </p>
+            }
+
+            <div class="ob-contact">
+              @if (i.phone && i.phone !== '-') {
+                <a class="btn btn--sm btn--primary" [href]="tel(i.phone)"><span class="material-symbols-rounded">call</span>{{ i.phone }}</a>
+              } @else {
+                <span class="pill">Sin teléfono</span>
+              }
+              @if (i.email) {
+                <a class="btn btn--sm btn--ghost" [href]="'mailto:' + i.email"><span class="material-symbols-rounded">mail</span>{{ i.email }}</a>
+              }
+            </div>
+          </div>
+
+          <div class="ob-card__side">
+            @if (i.lastOutcome) {
+              <div class="ob-last">
+                <span [class]="'pill pill--' + labels.callOutcome(i.lastOutcome).tone">
+                  <span class="material-symbols-rounded">{{ labels.callOutcome(i.lastOutcome).icon }}</span>{{ labels.callOutcome(i.lastOutcome).label }}
+                </span>
+                @if (i.lastNote) { <p class="ob-note">«{{ i.lastNote }}»</p> }
+                <small>{{ i.lastContactBy }} · {{ ago(i.lastContactAt) }}@if (i.contactCount > 1) { · {{ i.contactCount }} contactos }</small>
+                @if (i.nextCallAt) {
+                  <small class="ob-next" [class.is-due]="i.due"><span class="material-symbols-rounded">event</span>Volver a llamar {{ i.nextCallAt | date: "EEE d MMM, HH:mm" }}</small>
+                }
+              </div>
+            } @else {
+              <p class="ob-never"><span class="material-symbols-rounded">phone_disabled</span>Nadie le ha llamado todavía.</p>
+            }
+            <div class="ob-actions">
+              @if (i.contactCount > 0) {
+                <button type="button" class="btn btn--sm btn--ghost" (click)="toggleHistory(i)" [attr.aria-expanded]="openHistory() === i.businessId">
+                  <span class="material-symbols-rounded">history</span>{{ openHistory() === i.businessId ? 'Ocultar' : 'Historial' }}
+                </button>
+              }
+              @if (auth.canSupport()) {
+                <button type="button" class="btn btn--sm" (click)="openCall(i)"><span class="material-symbols-rounded">edit_note</span>Registrar llamada</button>
+              }
+            </div>
+          </div>
+
+          @if (openHistory() === i.businessId) {
+            <div class="ob-history">
+              @if (history()[i.businessId]; as h) {
+                @for (c of h; track c.id) {
+                  <div class="ob-history__row">
+                    <span class="material-symbols-rounded">{{ labels.callOutcome(c.outcome).icon }}</span>
+                    <div>
+                      <p><strong>{{ labels.callOutcome(c.outcome).label }}</strong> · {{ c.adminName }} · {{ c.createdAt | date: 'd MMM y, HH:mm' }}</p>
+                      @if (c.note) { <p class="ob-note">{{ c.note }}</p> }
+                      @if (c.nextCallAt) { <small>Quedó en volver a llamar el {{ c.nextCallAt | date: "d MMM, HH:mm" }}</small> }
+                    </div>
+                  </div>
+                }
+              } @else {
+                <span class="spinner"></span>
+              }
+            </div>
+          }
+        </article>
+      } @empty {
+        <div class="card">
+          <div class="empty">
+            <span class="material-symbols-rounded">{{ filter() === 'due' ? 'task_alt' : 'storefront' }}</span>
+            <h3>{{ filter() === 'due' ? 'No queda nadie por llamar' : 'Nadie en esta lista' }}</h3>
+            <p>{{ filter() === 'due' ? 'Cuando se dé de alta un negocio o llegue la fecha de volver a llamar, aparecerá aquí al momento.' : 'Prueba con otro filtro o amplía el periodo.' }}</p>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+@if (target(); as t) {
+  <div class="scrim" (click)="!saving() && target.set(null)">
+    <form class="dialog dialog--wide" (click)="$event.stopPropagation()" (submit)="$event.preventDefault(); saveCall()">
+      <h2 class="dialog__title">Llamada a {{ t.name }}</h2>
+      <p class="dialog__text">
+        {{ labels.onboardingStage(t.stage).label }}@if (countdown(t); as c) { · {{ c }} }.
+        Queda en su historial para que nadie más del equipo le vuelva a llamar sin saberlo.
+      </p>
+
+      <div class="dialog__body">
+        <div class="field">
+          <span class="field__label">¿Qué pasó?</span>
+          <div class="ob-outcomes">
+            @for (o of outcomes; track o) {
+              <button type="button" class="ob-outcome" [class.is-on]="outcome() === o" (click)="setOutcome(o)" [attr.aria-pressed]="outcome() === o">
+                <span class="material-symbols-rounded">{{ labels.callOutcome(o).icon }}</span>{{ labels.callOutcome(o).label }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <label class="field">
+          <span class="field__label">Notas @if (outcome() !== 'NOTE') { <span class="t-faint">(opcional)</span> }</span>
+          <textarea class="input" rows="3" maxlength="800" placeholder="Ej.: le interesa el plan Quality, quiere probar primero la agenda con su equipo" [value]="note()" (input)="note.set($any($event.target).value)"></textarea>
+        </label>
+
+        <div class="field">
+          <span class="field__label">Volver a llamar</span>
+          <div class="cluster">
+            @for (n of nextOptions; track n.key) {
+              <button type="button" class="chip" [class.is-on]="nextKey() === n.key" (click)="nextKey.set(n.key)">{{ n.label }}</button>
+            }
+          </div>
+          @if (nextKey() === 'custom') {
+            <input class="input ob-datetime" type="datetime-local" [value]="nextCustom()" (input)="nextCustom.set($any($event.target).value)" aria-label="Fecha y hora" />
+          }
+        </div>
+      </div>
+
+      <div class="dialog__actions">
+        <button type="button" class="btn btn--ghost" (click)="target.set(null)" [disabled]="saving()">Cancelar</button>
+        <button type="submit" class="btn btn--primary" [disabled]="!canSave() || saving()">
+          @if (saving()) { <span class="spinner"></span> }
+          Guardar
+        </button>
+      </div>
+    </form>
+  </div>
+}
