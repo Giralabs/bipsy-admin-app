@@ -1,61 +1,121 @@
+import { DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
+import { BusinessListItem, PageResponse } from '../../../core/models/admin.models';
+import { AdminApi } from '../../../core/services/admin-api.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { apiErrorMessage } from '../../../core/utils/api-error';
+import { formatInt } from '../../../core/utils/format';
+import { businessState } from '../../../core/utils/labels';
+import { Avatar } from '../../../shared/components/avatar/avatar';
+import { Pagination } from '../../../shared/components/pagination/pagination';
+import { Pill } from '../../../shared/components/pill/pill';
+import { SegmentOption, Segmented } from '../../../shared/components/segmented/segmented';
 import { downloadCsv } from '../../../shared/utils/download';
-import { BusinessListItem } from '../models/business.model';
-import { BusinessesService } from '../businesses.service';
+import { listQuery } from '../../../shared/utils/list-query';
+import { liveReload } from '../../../core/services/live.service';
+
+type BanFilter = 'ALL' | 'ACTIVE' | 'BANNED';
 
 @Component({
   selector: 'app-businesses-list',
-  standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [Avatar, Pagination, Pill, Segmented, DatePipe],
   templateUrl: './businesses-list.html',
-  styleUrl: './businesses-list.scss',
 })
 export class BusinessesList {
+  private readonly api = inject(AdminApi);
   private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
+  private readonly query = listQuery();
 
-  readonly businesses = signal<BusinessListItem[]>([]);
-  readonly loading = signal(false);
-  readonly page = signal(0);
-  readonly totalPages = signal(0);
+  protected readonly data = signal<PageResponse<BusinessListItem> | null>(null);
+  protected readonly loading = signal(true);
+  protected readonly error = signal<string | null>(null);
+  protected readonly exporting = signal(false);
 
-  search = '';
-  bannedFilter: '' | 'true' | 'false' = '';
+  protected readonly search = signal(this.query.get('q'));
+  protected readonly ban = signal<BanFilter>(this.initialBan());
+  protected readonly page = signal(this.query.page());
 
-  constructor(private businessesService: BusinessesService) {
+  protected readonly banOptions: SegmentOption<BanFilter>[] = [
+    { value: 'ALL', label: 'Todos' },
+    { value: 'ACTIVE', label: 'Sin banear' },
+    { value: 'BANNED', label: 'Baneados' },
+  ];
+  protected readonly state = businessState;
+  protected readonly int = formatInt;
+
+  private debounce?: ReturnType<typeof setTimeout>;
+
+  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  private readonly live = liveReload(['actors', 'plans'], () => this.load());
+
+  constructor() {
     this.load();
   }
 
-  load() {
+  protected load() {
     this.loading.set(true);
-    const banned = this.bannedFilter === '' ? null : this.bannedFilter === 'true';
-    this.businessesService.list(this.search.trim(), banned, this.page()).subscribe({
+    this.error.set(null);
+    const banned = this.bannedValue();
+    this.query.set({ q: this.search().trim(), banned: banned === null ? '' : String(banned), page: this.page() });
+
+    this.api.businesses({ search: this.search().trim(), banned, page: this.page() }).subscribe({
       next: (res) => {
-        this.businesses.set(res.content);
-        this.totalPages.set(res.totalPages);
+        this.data.set(res);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: (err) => {
+        this.loading.set(false);
+        this.error.set(apiErrorMessage(err, 'No se han podido cargar los negocios.'));
+      },
     });
   }
 
-  onFilterChange() {
+  protected onSearch(value: string) {
+    this.search.set(value);
+    clearTimeout(this.debounce);
+    this.debounce = setTimeout(() => {
+      this.page.set(0);
+      this.load();
+    }, 300);
+  }
+
+  protected setBan(value: BanFilter) {
+    this.ban.set(value);
     this.page.set(0);
     this.load();
   }
 
-  goToPage(delta: number) {
-    const next = this.page() + delta;
-    if (next < 0 || next >= this.totalPages()) return;
-    this.page.set(next);
+  protected goTo(page: number) {
+    this.page.set(page);
     this.load();
   }
 
-  export() {
-    const banned = this.bannedFilter === '' ? null : this.bannedFilter === 'true';
-    const url = this.businessesService.exportUrl(this.search.trim(), banned);
-    downloadCsv(this.http, url, 'establecimientos.csv');
+  protected open(b: BusinessListItem) {
+    this.router.navigate(['/businesses', b.id]);
+  }
+
+  protected export() {
+    this.exporting.set(true);
+    const url = this.api.businessesExportUrl({ search: this.search().trim(), banned: this.bannedValue() });
+    downloadCsv(this.http, url, 'negocios.csv').subscribe({
+      next: () => this.exporting.set(false),
+      error: (err) => {
+        this.exporting.set(false);
+        this.toast.error(err, 'No se ha podido exportar.');
+      },
+    });
+  }
+
+  private bannedValue(): boolean | null {
+    return this.ban() === 'ALL' ? null : this.ban() === 'BANNED';
+  }
+
+  private initialBan(): BanFilter {
+    const v = this.query.get('banned');
+    return v === 'true' ? 'BANNED' : v === 'false' ? 'ACTIVE' : 'ALL';
   }
 }
