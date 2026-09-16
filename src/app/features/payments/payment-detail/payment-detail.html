@@ -11,7 +11,7 @@
     @let d = detail()!;
     @let pay = d.payment;
 
-    <!-- ── Cabecera ── -->
+    <!-- ----- HEADER -------------------- -->
     <header class="pd-head">
       <div class="pd-head__main">
         <p class="overline">{{ labels.chargeKind(pay.kind).label }} · #{{ pay.id }}</p>
@@ -59,7 +59,7 @@
     }
 
     <div class="pd-grid">
-      <!-- ── Datos ── -->
+      <!-- ----- DETAILS -------------------- -->
       <section class="group__box pd-rows">
         <div class="row">
           <span class="row__label">Cliente</span>
@@ -115,7 +115,7 @@
       </section>
 
       <div class="stack">
-        <!-- ── Devoluciones ── -->
+        <!-- ----- REFUNDS -------------------- -->
         <section class="card">
           <div class="card__head"><h2 class="card__title">Devoluciones</h2></div>
           @for (r of d.refunds; track r.id) {
@@ -133,7 +133,7 @@
           }
         </section>
 
-        <!-- ── Historial del panel ── -->
+        <!-- ----- PANEL HISTORY -------------------- -->
         <section class="card">
           <div class="card__head"><h2 class="card__title">Historial en el panel</h2></div>
           @if (history(); as h) {
@@ -152,7 +152,7 @@
       </div>
     </div>
 
-    <!-- ── Diálogo: devolver ── -->
+    <!-- ----- REFUND DIALOG -------------------- -->
     @if (refundOpen()) {
       <div class="scrim" (click)="!refunding() && refundOpen.set(false)">
         <form class="dialog dialog--wide" (click)="$event.stopPropagation()" (submit)="$event.preventDefault(); submitRefund()">

@@ -33,19 +33,19 @@ export class Shell {
 
   protected readonly navOpen = signal(false);
   protected readonly paletteOpen = signal(false);
-  /** Menú desplegable abierto en la barra superior (título de sección). */
+  /** Dropdown menu open in the top bar (section title). */
   protected readonly openGroup = signal<string | null>(null);
   protected readonly url = signal(this.router.url);
   protected readonly scopeLabel = adminScope;
   protected readonly sections = NAV_SECTIONS;
 
   protected readonly layout = this.prefs.layout;
-  /** Diseños con menú lateral en escritorio. */
+  /** Layouts with a side menu on desktop. */
   protected readonly hasSide = computed(() => this.layout() === 'sidebar' || this.layout() === 'rail');
   protected readonly onHome = computed(() => this.path() === '/home');
   private readonly path = computed(() => this.url().split('?')[0]);
 
-  /** El apartado en el que estás, para la miga de pan de bloques. */
+  /** The section you are in, for the tiles layout breadcrumb. */
   protected readonly current = computed(() => {
     const path = this.path();
     if (path.startsWith('/account')) return { label: 'Mi cuenta', icon: 'person' };
@@ -55,7 +55,7 @@ export class Shell {
   constructor() {
     this.auth.refreshProfile();
     this.badges.refresh(true);
-    // Tiempo real mientras haya sesión: el shell solo existe con sesión abierta.
+    // Real time while there is a session: the shell only exists with an open session.
     this.live.start();
     inject(DestroyRef).onDestroy(() => this.live.stop());
 
@@ -72,15 +72,15 @@ export class Shell {
       });
   }
 
-  // === BARRA SUPERIOR ========================================================
+  // ----- TOP BAR --------------------
 
-  /** Una sección está activa si alguna de sus páginas lo está. */
+  /** A section is active if any of its pages is. */
   protected groupActive(section: NavSection): boolean {
     const path = this.path();
     return section.items.some((i) => path === i.path || path.startsWith(i.path + '/'));
   }
 
-  /** Lo pendiente de toda la sección, para el globo del botón. */
+  /** Pending items across the whole section, for the button badge. */
   protected groupBadge(section: NavSection): number {
     const counts = this.badges.counts();
     return section.items.reduce((sum, i) => sum + (i.badge ? counts[i.badge] : 0), 0);
@@ -96,7 +96,7 @@ export class Shell {
     if (nav && !nav.contains(event.target as Node)) this.openGroup.set(null);
   }
 
-  // === GENERAL ===============================================================
+  // ----- GENERAL --------------------
 
   protected toggleTheme() {
     const dark = document.documentElement.getAttribute('data-theme') !== 'light';

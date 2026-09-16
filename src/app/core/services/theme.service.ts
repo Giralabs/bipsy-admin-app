@@ -5,9 +5,9 @@ export type ThemePreference = 'system' | 'light' | 'dark';
 const STORAGE_KEY = 'bipsy_admin_theme';
 
 /**
- * Tema del panel. Por defecto sigue al sistema, como las webs; se puede fijar
- * a mano desde Cuenta. El script de index.html aplica lo guardado antes del
- * primer pintado; esto lo mantiene al día después.
+ * Panel theme. By default it follows the system, like the websites; it can be
+ * set manually from Cuenta. The script in index.html applies the stored value
+ * before the first paint; this keeps it up to date afterwards.
  */
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
@@ -23,7 +23,7 @@ export class ThemeService {
     try {
       localStorage.setItem(STORAGE_KEY, pref);
     } catch {
-      /* sin almacenamiento: se aplica solo en esta visita */
+      // No storage available: it only applies for this visit.
     }
     this.preference.set(pref);
     this.apply();

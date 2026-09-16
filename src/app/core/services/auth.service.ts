@@ -7,7 +7,7 @@ import { AuthResponse, LoginRequest } from '../models/auth.model';
 
 const STORAGE_KEY = 'bipsy_admin_session';
 
-/** FULL, SUPPORT o READONLY (ver AdminScope en el backend). */
+/** FULL, SUPPORT or READONLY (see AdminScope in the backend). */
 export type AdminScope = 'FULL' | 'SUPPORT' | 'READONLY';
 
 interface StoredSession {
@@ -18,7 +18,7 @@ interface StoredSession {
   scope: AdminScope;
   name: string | null;
   email: string | null;
-  /** true = localStorage (sobrevive a cerrar el navegador). */
+  // True means localStorage (survives closing the browser).
   remember: boolean;
 }
 
@@ -30,10 +30,10 @@ interface AdminMeResponse {
 }
 
 /**
- * Sesión del admin. El access token dura 30 min en el backend; cuando caduca,
- * el interceptor lo renueva con el refresh token (POST /auth/refresh) y
- * reintenta la petición, así que el panel no te echa a mitad de un ticket.
- * Si el refresh también falla, se cierra la sesión y se vuelve a /login.
+ * Admin session. The access token lasts 30 min in the backend; when it expires,
+ * the interceptor renews it with the refresh token (POST /auth/refresh) and
+ * retries the request, so the panel does not kick you out mid-ticket.
+ * If the refresh also fails, the session is closed and the user goes back to /login.
  */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -49,13 +49,13 @@ export class AuthService {
   readonly displayName = computed(() => this.session()?.name || this.session()?.username || 'Admin');
   readonly email = computed(() => this.session()?.email ?? null);
 
-  /** FULL si aún no se ha resuelto el scope: nunca oculta de más por defecto. */
+  /** FULL while the scope is not resolved yet: never hides too much by default. */
   readonly scope = computed<AdminScope>(() => this.session()?.scope ?? 'FULL');
   readonly isReadOnly = computed(() => this.scope() === 'READONLY');
   readonly isSupportOnly = computed(() => this.scope() === 'SUPPORT');
-  /** Puede banear, sancionar y tocar suscripciones, categorías y ajustes. */
+  /** Can ban, sanction and change subscriptions, categories and settings. */
   readonly canManage = computed(() => this.scope() === 'FULL');
-  /** Puede escribir en soporte (FULL y SUPPORT). */
+  /** Can write in support (FULL and SUPPORT). */
   readonly canSupport = computed(() => this.scope() !== 'READONLY');
 
   get accessToken(): string | null {
@@ -84,7 +84,7 @@ export class AuthService {
     );
   }
 
-  /** Refresca scope, nombre y email de una sesión ya abierta (tras recargar). */
+  /** Refreshes the scope, name and email of an already open session (after a reload). */
   refreshProfile() {
     this.http.get<AdminMeResponse>(`${environment.apiUrl}/admin/me`).subscribe({
       next: (me) => this.patch({ scope: me.adminScope, name: me.name, email: me.email }),
@@ -93,9 +93,9 @@ export class AuthService {
   }
 
   /**
-   * Renueva el access token. Varias peticiones que fallen a la vez comparten
-   * UN solo refresh: si cada una lanzara el suyo, el segundo usaría un refresh
-   * token ya rotado y cerraría la sesión.
+   * Renews the access token. Several requests failing at once share ONE
+   * refresh: if each one fired its own, the second would use an already
+   * rotated refresh token and close the session.
    */
   refreshAccessToken(): Observable<string> {
     const refreshToken = this.session()?.refreshToken;
@@ -117,15 +117,15 @@ export class AuthService {
   logout() {
     const refreshToken = this.session()?.refreshToken;
     if (refreshToken) {
-      // Invalida el refresh token en el servidor; si falla da igual, la sesión
-      // local se borra de todas formas.
+      // Invalidates the refresh token on the server; if it fails it does not
+      // matter, the local session is cleared anyway.
       this.http.post(`${environment.apiUrl}/auth/logout`, { refreshToken }).subscribe({ error: () => {} });
     }
     this.clear();
     this.router.navigateByUrl('/login');
   }
 
-  /** La sesión ya no vale (refresh caducado o revocado). */
+  /** The session is no longer valid (refresh token expired or revoked). */
   expire() {
     const returnUrl = this.router.url.startsWith('/login') ? undefined : this.router.url;
     this.clear();
@@ -174,7 +174,7 @@ export class AuthService {
   }
 }
 
-/** Credenciales correctas, pero la cuenta no es de administración. */
+/** Valid credentials, but the account is not an admin account. */
 export class NotAdminError extends Error {
   constructor() {
     super('Esta cuenta no tiene acceso al panel de administración.');

@@ -1,7 +1,7 @@
 import { Component, computed, input, output } from '@angular/core';
 import { formatInt } from '../../../core/utils/format';
 
-/** Pie de tabla: "41–60 de 214" y las flechas. Páginas en base 0, como Spring. */
+/** Table footer: "41–60 de 214" and the arrows. Pages are 0-based, like Spring. */
 @Component({
   selector: 'app-pagination',
   template: `

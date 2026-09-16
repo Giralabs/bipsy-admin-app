@@ -7,7 +7,7 @@ import { apiErrorMessage } from '../../../core/utils/api-error';
 import { ConfirmModal } from '../../../shared/components/confirm-modal/confirm-modal';
 import { liveReload } from '../../../core/services/live.service';
 
-/** Portfolio público del negocio, con la opción de retirar una foto. */
+/** Public portfolio of the business, with the option to remove a photo. */
 @Component({
   selector: 'app-business-photos',
   imports: [ConfirmModal],
@@ -74,7 +74,7 @@ export class BusinessPhotos {
   protected readonly target = signal<PortfolioImage | null>(null);
   protected readonly deleting = signal(false);
 
-  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  // Real time: reloads quietly when this data changes.
   private readonly live = liveReload(['businesses'], () => this.load());
 
   constructor() {

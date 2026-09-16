@@ -11,12 +11,12 @@ import { Select, SelectOption } from '../select/select';
 type Method = 'CARD' | 'MANUAL';
 
 /**
- * Cobrar a un cliente una tarifa de una reserva, o dejar constancia de un
- * pago que se hizo fuera de la app.
+ * Charges a client a booking fee, or records a payment that was made outside
+ * the app.
  *
- * Con tarjeta usa el mismo camino que el backend cuando el cliente cancela
- * tarde: la tarjeta guardada, sin el cliente delante. Si el banco pide
- * autenticación o la rechaza, el cobro queda registrado como tal.
+ * By card it uses the same path as the backend when the client cancels late:
+ * the saved card, without the client present. If the bank requires
+ * authentication or declines it, the charge is recorded as such.
  */
 @Component({
   selector: 'app-charge-dialog',
@@ -90,7 +90,7 @@ export class ChargeDialog {
   private readonly toast = inject(ToastService);
 
   readonly open = input(false);
-  /** Reserva ya elegida (desde la tabla de citas). Sin ella, se pide el número. */
+  /** Booking already chosen (from the bookings table). Without it, the number is requested. */
   readonly bookingId = input<number | null>(null);
   readonly bookingLabel = input<string | null>(null);
 

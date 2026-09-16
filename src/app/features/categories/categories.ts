@@ -31,7 +31,7 @@ export class Categories {
   protected readonly search = signal('');
   protected readonly togglingId = signal<number | null>(null);
 
-  // Diálogo de crear / editar
+  // Create / edit dialog
   protected readonly editing = signal<Category | 'new' | null>(null);
   protected readonly formCode = signal('');
   protected readonly formName = signal('');
@@ -61,7 +61,7 @@ export class Categories {
     () => !!this.formName().trim() && (this.editing() !== 'new' || this.codeValid()),
   );
 
-  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  // Real time: reloads quietly when this data changes.
   private readonly live = liveReload(['categories'], () => this.load());
 
   constructor() {
@@ -90,7 +90,7 @@ export class Categories {
     this.editing.set(c);
   }
 
-  /** El código se escribe como se guarda: MAYÚSCULAS_Y_GUIONES. */
+  /** The code is typed the way it is stored: UPPERCASE_WITH_UNDERSCORES. */
   protected onCode(value: string) {
     this.formCode.set(
       value

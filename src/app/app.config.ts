@@ -7,7 +7,7 @@ import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 
-// Fechas y cifras en español: "16 sept 2026", "1.234,50 €".
+// Dates and numbers in Spanish: "16 sept 2026", "1.234,50 €".
 registerLocaleData(localeEs);
 
 export const appConfig: ApplicationConfig = {

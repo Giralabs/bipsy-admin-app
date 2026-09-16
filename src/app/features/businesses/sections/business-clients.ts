@@ -9,7 +9,7 @@ import { Avatar } from '../../../shared/components/avatar/avatar';
 import { copyText } from '../../../shared/utils/download';
 import { liveReload } from '../../../core/services/live.service';
 
-/** La agenda de clientes de un negocio (lo que ve en «Clientes» de su app). */
+/** A business's client directory (what it sees under «Clientes» in its app). */
 @Component({
   selector: 'app-business-clients',
   imports: [DatePipe, RouterLink, Avatar],
@@ -105,7 +105,7 @@ export class BusinessClients {
     );
   });
 
-  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  // Real time: reloads quietly when this data changes.
   private readonly live = liveReload(['actors', 'bookings'], () => this.load());
 
   constructor() {

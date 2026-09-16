@@ -61,18 +61,18 @@ export class TicketsList implements OnInit {
   protected readonly int = formatInt;
 
   /**
-   * SUPPORT en /tickets e IMPROVEMENT en /improvements (data de la ruta). Es
-   * la misma bandeja: estados, respuestas y adjuntos funcionan igual.
+   * SUPPORT on /tickets and IMPROVEMENT on /improvements (route data). It is
+   * the same inbox: statuses, replies and attachments work the same way.
    */
   readonly kind = input<TicketKind>('SUPPORT');
   protected readonly isImprovement = computed(() => this.kind() === 'IMPROVEMENT');
 
-  // En ngOnInit y no en el constructor: el `kind` de la ruta aún no ha llegado allí.
+  // Load in ngOnInit rather than the constructor, because the route `kind` has not arrived there yet.
   ngOnInit() {
     this.load();
   }
 
-  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  // Real time: reloads quietly when this data changes.
   private readonly live = liveReload(['tickets'], () => this.load());
 
   protected load() {

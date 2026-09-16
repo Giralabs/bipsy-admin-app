@@ -46,7 +46,7 @@ export class Reports {
   protected readonly labels = { reportReason, reportStatus };
   protected readonly ago = timeAgo;
 
-  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  // Real time: reloads quietly when this data changes.
   private readonly live = liveReload(['reports'], () => this.load());
 
   constructor() {
@@ -92,7 +92,7 @@ export class Reports {
       next: (updated) => {
         this.busyId.set(null);
         const filter = this.status();
-        // Si ya no encaja en el filtro, sale de la lista; si no, se actualiza en su sitio.
+        // If it no longer matches the filter, remove it from the list; otherwise update it in place.
         this.data.update((d) =>
           d && {
             ...d,

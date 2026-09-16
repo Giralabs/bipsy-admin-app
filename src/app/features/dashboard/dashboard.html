@@ -21,7 +21,7 @@
       </div>
     </div>
   } @else {
-    <!-- Lo que pide atención -->
+    <!-- ----- NEEDS ATTENTION -------------------- -->
     <section class="attention">
       @if (loading() && !stats()) {
         @for (i of [1, 2, 3, 4]; track i) { <span class="skeleton attention__skeleton"></span> }
@@ -36,7 +36,7 @@
       }
     </section>
 
-    <!-- Cifras -->
+    <!-- ----- FIGURES -------------------- -->
     @if (stats(); as s) {
       <section class="stats">
         <a class="stat" routerLink="/users">

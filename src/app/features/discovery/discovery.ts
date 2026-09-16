@@ -19,7 +19,7 @@ interface FieldDef {
   hint: string;
 }
 
-/** Mismos topes que UpdateDiscoverySettingsRequest en el backend. */
+// Same limits as UpdateDiscoverySettingsRequest in the backend.
 const FEATURED: FieldDef[] = [
   { key: 'minRating', label: 'Nota mínima', unit: '★', min: 0, max: 5, step: 0.1, hint: 'Media de reseñas que hay que tener.' },
   { key: 'minReviews', label: 'Reseñas mínimas', unit: 'reseñas', min: 0, max: 1000, step: 1, hint: 'Para que un 5,0 de una sola opinión no adelante a un 4,6 de ochenta.' },
@@ -79,7 +79,7 @@ export class Discovery {
     return `Sale destacado quien tenga al menos ${rating} ★ con ${f.minReviews} reseñas y ${f.minReferrals} referidos, a menos de ${f.featuredMaxDistanceKm} km del cliente. Es «nuevo» durante ${f.newBusinessDays} días.`;
   });
 
-  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  // Real time: reloads quietly when this data changes.
   private readonly live = liveReload(['discovery'], () => { if (!this.dirty()) this.load(); });
 
   constructor() {

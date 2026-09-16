@@ -18,9 +18,9 @@ import { liveReload } from '../../core/services/live.service';
 type View = 'charges' | 'refunds' | 'invoices';
 
 /**
- * Registro de todo el dinero que pasa por Bipsy: lo que se cobra a los
- * clientes (tarifas por cancelar, cambiar o no acudir, y pagos de cita), lo
- * que se les devuelve y lo que pagan los negocios por su plan.
+ * Ledger of all the money that goes through Bipsy: what customers are
+ * charged (cancellation, reschedule and no-show fees, and booking payments),
+ * what is refunded to them and what businesses pay for their plan.
  */
 @Component({
   selector: 'app-payments',
@@ -37,7 +37,7 @@ export class Payments {
   protected readonly view = signal<View>((this.query.get('view') as View) || 'charges');
   protected readonly summary = signal<PaymentSummary | null>(null);
 
-  // Filtros del listado de cobros (reflejados en la URL).
+  // Charge list filters (mirrored in the URL).
   protected readonly q = signal(this.query.get('q'));
   protected readonly kind = signal(this.query.get('kind'));
   protected readonly status = signal(this.query.get('status'));
@@ -84,7 +84,7 @@ export class Payments {
     { value: 'AUTHORIZED', label: 'Autorizado', tone: 'info' },
   ];
 
-  /** Filtros que vienen de una ficha (negocio, cliente, cita) y no tienen control propio. */
+  /** Filters coming from a detail page (business, customer, booking) that have no control of their own. */
   protected readonly scopeChips = computed(() => {
     const chips: { key: 'businessId' | 'customerId' | 'bookingId'; label: string }[] = [];
     const first = this.charges()?.content[0];
@@ -100,7 +100,7 @@ export class Payments {
 
   private searchTimer: ReturnType<typeof setTimeout> | null = null;
 
-  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  // Real time: reloads quietly when this data changes.
   private readonly live = liveReload(['payments'], () => { this.load(); this.loadSummary(); });
 
   constructor() {
@@ -186,7 +186,7 @@ export class Payments {
     this.load();
   }
 
-  /** Atajos del resumen: tocar «Fallidos» filtra los fallidos. */
+  /** Summary shortcuts: tapping «Fallidos» filters the failed charges. */
   protected quickStatus(value: string) {
     this.view.set('charges');
     this.status.set(this.status() === value ? '' : value);

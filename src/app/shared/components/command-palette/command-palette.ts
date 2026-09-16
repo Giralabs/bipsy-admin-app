@@ -25,9 +25,9 @@ const normalize = (s: string) =>
   s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
 /**
- * Buscador global (Ctrl K o "/"). Busca en el backend clientes, negocios y
- * tickets, salta a una sección por su nombre y abre por id: "#42" abre el
- * ticket 42 directamente, que es como suele llegar una incidencia.
+ * Global search (Ctrl K or "/"). Searches clients, businesses and tickets in
+ * the backend, jumps to a section by name and opens by id: "#42" opens
+ * ticket 42 directly, which is how an issue usually arrives.
  */
 @Component({
   selector: 'app-command-palette',
@@ -86,7 +86,7 @@ export class CommandPalette {
     return out;
   });
 
-  /** Los grupos en el orden en que aparecen, para pintar las cabeceras. */
+  /** Groups in the order they appear, to render the headers. */
   protected readonly groups = computed(() => {
     const list = this.items();
     const groups: { name: string; items: { item: PaletteItem; index: number }[] }[] = [];

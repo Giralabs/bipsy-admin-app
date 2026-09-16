@@ -1,9 +1,9 @@
 import { Component, effect, input, output, signal } from '@angular/core';
 
 /**
- * Diálogo de confirmación. El padre controla la visibilidad con `open`.
- * Con `reasonLabel` pide además un texto (motivo del baneo, nota…) y lo
- * devuelve en `confirmed`.
+ * Confirmation dialog. The parent controls visibility with `open`.
+ * With `reasonLabel` it also asks for a text (ban reason, note…) and
+ * returns it in `confirmed`.
  */
 @Component({
   selector: 'app-confirm-modal',
@@ -55,7 +55,7 @@ export class ConfirmModal {
   protected readonly reason = signal('');
 
   constructor() {
-    // Cada vez que se abre, el texto empieza vacío.
+    // Every time it opens, the text starts empty.
     effect(() => {
       if (this.open()) this.reason.set('');
     });

@@ -45,7 +45,7 @@ import { liveReload } from '../../../core/services/live.service';
 
 type Tab = 'profile' | 'subscriptions' | 'clients' | 'bookings' | 'team' | 'services' | 'reviews' | 'photos' | 'payments' | 'grants' | 'support' | 'history';
 
-/** Mismo slug que bipsy-web-app (shared/slug.ts): el id al final es lo que se lee. */
+/** Same slug as bipsy-web-app (shared/slug.ts): the trailing id is what gets parsed. */
 function businessSlug(id: number, name: string): string {
   const slug = name
     .normalize('NFD')
@@ -122,7 +122,7 @@ export class BusinessDetailPage {
     ];
   });
 
-  /** La que le da acceso ahora (activa y sin caducar), para la pastilla de la cabecera. */
+  /** The subscription granting access now (active and not expired), for the header pill. */
   protected readonly activeSubscription = computed(() => {
     const now = Date.now();
     return (
@@ -137,13 +137,13 @@ export class BusinessDetailPage {
     return b ? `${environment.webUrl}/business/${businessSlug(b.id, b.name)}` : '';
   });
 
-  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  // Real time: reloads quietly when this data changes.
   private readonly live = liveReload(['actors', 'businesses', 'plans', 'tickets', 'reviews'], () => { this.load(); this.loadSubscriptions(); this.loadTickets(); if (this.grants() !== null) this.loadGrants(); });
 
   constructor() {
     this.api.plans().subscribe({ next: (p) => this.plans.set(p), error: () => {} });
 
-    // Reacciona al :id: saltar de un negocio a otro reutiliza el componente.
+    // Reacts to :id: jumping from one business to another reuses the component.
     effect(() => {
       const id = Number(this.id());
       untracked(() => {
@@ -188,7 +188,7 @@ export class BusinessDetailPage {
     if (text && (await copyText(text))) this.toast.info(`${what} copiado.`);
   }
 
-  // === BANEO =================================================================
+  // ----- BAN --------------------
 
   protected toggleBan() {
     const b = this.business();
@@ -211,7 +211,7 @@ export class BusinessDetailPage {
     });
   }
 
-  // === SUSCRIPCIONES =========================================================
+  // ----- SUBSCRIPTIONS --------------------
 
   protected loadSubscriptions() {
     this.api.businessSubscriptions(this.businessId).subscribe({
@@ -220,13 +220,13 @@ export class BusinessDetailPage {
     });
   }
 
-  /** Plan y acceso ha cambiado algo: historial, cabecera y auditoría se refrescan. */
+  /** Plan and access changed something: history, header and audit get refreshed. */
   protected onAccessChanged() {
     this.history.set(null);
     this.loadSubscriptions();
   }
 
-  // === OFERTAS ===============================================================
+  // ----- OFFERS --------------------
 
   protected loadGrants() {
     this.grantsUnavailable.set(false);
@@ -271,7 +271,7 @@ export class BusinessDetailPage {
     return g.targetType === 'PLAN' ? `Plan ${g.planName ?? g.planCode}` : (g.featureName ?? g.featureCode ?? '—');
   }
 
-  // === SOPORTE E HISTORIAL ===================================================
+  // ----- SUPPORT AND HISTORY --------------------
 
   private loadTickets() {
     this.api.tickets({ businessId: this.businessId, page: 0, size: 8 }).subscribe({

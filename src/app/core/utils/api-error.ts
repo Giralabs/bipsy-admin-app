@@ -1,9 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
 /**
- * Mensaje legible de un error del backend. El backend responde con ApiError
- * { status, error, message, errors[] }: se prefiere su `message` (ya viene en
- * español) y, si es un error de validación, el primer campo que falla.
+ * Readable message for a backend error. The backend responds with ApiError
+ * { status, error, message, errors[] }: its `message` is preferred (it already
+ * comes in Spanish) and, for a validation error, the first failing field.
  */
 export function apiErrorMessage(err: unknown, fallback = 'Algo ha fallado. Inténtalo de nuevo.'): string {
   if (err instanceof HttpErrorResponse) {

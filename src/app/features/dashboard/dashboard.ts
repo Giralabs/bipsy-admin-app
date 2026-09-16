@@ -78,12 +78,12 @@ export class Dashboard {
     });
   });
 
-  /** Lo que alguien del equipo debería mirar hoy. */
+  /** What someone on the team should look at today. */
   protected readonly attention = computed(() => {
     const s = this.stats();
     if (!s) return [];
-    // Los contadores por tipo vienen de BadgesService: el dashboard del
-    // backend suma soporte y mejoras en la misma cifra.
+    // Per-kind counters come from BadgesService: the backend dashboard adds
+    // support and improvements up into the same figure.
     const { tickets: open, improvements, onboarding } = this.badges.counts();
     return [
       { icon: 'call', value: onboarding, label: onboarding === 1 ? 'negocio nuevo por llamar' : 'negocios nuevos por llamar', link: '/onboarding', query: {}, hot: onboarding > 0 },
@@ -95,7 +95,7 @@ export class Dashboard {
     ];
   });
 
-  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  // Real time: reloads quietly when this data changes.
   private readonly live = liveReload(['actors', 'bookings', 'tickets', 'reports', 'plans', 'payments', 'audit', 'reviews'], () => this.load());
 
   constructor() {
@@ -117,7 +117,7 @@ export class Dashboard {
       },
     });
 
-    // Lo secundario va aparte: si una de estas falla, el resumen se ve igual.
+    // Secondary data loads separately: if one of these fails, the summary still shows.
     this.badges.refresh(true);
     this.api.tickets({ status: 'OPEN', kind: 'SUPPORT', page: 0, size: 6 }).subscribe({
       next: (r) => this.openTickets.set(r.content),

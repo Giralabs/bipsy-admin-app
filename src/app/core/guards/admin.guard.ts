@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
-/** Solo deja pasar a un admin logueado; el resto va a /login (y vuelve después). */
+/** Only lets a logged-in admin through; everyone else goes to /login (and returns afterwards). */
 export const adminGuard: CanActivateFn = (_route, state) => {
   const auth = inject(AuthService);
   if (auth.isAuthenticated() && auth.isAdmin()) return true;
@@ -10,7 +10,7 @@ export const adminGuard: CanActivateFn = (_route, state) => {
   return inject(Router).createUrlTree(['/login'], { queryParams: { returnUrl } });
 };
 
-/** /login con sesión abierta no tiene sentido: al panel. */
+/** /login with an open session makes no sense: redirect to the panel. */
 export const guestGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   if (auth.isAuthenticated() && auth.isAdmin()) return inject(Router).createUrlTree(['/']);

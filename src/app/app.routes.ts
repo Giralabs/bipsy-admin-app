@@ -15,7 +15,7 @@ export const routes: Routes = [
     canActivate: [adminGuard],
     loadComponent: () => import('./layout/shell/shell').then((m) => m.Shell),
     children: [
-      // La portada depende del diseño elegido en Mi cuenta: bloques o resumen.
+      // The landing page depends on the layout chosen in Mi cuenta: tiles or dashboard.
       {
         path: '',
         pathMatch: 'full',
@@ -64,7 +64,7 @@ export const routes: Routes = [
         loadComponent: () => import('./features/tickets/ticket-detail/ticket-detail').then((m) => m.TicketDetailPage),
       },
       {
-        // Misma bandeja que Soporte, filtrada por tipo (data → input `kind`).
+        // Same inbox as Soporte, filtered by type (data → input `kind`).
         path: 'improvements',
         title: 'Solicitudes de mejora · Bipsy Admin',
         data: { kind: 'IMPROVEMENT' },

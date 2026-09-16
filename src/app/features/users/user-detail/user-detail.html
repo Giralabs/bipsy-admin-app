@@ -271,7 +271,7 @@
       }
     }
 
-    <!-- ── Sancionar ── -->
+    <!-- ----- SANCTION DIALOG -------------------- -->
     @if (sanctionOpen()) {
       <div class="scrim" (click)="!sanctioning() && sanctionOpen.set(false)">
         <form class="dialog dialog--wide" (click)="$event.stopPropagation()" (submit)="$event.preventDefault(); submitSanction()">

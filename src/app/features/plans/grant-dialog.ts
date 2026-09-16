@@ -6,8 +6,8 @@ import { SegmentOption, Segmented } from '../../shared/components/segmented/segm
 import { Select, SelectOption } from '../../shared/components/select/select';
 
 /**
- * Conceder acceso gratis: un plan entero o una función suelta, a un negocio
- * (`businessId`) o a todos (sin `businessId`). POST /admin/grants.
+ * Grants free access to a whole plan or a single feature, either to one
+ * business (`businessId`) or to all of them (no `businessId`). POST /admin/grants.
  */
 @Component({
   selector: 'app-grant-dialog',
@@ -138,7 +138,7 @@ export class GrantDialog {
         targetType: this.target(),
         planCode: this.target() === 'PLAN' ? this.planCode() : null,
         featureCode: this.target() === 'FEATURE' ? this.featureCode().trim() : null,
-        // Hoy = desde ya (el backend pone "ahora"); otro día, desde su medianoche.
+        // Today means starting now (the backend sets "now"); any other day starts at its midnight.
         validFrom: this.from() && this.from() !== today ? new Date(this.from() + 'T00:00:00').toISOString() : null,
         validUntil: this.until() ? new Date(this.until() + 'T23:59:59').toISOString() : null,
         note: this.note().trim() || null,

@@ -2,8 +2,8 @@ import { Component, computed, input, signal } from '@angular/core';
 import { initials } from '../../../core/utils/format';
 
 /**
- * Foto de una persona o negocio, con iniciales de reserva. Una foto que da
- * 404 cae a las iniciales en vez de dejar un icono roto.
+ * Photo of a person or business, with initials as a fallback. A photo that
+ * returns 404 falls back to the initials instead of showing a broken icon.
  */
 @Component({
   selector: 'app-avatar',

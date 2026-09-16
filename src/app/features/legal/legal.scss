@@ -1,5 +1,5 @@
-/* Misma lectura que la página legal de bipsy-web-app: lista a la izquierda,
-   documento a ancho de lectura, sin tarjetas alrededor del texto. */
+// Same reading layout as the bipsy-web-app legal page: list on the left,
+// document at reading width, no cards around the text.
 
 .legal { max-width: 1120px; }
 
@@ -10,7 +10,7 @@
   align-items: start;
 }
 
-/* ── Barra lateral ── */
+// ----- SIDEBAR --------------------
 .lg-side {
   position: sticky;
   top: 84px;
@@ -74,7 +74,7 @@
 .lg-side__group:not(.lg-side__toc) .lg-side__anchor { padding-left: 12px; }
 .lg-side__toc { padding-left: 12px; box-shadow: inset 1px 0 0 var(--clr-border); }
 
-/* ── Documento ── */
+// ----- DOCUMENT --------------------
 .lg-doc { max-width: 760px; padding: 8px 0 64px; scroll-margin-top: 84px; min-width: 0; }
 
 .lg-title {
@@ -177,7 +177,7 @@
   span { font-size: 0.875rem; line-height: 1.5; color: var(--clr-text-2); }
 }
 
-/* ── Titular, como el pie de las webs ── */
+// ----- OWNER, LIKE THE WEBSITE FOOTERS --------------------
 .lg-owner {
   display: flex;
   flex-direction: column;

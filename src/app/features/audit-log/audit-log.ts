@@ -34,7 +34,7 @@ export class AuditLog {
   protected readonly labels = { auditAction, entityType };
   protected readonly entityRoute = entityRoute;
 
-  /** Admins que aparecen en esta página, para filtrar por persona. */
+  /** Admins that appear on this page, used to filter by person. */
   protected readonly admins = computed(() => [...new Set((this.data()?.content ?? []).map((e) => e.adminName))].sort());
   protected readonly adminOptions = computed<SelectOption[]>(() => [
     { value: '', label: 'Todo el equipo', icon: 'groups' },
@@ -53,7 +53,7 @@ export class AuditLog {
     return groups;
   });
 
-  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  // Real time: reloads quietly when this data changes.
   private readonly live = liveReload(['audit'], () => this.load());
 
   constructor() {

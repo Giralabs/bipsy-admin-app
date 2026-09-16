@@ -10,9 +10,9 @@ export interface Toast {
 }
 
 /**
- * Avisos breves abajo del todo. Antes cada error del panel se tragaba en
- * silencio (`error: () => loading.set(false)`) y un baneo fallido parecía
- * no haber pasado nada.
+ * Short notices at the very bottom. Previously every panel error was swallowed
+ * silently (`error: () => loading.set(false)`) and a failed ban looked as if
+ * nothing had happened.
  */
 @Injectable({ providedIn: 'root' })
 export class ToastService {
@@ -27,7 +27,7 @@ export class ToastService {
     this.push('info', message);
   }
 
-  /** Acepta un mensaje o directamente el error HTTP. */
+  /** Accepts a message or the HTTP error directly. */
   error(errOrMessage: unknown, fallback = 'Algo ha fallado. Inténtalo de nuevo.') {
     const message = typeof errOrMessage === 'string' ? errOrMessage : apiErrorMessage(errOrMessage, fallback);
     this.push('error', message);

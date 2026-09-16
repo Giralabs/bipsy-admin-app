@@ -56,7 +56,7 @@ import {
 
 type Params = Record<string, string | number | boolean | null | undefined>;
 
-/** Quita los filtros vacíos: el backend trata `?banned=` distinto de no mandarlo. */
+// Drops empty filters: the backend treats `?banned=` differently from not sending it.
 function params(values: Params): HttpParams {
   let p = new HttpParams();
   for (const [key, value] of Object.entries(values)) {
@@ -71,8 +71,8 @@ function query(values: Params): string {
 }
 
 /**
- * Todas las llamadas del panel al backend, una por endpoint. Las rutas son
- * las de los controladores Admin* (y las pocas públicas que el panel usa:
+ * All panel calls to the backend, one per endpoint. The routes are those of
+ * the Admin* controllers (and the few public ones the panel uses:
  * /categories, /plans, /support/tickets/{id}/attachments).
  */
 @Injectable({ providedIn: 'root' })
@@ -80,7 +80,7 @@ export class AdminApi {
   private readonly http = inject(HttpClient);
   private readonly api = environment.apiUrl;
 
-  // === DASHBOARD Y BÚSQUEDA ==================================================
+  // ----- DASHBOARD AND SEARCH --------------------
 
   dashboard() {
     return this.http.get<DashboardStats>(`${this.api}/admin/dashboard`);
@@ -90,7 +90,7 @@ export class AdminApi {
     return this.http.get<SearchResults>(`${this.api}/admin/search`, { params: params({ q }) });
   }
 
-  // === CLIENTES ==============================================================
+  // ----- CLIENTS --------------------
 
   customers(f: { search?: string; reputation?: Reputation | ''; page: number; size?: number }) {
     return this.http.get<PageResponse<CustomerListItem>>(`${this.api}/admin/customers`, {
@@ -118,7 +118,7 @@ export class AdminApi {
     return this.http.delete<void>(`${this.api}/admin/customers/${customerId}/sanctions/${sanctionId}`);
   }
 
-  // === NEGOCIOS ==============================================================
+  // ----- BUSINESSES --------------------
 
   businesses(f: { search?: string; banned?: boolean | null; page: number; size?: number }) {
     return this.http.get<PageResponse<BusinessListItem>>(`${this.api}/admin/businesses`, {
@@ -146,7 +146,7 @@ export class AdminApi {
     return this.http.get<BusinessSubscription[]>(`${this.api}/admin/businesses/${id}/subscriptions`);
   }
 
-  // === SUSCRIPCIONES, PLANES Y OFERTAS =======================================
+  // ----- SUBSCRIPTIONS, PLANS AND OFFERS --------------------
 
   plans() {
     return this.http.get<Plan[]>(`${this.api}/plans`);
@@ -160,19 +160,19 @@ export class AdminApi {
     return this.http.delete<void>(`${this.api}/admin/subscriptions/${id}`);
   }
 
-  // --- Acceso del negocio (AdminAccessController) ---
+  // ----- BUSINESS ACCESS (AdminAccessController) --------------------
 
-  /** Lo que ve la app del negocio: estado, plan vigente, días que le quedan. */
+  /** What the business app sees: status, current plan, days left. */
   businessAccess(businessId: number) {
     return this.http.get<BusinessAccess>(`${this.api}/admin/businesses/${businessId}/access`);
   }
 
-  /** Regala un plan hasta `until` (null = sin fin). Sustituye el regalo vigente. */
+  /** Gifts a plan until `until` (null = no end). Replaces the current gift. */
   grantFreePlan(businessId: number, planCode: string, until: string | null) {
     return this.http.post<BusinessAccess>(`${this.api}/admin/businesses/${businessId}/free-plan`, { planCode, until });
   }
 
-  /** Cancela lo regalado (plan del panel y cortesía). Si no paga nada, pasa al muro de pago. */
+  /** Cancels what was gifted (panel plan and welcome period). If it pays nothing, it hits the paywall. */
   revokeFreeAccess(businessId: number) {
     return this.http.post<{ canceled: number; access: BusinessAccess }>(
       `${this.api}/admin/businesses/${businessId}/revoke-access`,
@@ -184,7 +184,7 @@ export class AdminApi {
     return this.http.put<BusinessAccess>(`${this.api}/admin/businesses/${businessId}/super-access`, { enabled });
   }
 
-  /** Alarga o acorta un plan regalado (null = sin fin). */
+  /** Extends or shortens a gifted plan (null = no end). */
   updateSubscriptionEnd(subscriptionId: number, currentPeriodEnd: string | null) {
     return this.http.put<BusinessAccess>(`${this.api}/admin/subscriptions/${subscriptionId}/period-end`, { currentPeriodEnd });
   }
@@ -193,7 +193,7 @@ export class AdminApi {
     return this.http.get<SubscriptionOverview[]>(`${this.api}/admin/subscriptions`, { params: params(f) });
   }
 
-  /** Requiere el GET /admin/grants añadido en esta versión del backend. */
+  /** Requires the GET /admin/grants added in this backend version. */
   grants(businessId?: number | null) {
     return this.http.get<Grant[]>(`${this.api}/admin/grants`, { params: params({ businessId }) });
   }
@@ -206,16 +206,16 @@ export class AdminApi {
     return this.http.delete<void>(`${this.api}/admin/grants/${id}`);
   }
 
-  /** Requiere el GET /admin/features añadido en esta versión del backend. */
+  /** Requires the GET /admin/features added in this backend version. */
   features() {
     return this.http.get<Feature[]>(`${this.api}/admin/features`);
   }
 
-  // === SOPORTE ===============================================================
+  // ----- SUPPORT --------------------
 
   /**
-   * Bandeja de tickets. Con `kind` (SUPPORT o IMPROVEMENT) usa el listado por
-   * tipo añadido para el panel: el de siempre mezcla soporte y mejoras.
+   * Ticket inbox. With `kind` (SUPPORT or IMPROVEMENT) it uses the by-type
+   * listing added for the panel: the original one mixes support and improvements.
    */
   tickets(f: { status?: TicketStatus | ''; kind?: TicketKind | ''; businessId?: number | null; page: number; size?: number }) {
     const url = f.kind ? `${this.api}/admin/support/tickets/by-kind` : `${this.api}/admin/support/tickets`;
@@ -236,7 +236,7 @@ export class AdminApi {
     return this.http.post<Ticket>(`${this.api}/admin/support/tickets/${id}/replies`, { body });
   }
 
-  /** El backend guarda adminNotes junto al estado: mandar las notas actuales para no borrarlas. */
+  /** The backend saves adminNotes together with the status: send the current notes so they are not erased. */
   updateTicketStatus(id: number, status: TicketStatus, adminNotes: string | null) {
     return this.http.put<Ticket>(`${this.api}/admin/support/tickets/${id}/status`, { status, adminNotes });
   }
@@ -246,18 +246,18 @@ export class AdminApi {
   }
 
   /**
-   * Los adjuntos se sirven desde /support/tickets (que admite Admin), no desde
-   * /admin/support: esa ruta no existe y los adjuntos nunca cargaban.
+   * Attachments are served from /support/tickets (which allows Admin), not from
+   * /admin/support: that route does not exist and attachments never loaded.
    */
   ticketAttachment(ticketId: number, attachmentId: number) {
     return this.http.get(`${this.api}/support/tickets/${ticketId}/attachments/${attachmentId}`, { responseType: 'blob' });
   }
 
-  // === REPORTES ==============================================================
+  // ----- REPORTS --------------------
 
   /**
-   * GET /admin/reports es nuevo; si el backend desplegado aún no lo tiene,
-   * cae al GET /reports de siempre (también solo Admin).
+   * GET /admin/reports is new; if the deployed backend does not have it yet,
+   * it falls back to the original GET /reports (also Admin only).
    */
   reports(f: { status?: ReportStatus | ''; page: number; size?: number }): Observable<PageResponse<Report>> {
     const p = params({ status: f.status, page: f.page, size: f.size ?? 20 });
@@ -274,7 +274,7 @@ export class AdminApi {
     return this.http.put<Report>(`${this.api}/admin/reports/${id}/status`, { status });
   }
 
-  // === CATÁLOGO Y AJUSTES ====================================================
+  // ----- CATALOG AND SETTINGS --------------------
 
   categories() {
     return this.http.get<Category[]>(`${this.api}/categories`, { params: params({ activeOnly: false }) });
@@ -300,7 +300,7 @@ export class AdminApi {
     return this.http.get<ReferralStat[]>(`${this.api}/admin/referrals`);
   }
 
-  // === NEGOCIO POR DENTRO (AdminOpsController) ===============================
+  // ----- BUSINESS INTERNALS (AdminOpsController) --------------------
 
   businessOverview(id: number) {
     return this.http.get<BusinessOverview>(`${this.api}/admin/businesses/${id}/overview`);
@@ -338,7 +338,7 @@ export class AdminApi {
     return this.http.get<PageResponse<Booking>>(`${this.api}/admin/businesses/${id}/bookings`, { params: params({ page, size }) });
   }
 
-  // === BIENVENIDAS (llamadas a negocios nuevos) ================================
+  // ----- ONBOARDING (CALLS TO NEW BUSINESSES) --------------------
 
   onboarding(days = 60) {
     return this.http.get<OnboardingResponse>(`${this.api}/admin/support/onboarding`, { params: params({ days }) });
@@ -352,7 +352,7 @@ export class AdminApi {
     return this.http.post<OnboardingContact>(`${this.api}/admin/support/onboarding/${businessId}/contacts`, req);
   }
 
-  // === COBROS (registro global) ===============================================
+  // ----- PAYMENTS (GLOBAL LEDGER) --------------------
 
   payments(f: PaymentFilters) {
     return this.http.get<PageResponse<AdminPayment>>(`${this.api}/admin/payments`, {
@@ -392,7 +392,7 @@ export class AdminApi {
     return this.http.get<PageResponse<Charge>>(`${this.api}/admin/businesses/${id}/payments`, { params: params({ page, size }) });
   }
 
-  // === MODERACIÓN ============================================================
+  // ----- MODERATION --------------------
 
   reviewsList(f: { businessId?: number | null; customerId?: number | null; page: number; size?: number }) {
     return this.http.get<PageResponse<AdminReview>>(`${this.api}/admin/reviews`, {
@@ -412,12 +412,12 @@ export class AdminApi {
     return this.http.post<Booking>(`${this.api}/admin/bookings/${id}/cancel`, { reason });
   }
 
-  /** Push a los móviles de un cliente o negocio. Devuelve a cuántos dispositivos se intentó. */
+  /** Push notification to a client's or business's phones. Returns how many devices were attempted. */
   notifyActor(actorId: number, title: string, body: string) {
     return this.http.post<{ devices: number }>(`${this.api}/admin/actors/${actorId}/notify`, { title, body });
   }
 
-  // === EQUIPO DEL PANEL (AdminTeamController) ================================
+  // ----- PANEL TEAM (AdminTeamController) --------------------
 
   team() {
     return this.http.get<TeamMember[]>(`${this.api}/admin/team`);
@@ -439,13 +439,13 @@ export class AdminApi {
     return this.http.put<TeamMember>(`${this.api}/admin/team/${id}/enabled`, { enabled });
   }
 
-  // === AUDITORÍA =============================================================
+  // ----- AUDIT LOG --------------------
 
   auditLog(page: number, size = 30) {
     return this.http.get<PageResponse<AuditLogEntry>>(`${this.api}/admin/audit-log`, { params: params({ page, size }) });
   }
 
-  /** Requiere el GET /admin/audit-log/entity añadido en esta versión del backend. */
+  /** Requires the GET /admin/audit-log/entity added in this backend version. */
   auditLogFor(entityType: string, entityId: number, size = 20) {
     return this.http.get<PageResponse<AuditLogEntry>>(`${this.api}/admin/audit-log/entity`, {
       params: params({ entityType, entityId, page: 0, size }),

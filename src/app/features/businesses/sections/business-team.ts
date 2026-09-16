@@ -7,7 +7,7 @@ import { apiErrorMessage } from '../../../core/utils/api-error';
 import { Avatar } from '../../../shared/components/avatar/avatar';
 import { liveReload } from '../../../core/services/live.service';
 
-/** Profesionales del negocio, sus permisos en la app e invitaciones pendientes. */
+/** The business's professionals, their app permissions and pending invitations. */
 @Component({
   selector: 'app-business-team',
   imports: [DatePipe, Avatar],
@@ -100,7 +100,7 @@ export class BusinessTeam {
     { key: 'clockInEnabled', label: 'Fichaje' },
   ];
 
-  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  // Real time: reloads quietly when this data changes.
   private readonly live = liveReload(['businesses', 'actors'], () => this.load());
 
   constructor() {

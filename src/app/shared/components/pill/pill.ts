@@ -1,7 +1,7 @@
 import { Component, input } from '@angular/core';
 import { Meta } from '../../../core/utils/labels';
 
-/** Pastilla de estado a partir de un Meta de labels.ts. */
+/** Status pill built from a labels.ts Meta. */
 @Component({
   selector: 'app-pill',
   template: `

@@ -6,10 +6,9 @@
 .shell[data-shell='rail'] { grid-template-columns: 76px minmax(0, 1fr); }
 .shell[data-shell='topbar'], .shell[data-shell='tiles'] { grid-template-columns: minmax(0, 1fr); }
 
-/* ============================================================
-   MENÚ LATERAL — banda un peldaño más clara que el suelo; el
-   enlace activo con el acento relleno, como el navbar de la web.
-   ============================================================ */
+// ----- SIDE MENU --------------------
+/* A band one step lighter than the floor; the active link uses the
+   filled accent, like the website navbar. */
 .side {
   position: sticky;
   top: 0;
@@ -101,7 +100,8 @@
 
 .side-scrim { display: none; }
 
-/* ── Compacto: solo iconos; el nombre sale al pasar por encima ── */
+// ----- COMPACT RAIL --------------------
+/* Icons only; the name shows up on hover. */
 @media (min-width: 961px) {
   .side--rail {
     padding: 16px 10px 12px;
@@ -135,7 +135,7 @@
     }
     .side__me { justify-content: center; padding: 6px 0; }
 
-    /* Etiqueta flotante al pasar el ratón o con el foco del teclado. */
+    /* Floating label on mouse hover or keyboard focus. */
     [data-tip]::after {
       content: attr(data-tip);
       position: absolute;
@@ -158,13 +158,11 @@
     [data-tip]:hover::after, [data-tip]:focus-visible::after { opacity: 1; transform: translate(0, -50%); }
   }
 
-  /* En «barra superior» el lateral solo existe como cajón del móvil. */
+  /* In «barra superior» the side menu only exists as the mobile drawer. */
   .side--drawer { display: none; }
 }
 
-/* ============================================================
-   CONTENIDO Y BARRA SUPERIOR
-   ============================================================ */
+// ----- CONTENT AND TOP BAR --------------------
 .main { min-width: 0; display: flex; flex-direction: column; }
 
 .topbar {
@@ -225,7 +223,7 @@
 }
 .topbar__me { display: flex; border-radius: 50%; text-decoration: none; color: inherit; }
 
-/* ── Barra superior con menús por sección ── */
+// ----- TOP BAR WITH SECTION MENUS --------------------
 .topnav { display: flex; align-items: center; gap: 2px; min-width: 0; }
 .topnav__group { position: relative; }
 .topnav__btn {
@@ -306,9 +304,8 @@
 .topnav__item-text strong { font-size: 0.875rem; }
 .topnav__item-text small { font-size: 0.75rem; color: var(--clr-text-3); line-height: 1.35; }
 
-/* ============================================================
-   MÓVIL: todos los diseños con menú pasan a cajón
-   ============================================================ */
+// ----- MOBILE --------------------
+/* Every layout with a menu turns it into a drawer. */
 @media (max-width: 1180px) {
   .shell[data-shell='topbar'] .topbar__search--compact .topbar__search-text,
   .shell[data-shell='topbar'] .topbar__search--compact .kbd { display: none; }
@@ -350,7 +347,8 @@
 @media (max-width: 560px) {
   .topbar__search .kbd { display: none; }
 }
-/* -- Credito Giralabs, como el pie de las webs -- */
+// ----- GIRALABS CREDIT --------------------
+/* Like the footer of the websites. */
 .credit {
   display: flex;
   align-items: center;

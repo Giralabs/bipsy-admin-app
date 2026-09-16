@@ -2,7 +2,7 @@ import { Component, effect, inject, input, output, signal } from '@angular/core'
 import { AdminApi } from '../../../core/services/admin-api.service';
 import { ToastService } from '../../../core/services/toast.service';
 
-/** Aviso push a los móviles de un cliente o de un negocio. */
+/** Push notification to the phones of a client or a business. */
 @Component({
   selector: 'app-notify-dialog',
   host: { '(document:keydown.escape)': 'open() && !sending() && closed.emit()' },

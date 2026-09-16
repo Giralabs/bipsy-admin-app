@@ -17,7 +17,7 @@ import { liveReload } from '../../core/services/live.service';
 type GrantFilter = 'LIVE' | 'ALL';
 type SubsFilter = 'FREE' | 'PAID' | 'ALL';
 
-/** Lo regalado desde el panel y la cortesía de bienvenida: no pasan por ninguna pasarela. */
+// Grants from the panel and the welcome period do not go through any payment gateway.
 const FREE_SOURCES = ['ADMIN', 'WELCOME'];
 
 @Component({
@@ -50,7 +50,7 @@ export class Plans {
   protected readonly interval = billingInterval;
   protected readonly grantState = grantState;
 
-  // --- Suscripciones de todos los negocios ---
+  // ----- SUBSCRIPTIONS OF ALL BUSINESSES --------------------
   protected readonly subs = signal<SubscriptionOverview[] | null>(null);
   protected readonly subsUnavailable = signal(false);
   protected readonly subsFilter = signal<SubsFilter>('FREE');
@@ -82,7 +82,7 @@ export class Plans {
     return this.filter() === 'ALL' ? list : list.filter((g) => grantState(g).label !== 'Revocada' && grantState(g).label !== 'Caducada');
   });
 
-  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  // Real time: reloads quietly when this data changes.
   private readonly live = liveReload(['plans'], () => { this.loadPlans(); this.loadGrants(); this.loadSubs(); });
 
   constructor() {
@@ -122,7 +122,7 @@ export class Plans {
     });
   }
 
-  /** "quedan 12 días", "caduca hoy" o nada si no caduca. */
+  /** Returns "quedan 12 días", "caduca hoy" or an empty string if it never expires. */
   protected remaining(iso: string | null): string {
     if (!iso) return '';
     const days = Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000);

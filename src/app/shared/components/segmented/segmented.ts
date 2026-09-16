@@ -7,9 +7,9 @@ export interface SegmentOption<T extends string = string> {
 }
 
 /**
- * Selector segmentado, port de GipsiSegmented (bipsy-web-app). El pulgar es
- * un peldaño de luminosidad, no el acento: con el pulgar de color ningún
- * texto se lee bien en los dos temas durante la animación.
+ * Segmented control, ported from GipsiSegmented (bipsy-web-app). The thumb is
+ * a lightness step, not the accent: with a coloured thumb no text reads well
+ * in both themes during the animation.
  */
 @Component({
   selector: 'app-segmented',
@@ -27,9 +27,9 @@ export interface SegmentOption<T extends string = string> {
   `,
   styles: `
     :host { display: block; }
-    /* Rejilla de columnas iguales (1fr) y no flex: con flex, cada opción medía
-       lo que su texto y el pulgar, que se calcula como un hueco igual, no
-       coincidía con la opción elegida. Así todas miden lo que la más larga. */
+    /* Grid of equal columns (1fr) instead of flex: with flex, each option was
+       as wide as its text and the thumb, calculated as an equal slot, did not
+       match the chosen option. This way all of them are as wide as the longest. */
     .seg {
       position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
       height: 38px; padding: 3px; border-radius: 12px; background: var(--clr-subtle); isolation: isolate;
@@ -57,7 +57,7 @@ export class Segmented<T extends string = string> {
   readonly valueChange = output<T>();
 
   private readonly index = computed(() => Math.max(0, this.options().findIndex((o) => o.value === this.value())));
-  // La pista tiene 3 px de relleno a cada lado: el pulgar mide un hueco de lo que queda.
+  // The track has 3 px of padding on each side: the thumb is one slot of what remains.
   protected readonly thumbWidth = computed(() => `calc((100% - 6px) / ${Math.max(1, this.options().length)})`);
   protected readonly thumbTransform = computed(() => `translateX(${this.index() * 100}%)`);
 }

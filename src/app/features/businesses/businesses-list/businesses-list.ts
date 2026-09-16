@@ -49,7 +49,7 @@ export class BusinessesList {
 
   private debounce?: ReturnType<typeof setTimeout>;
 
-  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  // Real time: reloads quietly when this data changes.
   private readonly live = liveReload(['actors', 'plans'], () => this.load());
 
   constructor() {

@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { DestroyRef, Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { environment } from '../../../environments/environment';
 
-/** Áreas que publica GET /admin/live (AdminLiveService en el backend). */
+/** Areas published by GET /admin/live (AdminLiveService in the backend). */
 export type LiveArea =
   | 'tickets'
   | 'payments'
@@ -19,14 +19,14 @@ export type LiveArea =
 const INTERVAL_MS = 6000;
 
 /**
- * Tiempo real del panel.
+ * Real-time updates for the panel.
  *
- * Pregunta al backend cada pocos segundos por una huella de cada área y, si
- * alguna cambia, sube su versión. Las pantallas se suscriben con `liveReload`
- * y recargan sin parpadeo solo cuando cambia lo que enseñan: lo haga otra
- * persona del equipo, un cliente desde la app o un webhook de Stripe.
+ * Every few seconds it asks the backend for a fingerprint of each area and, if
+ * any changes, bumps its version. Screens subscribe with `liveReload` and
+ * reload without flickering only when what they show changes: whether another
+ * team member, a client from the app or a Stripe webhook caused it.
  *
- * Con la pestaña en segundo plano no pregunta; al volver, pregunta al momento.
+ * With the tab in the background it does not poll; on return, it polls right away.
  */
 @Injectable({ providedIn: 'root' })
 export class LiveService {
@@ -37,12 +37,12 @@ export class LiveService {
   private running = false;
   private inFlight = false;
 
-  /** Versión de cada área: sube cada vez que su huella cambia. */
+  /** Version of each area: bumped every time its fingerprint changes. */
   readonly versions = signal<Partial<Record<LiveArea, number>>>({});
-  /** Última vez que se habló con el backend, y si respondió. */
+  /** Last time the backend was contacted, and whether it responded. */
   readonly lastSync = signal<Date | null>(null);
   readonly connected = signal(true);
-  /** Se enciende un momento cuando llega un cambio, para el indicador. */
+  /** Turns on briefly when a change arrives, for the indicator. */
   readonly flash = signal(false);
   readonly supported = signal(true);
 
@@ -66,7 +66,7 @@ export class LiveService {
     window.removeEventListener('focus', this.onVisibility);
   }
 
-  /** Pregunta ya, sin esperar al siguiente ciclo (p. ej. tras guardar algo). */
+  /** Polls now, without waiting for the next cycle (e.g. after saving something). */
   poke() {
     this.tick();
   }
@@ -93,7 +93,7 @@ export class LiveService {
       },
       error: (err) => {
         this.inFlight = false;
-        // Backend sin el endpoint: se deja de preguntar y el panel funciona como antes.
+        // Backend without the endpoint: stop polling and the panel works as before.
         if (err?.status === 404) {
           this.supported.set(false);
           return;
@@ -125,8 +125,8 @@ export class LiveService {
 }
 
 /**
- * Recarga en silencio cuando cambia alguna de las áreas. Se llama desde el
- * constructor (contexto de inyección) de la pantalla o el componente.
+ * Silently reloads when any of the areas changes. Call it from the constructor
+ * (injection context) of the screen or component.
  */
 export function liveReload(areas: LiveArea[], reload: () => void) {
   const live = inject(LiveService);

@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { ReviewsList } from '../../shared/components/reviews-list/reviews-list';
 
-/** Todas las reseñas publicadas, de la más reciente a la más antigua. */
+/** All published reviews, from newest to oldest. */
 @Component({
   selector: 'app-reviews',
   imports: [ReviewsList],

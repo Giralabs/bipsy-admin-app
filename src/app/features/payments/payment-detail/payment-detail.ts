@@ -14,7 +14,7 @@ import { NumberInput } from '../../../shared/components/number-input/number-inpu
 import { Pill } from '../../../shared/components/pill/pill';
 import { liveReload } from '../../../core/services/live.service';
 
-/** Ficha de un cobro: de dónde sale, qué se ha devuelto y qué se puede hacer. */
+/** Charge detail page: where it comes from, what has been refunded and what can be done. */
 @Component({
   selector: 'app-payment-detail',
   imports: [DatePipe, LowerCasePipe, TitleCasePipe, RouterLink, ChargeDialog, ConfirmModal, NumberInput, Pill],
@@ -34,7 +34,7 @@ export class PaymentDetailPage {
   protected readonly notFound = signal(false);
   protected readonly history = signal<AuditLogEntry[] | null>(null);
 
-  // Devolver
+  // Refund dialog
   protected readonly refundOpen = signal(false);
   protected readonly refundMethodSel = signal<RefundMethod>('STRIPE');
   protected readonly refundAll = signal(true);
@@ -44,7 +44,7 @@ export class PaymentDetailPage {
   protected readonly refunding = signal(false);
   protected readonly refundError = signal<string | null>(null);
 
-  // Cobrar / reintentar
+  // Charge / retry dialogs
   protected readonly retryOpen = signal(false);
   protected readonly retrying = signal(false);
   protected readonly chargeOpen = signal(false);
@@ -74,7 +74,7 @@ export class PaymentDetailPage {
 
   protected readonly canRefundAny = computed(() => !!this.detail()?.canRefundStripe || !!this.detail()?.canRefundManual);
 
-  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  // Real time: reloads quietly when this data changes.
   private readonly live = liveReload(['payments', 'audit'], () => this.load());
 
   constructor() {

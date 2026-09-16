@@ -1,6 +1,6 @@
 .home { max-width: 1360px; }
 
-/* ── Cabecera ── */
+// ----- HEADER --------------------
 .hero {
   display: flex;
   align-items: flex-end;
@@ -34,7 +34,7 @@
 .focus--calm .material-symbols-rounded { color: var(--clr-success-text); }
 .home__editing { margin-bottom: 16px; }
 
-/* ── Mosaico de 12 columnas ── */
+// ----- 12-COLUMN BENTO GRID --------------------
 .bento {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -101,8 +101,8 @@
 .tile__body { display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 0; }
 .tile__skeleton { height: 120px; border-radius: 14px; }
 
-/* En los bloques altos la cifra va pegada al título y la lista debajo; con
-   la cifra abajo del todo quedaba un hueco vacío en medio del bloque. */
+// In tall tiles the figure sits right under the title with the list below;
+// with the figure at the very bottom there was an empty gap mid-tile.
 .tile--tall .tile__metric { margin-top: 0; }
 .tile--tall .tile__body { gap: 14px; }
 
@@ -119,7 +119,7 @@
   strong { font-family: var(--ff-display); font-size: 2rem; font-weight: 800; letter-spacing: -1px; line-height: 1; color: var(--clr-text); }
 }
 
-/* Lo pendiente se enciende: se tiene que ver desde lejos. */
+// Pending work lights up: it has to be visible from afar.
 .tile--hot {
   background: var(--clr-accent);
   color: var(--clr-on-accent);
@@ -135,7 +135,7 @@
   .mini-list__row { background: rgba(192, 238, 211, 0.10); }
 }
 
-/* ── Contenido de cada bloque ── */
+// ----- TILE CONTENT --------------------
 .mini-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .mini-stats > span {
   display: flex;
@@ -214,7 +214,7 @@
   small { font-size: 0.6875rem; color: var(--clr-text-3); }
 }
 
-/* ── Personalizar ── */
+// ----- CUSTOMIZE --------------------
 .bento.is-editing .tile {
   animation: wiggle .5s ease-in-out;
   box-shadow: inset 0 0 0 2px var(--clr-accent-dim);

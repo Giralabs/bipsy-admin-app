@@ -91,7 +91,7 @@ export class Team {
     );
   });
 
-  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  // Real time: reloads quietly when this data changes.
   private readonly live = liveReload(['actors'], () => this.load());
 
   constructor() {
@@ -106,7 +106,7 @@ export class Team {
     });
   }
 
-  // === DIÁLOGOS ==============================================================
+  // ----- DIALOGS --------------------
 
   protected openCreate() {
     this.fName.set('');
@@ -135,7 +135,7 @@ export class Team {
     this.showPassword.set(true);
   }
 
-  /** El usuario se propone a partir del email, como hacen las apps. */
+  /** Suggests the username from the email, as the apps do. */
   protected onEmail(value: string) {
     const before = this.fEmail().split('@')[0].replace(/[^a-zA-Z0-9._-]/g, '');
     this.fEmail.set(value);
@@ -149,7 +149,7 @@ export class Team {
       await navigator.clipboard.writeText(this.fPassword());
       this.toast.info('Contraseña copiada. Pásasela por un canal seguro.');
     } catch {
-      /* sin portapapeles */
+      // no clipboard available
     }
   }
 
@@ -210,7 +210,7 @@ export class Team {
   }
 }
 
-/** 14 caracteres legibles (sin 0/O ni 1/l) con letras y números garantizados. */
+// 14 readable characters (no 0/O or 1/l), guaranteed to include letters and digits.
 function generatePassword(): string {
   const letters = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ';
   const digits = '23456789';

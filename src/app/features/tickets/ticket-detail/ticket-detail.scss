@@ -1,7 +1,7 @@
 .td-title { margin-top: 6px; max-width: 760px; }
 .td-meta { margin-top: 12px; }
 
-/* ── Mensajes ── */
+// ----- MESSAGES --------------------
 .msg { display: flex; gap: 12px; align-items: flex-start; }
 .msg__body { flex: 1; min-width: 0; }
 .msg__head {
@@ -19,7 +19,7 @@
 }
 .msg__text { white-space: pre-wrap; word-break: break-word; font-size: 0.9375rem; line-height: 1.6; }
 
-/* Las respuestas del equipo, con el acento tenue: se distinguen sin gritar. */
+// Team replies use the dim accent so they stand out without shouting.
 .msg--team .msg__bubble { background: var(--clr-accent-dim); }
 .msg__logo { width: 22px; height: 22px; }
 
@@ -79,7 +79,7 @@ video.attachment__media { cursor: default; object-fit: contain; }
   .t-clip { flex: 1; min-width: 0; }
 }
 
-/* ── Redactar ── */
+// ----- COMPOSER --------------------
 .composer {
   margin-left: 48px;
   border-radius: 20px;
@@ -140,7 +140,7 @@ video.attachment__media { cursor: default; object-fit: contain; }
   &:hover { background: var(--clr-field); }
 }
 
-/* ── Lateral ── */
+// ----- SIDEBAR --------------------
 .td-select { width: 160px; margin-left: auto; }
 .td-notes { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
 .td-notes__actions { min-height: 34px; }

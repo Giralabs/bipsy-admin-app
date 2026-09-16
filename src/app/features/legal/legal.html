@@ -1,6 +1,6 @@
 <div class="page legal">
   <div class="lg-layout">
-    <!-- ── Barra lateral: documentos, lo más consultado e índice ── -->
+    <!-- ----- SIDEBAR: DOCUMENTS, MOST CONSULTED AND TABLE OF CONTENTS -------------------- -->
     <aside class="lg-side" aria-label="Documentos legales">
       <label class="search lg-search">
         <span class="material-symbols-rounded">search</span>
@@ -37,7 +37,7 @@
       }
     </aside>
 
-    <!-- ── Documento ── -->
+    <!-- ----- DOCUMENT -------------------- -->
     <article class="lg-doc" #reader>
       @if (results(); as hits) {
         <h1 class="lg-title">Buscar</h1>
@@ -97,7 +97,7 @@
         }
       }
 
-      <!-- ── Titular ── -->
+      <!-- ----- OWNER -------------------- -->
       <footer class="lg-owner">
         <a class="lg-owner__by" href="https://giralabs.es" target="_blank" rel="noopener">
           <span>Una aplicación de</span>

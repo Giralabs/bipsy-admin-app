@@ -7,7 +7,7 @@ import { formatEur } from '../../../core/utils/format';
 import { WEEK_ORDER, weekday } from '../../../core/utils/labels';
 import { liveReload } from '../../../core/services/live.service';
 
-/** Carta de servicios y horario de apertura, tal como los publica el negocio. */
+/** Service menu and opening hours, as published by the business. */
 @Component({
   selector: 'app-business-services',
   template: `
@@ -103,7 +103,7 @@ export class BusinessServices {
     })),
   );
 
-  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  // Real time: reloads quietly when this data changes.
   private readonly live = liveReload(['businesses'], () => this.load());
 
   constructor() {

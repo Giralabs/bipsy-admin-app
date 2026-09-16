@@ -2,7 +2,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 12px;
-  /* Cada tarjeta mide lo suyo: estiradas a la más larga quedaban medio vacías. */
+  // Each card keeps its own height; stretched to the tallest one they looked half empty.
   align-items: start;
 }
 

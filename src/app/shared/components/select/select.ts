@@ -15,10 +15,10 @@ import { Tone } from '../../../core/utils/labels';
 export interface SelectOption<T extends string = string> {
   value: T;
   label: string;
-  /** Segunda línea en gris, dentro del menú. */
+  /** Second line in grey, inside the menu. */
   hint?: string;
   icon?: string;
-  /** Punto de color delante (estados, prioridades). */
+  /** Leading colour dot (statuses, priorities). */
   tone?: Tone;
   disabled?: boolean;
 }
@@ -26,18 +26,18 @@ export interface SelectOption<T extends string = string> {
 let nextId = 0;
 
 /**
- * Desplegable propio. El <select> nativo pinta el menú del sistema (azul en
- * Windows, ignora el tema y la tipografía) y no se puede estilar; este se ve
- * como el resto del panel y se maneja igual con teclado:
+ * Custom dropdown. The native <select> renders the system menu (blue on
+ * Windows, ignoring the theme and typography) and cannot be styled; this one
+ * looks like the rest of the panel and works the same with the keyboard:
  *
- *  - Flechas, Inicio/Fin para moverse; Enter o Espacio para elegir.
- *  - Escape cierra solo el menú, no el diálogo que lo contiene.
- *  - Una letra salta a la primera opción que empieza por ella.
- *  - Con muchas opciones aparece un buscador arriba.
+ *  - Arrows and Home/End to move; Enter or Space to choose.
+ *  - Escape closes only the menu, not the dialog that contains it.
+ *  - A letter jumps to the first option starting with it.
+ *  - With many options a search box appears at the top.
  *
- * El menú va en position: fixed calculado desde el disparador, así no lo
- * recorta el overflow de una tarjeta o de un diálogo, y se abre hacia arriba
- * si abajo no cabe.
+ * The menu uses position: fixed calculated from the trigger, so the overflow
+ * of a card or dialog does not clip it, and it opens upwards when there is
+ * no room below.
  */
 @Component({
   selector: 'app-select',
@@ -58,10 +58,10 @@ export class Select<T extends string = string> {
   readonly placeholder = input('Elige una opción…');
   readonly disabled = input(false);
   readonly size = input<'md' | 'sm'>('md');
-  /** Ocupa todo el ancho de su contenedor (en formularios). */
+  /** Takes the full width of its container (in forms). */
   readonly block = input(true);
   readonly ariaLabel = input<string | null>(null);
-  /** null = automático (más de 8 opciones). */
+  /** null = automatic (more than 8 options). */
   readonly searchable = input<boolean | null>(null);
 
   readonly valueChange = output<T>();
@@ -90,7 +90,7 @@ export class Select<T extends string = string> {
   private typeTimer?: ReturnType<typeof setTimeout>;
 
   constructor() {
-    // Si cambian las opciones con el menú abierto, el activo no puede quedar fuera.
+    // If the options change while the menu is open, the active one must not fall outside.
     effect(() => {
       const count = this.filtered().length;
       untracked(() => {
@@ -99,7 +99,7 @@ export class Select<T extends string = string> {
     });
   }
 
-  // === ABRIR Y CERRAR ========================================================
+  // ----- OPEN AND CLOSE --------------------
 
   protected toggle() {
     if (this.open()) this.close();
@@ -138,14 +138,14 @@ export class Select<T extends string = string> {
   }
 
   protected onScroll(event: Event) {
-    // Desplazarse dentro del propio menú no lo cierra; la página, sí.
+    // Scrolling inside the menu itself does not close it; scrolling the page does.
     if (!this.open()) return;
     const listEl = this.list()?.nativeElement;
     if (listEl && event.target instanceof Node && listEl.contains(event.target)) return;
     this.close();
   }
 
-  // === TECLADO ===============================================================
+  // ----- KEYBOARD --------------------
 
   protected onTriggerKeydown(event: KeyboardEvent) {
     if (this.disabled()) return;
@@ -153,7 +153,7 @@ export class Select<T extends string = string> {
       event.preventDefault();
       this.openMenu();
     } else if (event.key.length === 1 && /\S/.test(event.key)) {
-      // Escribir con el menú cerrado cambia directamente, como el nativo.
+      // Typing with the menu closed changes the value directly, like the native one.
       const match = this.matchTyped(event.key);
       if (match) this.valueChange.emit(match.value);
     }
@@ -196,7 +196,7 @@ export class Select<T extends string = string> {
         if (this.filtered()[this.active()]) this.choose(this.filtered()[this.active()]);
         break;
       case 'Escape':
-        // Que el Escape no llegue al diálogo que envuelve al desplegable.
+        // Keep Escape from reaching the dialog that wraps the dropdown.
         event.preventDefault();
         event.stopPropagation();
         this.close(true);
@@ -220,7 +220,7 @@ export class Select<T extends string = string> {
     this.active.set(this.firstEnabled(0, 1));
   }
 
-  // === HELPERS ===============================================================
+  // ----- HELPERS --------------------
 
   private position() {
     const el = this.trigger()?.nativeElement;

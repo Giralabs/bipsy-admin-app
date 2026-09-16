@@ -50,12 +50,12 @@ export class UsersList {
   private debounce?: ReturnType<typeof setTimeout>;
 
   /**
-   * Las cuentas del panel se guardan como clientes (no hay tipo Admin en el
-   * backend), así que salen aquí. Se marcan para no confundirlas.
+   * Panel accounts are stored as clients (there is no Admin type in the
+   * backend), so they show up here. They are flagged to avoid confusion.
    */
   protected readonly teamIds = signal<Set<number>>(new Set());
 
-  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  // Real time: reloads quietly when this data changes.
   private readonly live = liveReload(['actors', 'bookings'], () => this.load());
 
   constructor() {

@@ -1,5 +1,5 @@
-/* Dos mitades iguales con el mismo margen alrededor: la tarjeta de Bip queda
-   a la misma distancia del borde por arriba, por abajo y por la derecha. */
+// Two equal halves with the same margin around them: the Bip card sits at the
+// same distance from the top, bottom and right edges.
 .login {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -24,8 +24,8 @@
 
 .login__form { margin-top: 28px; display: flex; flex-direction: column; }
 
-/* Filas al estilo del formulario agrupado de la web: etiqueta a la izquierda
-   con ancho fijo, campo a la derecha, sin un solo borde. */
+// Rows styled like the web's grouped form: fixed-width label on the left,
+// field on the right, with no borders at all.
 .login__row {
   position: relative;
   display: flex;
@@ -90,9 +90,10 @@
 
 .login__foot { margin-top: 28px; font-size: 0.75rem; color: var(--clr-text-3); text-align: center; }
 
-/* ── Bip, a un lado y en su sitio ──
-   Una banda plana, como las de la web de negocios. Bip y su frase van juntos
-   y centrados; sin halo detrás, que sobre una superficie plana es una mancha. */
+// ----- BIP ARTWORK --------------------
+
+// A flat band, like the ones on the business website. Bip and its quote sit
+// together and centred; no halo behind, since on a flat surface it looks like a smudge.
 .login__art { display: flex; min-height: calc(100vh - 32px); }
 
 .login__art-card {

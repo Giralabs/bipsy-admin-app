@@ -1,4 +1,4 @@
-/** Desarrollo (`ng serve`). El panel corre en :4300 para convivir con las webs en :4200. */
+/** Development (`ng serve`). The panel runs on :4300 to coexist with the websites on :4200. */
 export const environment = {
   production: false,
   apiUrl: 'http://localhost:8080',

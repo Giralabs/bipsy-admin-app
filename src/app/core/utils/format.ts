@@ -18,7 +18,7 @@ export function formatInt(value: number | null | undefined): string {
   return integer.format(value ?? 0);
 }
 
-/** "hace 3 h", "ayer", "hace 2 semanas". */
+/** Relative time such as "hace 3 h", "ayer", "hace 2 semanas". */
 export function timeAgo(iso: string | null | undefined): string {
   if (!iso) return '—';
   const diff = (new Date(iso).getTime() - Date.now()) / 1000;
@@ -32,7 +32,7 @@ export function timeAgo(iso: string | null | undefined): string {
   return relative.format(Math.round(diff / (86400 * 365)), 'year');
 }
 
-/** Dos letras: la del nombre y la del primer apellido. */
+/** Two letters: the first name's and the first surname's. */
 export function initials(name: string | null | undefined): string {
   const parts = (name ?? '').trim().split(/\s+/).filter(Boolean);
   if (!parts.length) return '?';

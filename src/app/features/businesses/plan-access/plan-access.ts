@@ -14,7 +14,7 @@ import { liveReload } from '../../../core/services/live.service';
 
 type Duration = { key: string; label: string; months: number | null };
 
-/** null = sin fin; 'date' = elegir día. */
+/** null = no end date; 'date' = pick a day. */
 const DURATIONS: Duration[] = [
   { key: '1m', label: '1 mes', months: 1 },
   { key: '3m', label: '3 meses', months: 3 },
@@ -24,7 +24,7 @@ const DURATIONS: Duration[] = [
   { key: 'date', label: 'Hasta un día…', months: null },
 ];
 
-/** Lo que no pasa por una pasarela: se puede tocar desde el panel. */
+/** Sources that do not go through a payment gateway, so they can be changed from the panel. */
 const FREE_SOURCES = ['ADMIN', 'WELCOME'];
 
 function addMonths(from: Date, months: number): Date {
@@ -34,9 +34,9 @@ function addMonths(from: Date, months: number): Date {
 }
 
 /**
- * Plan y acceso de un negocio: lo que ve su app y las palancas del equipo.
- * Regalar un plan el tiempo que haga falta, alargarlo, quitarlo (y que tenga
- * que pagar) o dejar la cuenta abierta siempre.
+ * Plan and access of a business: what its app shows and the team's levers.
+ * Gift a plan for as long as needed, extend it, remove it (so the business
+ * has to pay) or leave the account permanently open.
  */
 @Component({
   selector: 'app-plan-access',
@@ -53,14 +53,14 @@ export class PlanAccess {
   readonly businessName = input.required<string>();
   readonly plans = input<Plan[]>([]);
   readonly subscriptions = input<BusinessSubscription[] | null>(null);
-  /** Algo ha cambiado: el padre recarga el historial y la cabecera. */
+  /** Something changed: the parent reloads the history and the header. */
   readonly changed = output<void>();
 
   protected readonly access = signal<BusinessAccess | null>(null);
   protected readonly accessError = signal<string | null>(null);
   protected readonly accessUnavailable = signal(false);
 
-  // Diálogo de regalar / cambiar fecha
+  // Gift / change end date dialog
   protected readonly dialog = signal<'grant' | 'extend' | null>(null);
   protected readonly planCode = signal('');
   protected readonly durationKey = signal('3m');
@@ -75,7 +75,7 @@ export class PlanAccess {
   protected readonly labels = { accessState, subscriptionSource, subscriptionStatus, billingInterval };
   protected readonly eur = formatEur;
 
-  /** El regalo que le está dando acceso ahora, si lo hay. */
+  /** The gifted plan currently granting access, if any. */
   protected readonly liveFree = computed(() => {
     const now = Date.now();
     return (
@@ -100,7 +100,7 @@ export class PlanAccess {
     );
   });
 
-  /** Fecha de fin que saldría con lo elegido en el diálogo. */
+  /** End date that would result from the choices in the dialog. */
   protected readonly resultingEnd = computed<Date | null | 'invalid'>(() => {
     const key = this.durationKey();
     if (key === 'none') return null;
@@ -110,7 +110,7 @@ export class PlanAccess {
       return d.getTime() > Date.now() ? d : 'invalid';
     }
     const months = DURATIONS.find((d) => d.key === key)?.months ?? 1;
-    // Al alargar se suma a lo que ya le quedaba, no a hoy.
+    // When extending, time is added to what was already left, not to today.
     const current = this.liveFree()?.currentPeriodEnd;
     const base =
       this.dialog() === 'extend' && current && new Date(current).getTime() > Date.now() ? new Date(current) : new Date();
@@ -132,7 +132,7 @@ export class PlanAccess {
     })),
   );
 
-  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  // Real time: reloads quietly when this data changes.
   private readonly live = liveReload(['plans'], () => this.loadAccess());
 
   constructor() {
@@ -156,7 +156,7 @@ export class PlanAccess {
     });
   }
 
-  // === DIÁLOGO ===============================================================
+  // ----- DIALOG --------------------
 
   protected openGrant() {
     this.planCode.set(this.plans().find((p) => p.code !== 'FREE' && p.selectable)?.code ?? this.plans()[0]?.code ?? '');
@@ -205,7 +205,7 @@ export class PlanAccess {
     });
   }
 
-  // === QUITAR Y ACCESO PERMANENTE ============================================
+  // ----- REVOKE AND PERMANENT ACCESS --------------------
 
   protected revoke() {
     this.revoking.set(true);

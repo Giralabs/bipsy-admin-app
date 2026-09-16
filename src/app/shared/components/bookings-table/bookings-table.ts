@@ -15,9 +15,9 @@ import { Pill } from '../pill/pill';
 import { liveReload } from '../../../core/services/live.service';
 
 /**
- * Citas de un negocio o de un cliente. Desde aquí se puede cancelar una cita
- * pendiente o confirmada: avisa a las dos partes y suelta la retención de la
- * tarjeta, pero no cobra penalizaciones ni devuelve lo prepagado.
+ * Bookings of a business or a client. From here a pending or confirmed
+ * booking can be cancelled: it notifies both parties and releases the card
+ * hold, but it does not charge penalties or refund prepaid amounts.
  */
 @Component({
   selector: 'app-bookings-table',
@@ -142,7 +142,7 @@ export class BookingsTable {
     return `${b.serviceName} de ${b.customerName} en ${b.businessName}. Se avisa a los dos y se libera la tarjeta, pero no se cobran penalizaciones ni se devuelve lo prepagado: eso se hace desde Cobros.`;
   });
 
-  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  // Real time: reloads quietly when this data changes.
   private readonly live = liveReload(['bookings', 'payments'], () => this.load());
 
   constructor() {

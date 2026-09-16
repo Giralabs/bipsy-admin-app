@@ -94,7 +94,7 @@ export class Account {
     this.toast.info('Accesibilidad restablecida.');
   }
 
-  /** GET /plans es público y ligero: sirve de latido sin tocar datos. */
+  /** GET /plans is public and lightweight, so it works as a heartbeat without touching data. */
   protected checkApi() {
     this.health.set('checking');
     const started = performance.now();

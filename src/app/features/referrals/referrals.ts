@@ -43,7 +43,7 @@ export class Referrals {
   protected readonly withCode = computed(() => this.sorted().filter((s) => !!s.referralCode).length);
   protected readonly bringing = computed(() => this.sorted().filter((s) => s.referredCount > 0).length);
 
-  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  // Real time: reloads quietly when this data changes.
   private readonly live = liveReload(['actors'], () => this.load());
 
   constructor() {

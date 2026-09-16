@@ -1,12 +1,12 @@
 import { Component, computed, input, output } from '@angular/core';
 
 /**
- * Campo numérico con botones − y +. Las flechas del <input type=number>
- * nativo son diminutas, cambian de aspecto en cada navegador y no respetan
- * el tema; estas se pueden pulsar con el dedo.
+ * Numeric field with − and + buttons. The native <input type=number> arrows
+ * are tiny, look different in every browser and ignore the theme; these can
+ * be tapped with a finger.
  *
- * Mantener pulsado no repite a propósito: los topes de estos ajustes son
- * grandes (hasta 3650) y se escriben antes que se pulsan.
+ * Holding a button down does not repeat on purpose: the limits of these
+ * settings are large (up to 3650) and are typed rather than clicked.
  */
 @Component({
   selector: 'app-number-input',
@@ -50,8 +50,8 @@ import { Component, computed, input, output } from '@angular/core';
       width: 58px; height: 100%; border: none; background: none; outline: none; text-align: center;
       color: var(--clr-text); font-size: 0.9375rem; font-weight: 700; font-variant-numeric: tabular-nums;
     }
-    /* Ancho fijo: con unidades de distinto largo ("km", "reseñas") los campos
-       de una misma lista quedaban desalineados. */
+    /* Fixed width: with units of different lengths ("km", "reseñas") the
+       fields in the same list ended up misaligned. */
     .num__unit { padding: 0 10px 0 4px; font-size: 0.8125rem; font-weight: 600; color: var(--clr-text-3); width: 72px; }
   `,
 })
@@ -63,7 +63,7 @@ export class NumberInput {
   readonly unit = input<string | null>(null);
   readonly disabled = input(false);
   readonly ariaLabel = input<string | null>(null);
-  /** Decimales a mostrar. Por defecto, los del paso (paso 0,5 → uno). */
+  /** Decimal places to show. Defaults to those of the step (step 0.5 → one). */
   readonly places = input<number | null>(null);
 
   readonly valueChange = output<number>();
@@ -94,7 +94,7 @@ export class NumberInput {
     this.valueChange.emit(n);
   }
 
-  /** Al salir, lo escrito se ajusta a los topes y a los decimales del paso. */
+  /** On blur, the typed value is clamped to the limits and the step's decimals. */
   protected onBlur(el: HTMLInputElement) {
     const v = this.value();
     if (!Number.isFinite(v)) {

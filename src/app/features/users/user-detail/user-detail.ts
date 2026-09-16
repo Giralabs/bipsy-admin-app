@@ -53,11 +53,11 @@ export class UserDetail {
   protected readonly history = signal<AuditLogEntry[] | null>(null);
   protected readonly historyUnavailable = signal(false);
 
-  // Restablecer
+  // Reset
   protected readonly confirmReset = signal(false);
   protected readonly resetting = signal(false);
 
-  // Sancionar
+  // Sanction
   protected readonly sanctionOpen = signal(false);
   protected readonly sanctionType = signal<SanctionType>('SUSPENSION');
   protected readonly sanctionDays = signal<number | 'custom'>(7);
@@ -66,7 +66,7 @@ export class UserDetail {
   protected readonly sanctionIps = signal('');
   protected readonly sanctioning = signal(false);
 
-  // Levantar
+  // Lift sanction
   protected readonly liftTarget = signal<Sanction | null>(null);
   protected readonly lifting = signal(false);
 
@@ -107,7 +107,7 @@ export class UserDetail {
     return { label: 'Activo', tone: 'success', icon: 'check_circle' };
   });
 
-  /** Lo cobrado de verdad: cobros correctos menos lo devuelto. */
+  /** What was actually charged: successful charges minus refunds. */
   protected readonly chargedCents = computed(() =>
     (this.customer()?.charges ?? [])
       .filter((ch) => ['SUCCEEDED', 'PARTIALLY_REFUNDED', 'REFUNDED'].includes(ch.status))
@@ -121,12 +121,12 @@ export class UserDetail {
     return !Number.isNaN(until.getTime()) && until.getTime() > Date.now();
   });
 
-  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  // Real time: reloads quietly when this data changes.
   private readonly live = liveReload(['actors', 'bookings', 'payments', 'reviews', 'reports'], () => this.load());
 
   constructor() {
-    // Reacciona al :id y no solo al crear: saltar de un cliente a otro (Ctrl K)
-    // reutiliza este mismo componente.
+    // Reacts to :id and not only on creation: jumping from one client to another
+    // (Ctrl K) reuses this same component.
     effect(() => {
       const id = Number(this.id());
       untracked(() => {
@@ -163,7 +163,7 @@ export class UserDetail {
     if (await copyText(text)) this.toast.info(`${what} copiado.`);
   }
 
-  // === RESTABLECER ===========================================================
+  // ----- RESET --------------------
 
   protected reset() {
     this.resetting.set(true);
@@ -183,7 +183,7 @@ export class UserDetail {
     });
   }
 
-  // === SANCIONES =============================================================
+  // ----- SANCTIONS --------------------
 
   protected openSanction() {
     this.sanctionType.set('SUSPENSION');
@@ -269,7 +269,7 @@ export class UserDetail {
     return { label: 'Cumplida', tone: 'neutral' };
   }
 
-  // === HISTORIAL =============================================================
+  // ----- HISTORY --------------------
 
   private loadHistory() {
     this.historyUnavailable.set(false);

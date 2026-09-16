@@ -10,7 +10,7 @@ import { Pagination } from '../../../shared/components/pagination/pagination';
 import { Pill } from '../../../shared/components/pill/pill';
 import { liveReload } from '../../../core/services/live.service';
 
-/** Cobros que el negocio ha hecho a sus clientes con Bipsy (tarjeta). */
+/** Charges the business has made to its clients through Bipsy (card). */
 @Component({
   selector: 'app-business-payments',
   imports: [DatePipe, RouterLink, Pagination, Pill],
@@ -70,7 +70,7 @@ export class BusinessPayments {
   protected readonly kind = chargeKind;
   protected readonly status = chargeStatus;
 
-  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  // Real time: reloads quietly when this data changes.
   private readonly live = liveReload(['payments'], () => this.load());
 
   constructor() {

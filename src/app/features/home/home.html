@@ -1,5 +1,5 @@
 <div class="page home">
-  <!-- ── Cabecera: saludo y lo que pide atención ── -->
+  <!-- ----- HEADER: GREETING AND WHAT NEEDS ATTENTION -------------------- -->
   <header class="hero">
     <div class="hero__text">
       <p class="overline hero__date">{{ now | date: "EEEE, d 'de' MMMM" }}</p>
@@ -39,7 +39,7 @@
     </p>
   }
 
-  <!-- ── Mosaico ── -->
+  <!-- ----- BENTO GRID -------------------- -->
   <div class="bento" [class.is-editing]="editing()">
     @for (t of visibleTiles(); track t.item.path) {
       @let hidden = isHidden(t.item.path);

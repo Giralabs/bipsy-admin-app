@@ -11,7 +11,7 @@ interface DocGroup {
   docs: LegalDocument[];
 }
 
-/** Atajo a un apartado concreto: lo que más se consulta atendiendo a alguien. */
+// Shortcut to a specific section: what is looked up most often while helping someone.
 interface QuickLink {
   icon: string;
   label: string;
@@ -21,11 +21,11 @@ interface QuickLink {
 }
 
 /**
- * Los textos legales publicados, a mano para el equipo.
+ * The published legal texts, at hand for the team.
  *
- * Son una copia de los de bipsy-web-app y bipsy-business-web-app
- * (`core/legal/`): se leen desde aquí para contestar a un cliente o a un
- * negocio con el texto exacto que aceptó, sin salir del panel.
+ * They are a copy of the ones in bipsy-web-app and bipsy-business-web-app
+ * (`core/legal/`). They are read from here to answer a customer or a
+ * business with the exact text they accepted, without leaving the panel.
  */
 @Component({
   selector: 'app-legal',
@@ -80,7 +80,7 @@ export class Legal {
     this.isBusinessDoc() ? null : `${environment.webUrl}/legal/${this.doc().slug}`,
   );
 
-  /** Resultados de búsqueda en TODOS los documentos, por apartado. */
+  /** Search results across ALL documents, grouped by section. */
   protected readonly results = computed(() => {
     const q = this.normalize(this.search().trim());
     if (q.length < 3) return null;

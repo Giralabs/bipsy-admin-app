@@ -18,10 +18,10 @@ type Filter = 'due' | 'free' | 'no-plan' | 'paying' | 'all';
 type NextKey = 'none' | 'tomorrow' | '3d' | 'week' | 'custom';
 
 /**
- * Bienvenidas: la lista de llamadas de soporte a los negocios que acaban de
- * llegar. Lo que importa es llamarles mientras están en la cortesía o en la
- * prueba gratis, antes de que les toque pagar, y no llamar dos veces a la
- * misma persona sin saber qué se habló.
+ * Onboarding: the support call list for businesses that have just signed up.
+ * What matters is calling them while they are on the welcome period or the
+ * free trial, before they have to pay, and never calling the same person
+ * twice without knowing what was discussed.
  */
 @Component({
   selector: 'app-onboarding',
@@ -44,7 +44,7 @@ export class Onboarding {
   protected readonly history = signal<Record<number, OnboardingContact[] | undefined>>({});
   protected readonly openHistory = signal<number | null>(null);
 
-  // Registrar llamada
+  // Log call dialog
   protected readonly target = signal<OnboardingItem | null>(null);
   protected readonly outcome = signal<CallOutcome>('CALLED');
   protected readonly note = signal('');
@@ -129,7 +129,7 @@ export class Onboarding {
     this.load();
   }
 
-  /** Frase corta de cuánto le queda gratis, que es lo que decide la urgencia. */
+  /** Short phrase with how much free time is left, which is what drives urgency. */
   protected countdown(i: OnboardingItem): string | null {
     if (i.daysLeft == null) return null;
     const d = i.daysLeft;
@@ -172,7 +172,7 @@ export class Onboarding {
 
   protected setOutcome(o: CallOutcome) {
     this.outcome.set(o);
-    // Sugerencia razonable; se puede cambiar.
+    // Sensible default suggestion; it can be changed.
     if (o === 'NO_ANSWER') this.nextKey.set('tomorrow');
     else if (o === 'CALL_BACK') this.nextKey.set('3d');
     else if (o === 'WILL_PAY' || o === 'NOT_INTERESTED') this.nextKey.set('none');

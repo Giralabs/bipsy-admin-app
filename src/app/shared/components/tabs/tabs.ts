@@ -8,9 +8,9 @@ export interface TabOption<T extends string = string> {
 }
 
 /**
- * Pestañas de una ficha. El segmentado sirve para 2-5 opciones del mismo
- * peso; una ficha con diez apartados necesita pestañas que se desplacen y no
- * se aprieten hasta cortar el texto.
+ * Tabs of a detail page. The segmented control works for 2-5 options of equal
+ * weight; a detail page with ten sections needs tabs that scroll instead of
+ * squeezing until the text gets cut off.
  */
 @Component({
   selector: 'app-tabs',

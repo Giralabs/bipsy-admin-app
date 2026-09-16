@@ -1,8 +1,8 @@
 import { LegalDocument, LEGAL_COMPANY } from './legal.models';
 /**
- * Copia de `TRIAL_DAYS` de bipsy-business-web-app (`data/site.data.ts`): lo que
- * ANUNCIA la web. Si cambia allí, cambia aquí, o el panel enseñará un texto
- * distinto al publicado.
+ * Copy of `TRIAL_DAYS` from bipsy-business-web-app (`data/site.data.ts`): what
+ * the website ADVERTISES. If it changes there, change it here, or the panel will
+ * show a text different from the published one.
  */
 const TRIAL_DAYS = 30;
 

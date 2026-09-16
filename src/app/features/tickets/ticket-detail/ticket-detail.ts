@@ -23,7 +23,7 @@ interface AttachmentPreview {
   loading: boolean;
 }
 
-/** Respuestas habituales. Se insertan en el cuadro y se pueden editar antes de enviar. */
+// Canned replies. They are inserted into the composer and can be edited before sending.
 const QUICK_REPLIES: { label: string; body: string }[] = [
   {
     label: 'Lo estamos mirando',
@@ -54,7 +54,7 @@ export class TicketDetailPage implements OnDestroy {
   private readonly toast = inject(ToastService);
   protected readonly auth = inject(AuthService);
 
-  /** Parámetro de ruta :id (withComponentInputBinding). */
+  /** Route parameter :id (withComponentInputBinding). */
   readonly id = input.required<string>();
   private ticketId = 0;
 
@@ -86,11 +86,11 @@ export class TicketDetailPage implements OnDestroy {
   protected readonly notesDirty = computed(() => (this.ticket()?.adminNotes ?? '') !== this.notes());
   protected readonly canWrite = computed(() => this.auth.canSupport());
 
-  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  // Real time: reloads quietly when this data changes.
   private readonly live = liveReload(['tickets'], () => this.refreshQuietly());
 
   constructor() {
-    // Reacciona al :id: abrir otro ticket desde el buscador reutiliza el componente.
+    // React to :id changes, since opening another ticket from the search reuses the component.
     effect(() => {
       const id = Number(this.id());
       untracked(() => {
@@ -131,7 +131,7 @@ export class TicketDetailPage implements OnDestroy {
     return t.description.length > 90 ? t.description.slice(0, 90) + '…' : t.description;
   }
 
-  // === RESPONDER =============================================================
+  // ----- REPLY --------------------
 
   protected useTemplate(body: string) {
     const current = this.reply().trim();
@@ -146,7 +146,7 @@ export class TicketDetailPage implements OnDestroy {
     }
   }
 
-  /** `andResolve`: responde y deja el ticket resuelto en un solo paso. */
+  /** With `andResolve`, replies and marks the ticket as resolved in a single step. */
   protected send(andResolve: boolean) {
     const body = this.reply().trim();
     if (!body || this.sending()) return;
@@ -170,13 +170,13 @@ export class TicketDetailPage implements OnDestroy {
     });
   }
 
-  // === ESTADO, PRIORIDAD Y NOTAS =============================================
+  // ----- STATUS, PRIORITY AND NOTES --------------------
 
   protected changeStatus(status: TicketStatus, successMessage?: string) {
     const t = this.ticket();
     if (!t || t.status === status) return;
     this.updating.set(true);
-    // null conserva las notas guardadas: el backend solo las toca si llegan.
+    // Passing null keeps the saved notes, as the backend only touches them if they are sent.
     this.api.updateTicketStatus(this.ticketId, status, null).subscribe({
       next: (updated) => {
         this.setTicket(updated, true);
@@ -218,7 +218,7 @@ export class TicketDetailPage implements OnDestroy {
     const t = this.ticket();
     if (!t) return;
     this.savingNotes.set(true);
-    // Las notas viajan con el estado actual: el endpoint es el mismo.
+    // Notes are sent along with the current status because it is the same endpoint.
     this.api.updateTicketStatus(this.ticketId, t.status, this.notes().trim()).subscribe({
       next: (updated) => {
         this.setTicket(updated);
@@ -236,7 +236,7 @@ export class TicketDetailPage implements OnDestroy {
     if (await copyText(text)) this.toast.info(`${what} copiado.`);
   }
 
-  // === ADJUNTOS ==============================================================
+  // ----- ATTACHMENTS --------------------
 
   protected download(p: AttachmentPreview) {
     if (p.blob) saveBlob(p.blob, p.attachment.filename);
@@ -252,12 +252,12 @@ export class TicketDetailPage implements OnDestroy {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 
-  /** `keepNotes`: al cambiar estado o prioridad no se pisa lo que se está escribiendo en notas. */
-  /** Tiempo real: trae respuestas y cambios nuevos sin pisar las notas a medio escribir. */
+  // Real time: fetches new replies and changes without overwriting half-written notes.
   private refreshQuietly() {
     this.api.ticket(this.ticketId).subscribe({ next: (t) => this.setTicket(t, true), error: () => {} });
   }
 
+  // With `keepNotes`, changing status or priority does not overwrite notes being typed.
   private setTicket(t: Ticket, keepNotes = false) {
     const hadDraft = keepNotes && this.notesDirty();
     this.ticket.set(t);

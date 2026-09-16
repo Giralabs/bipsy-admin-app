@@ -12,8 +12,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" rel="stylesheet">
   <script>
-    // El tema se fija antes del primer pintado: si lo hiciera Angular, la
-    // pantalla saldría un instante con el tema equivocado. Misma clave que
+    // The theme is set before the first paint: if Angular did it, the
+    // screen would briefly show the wrong theme. Same key as
     // ThemeService.
     (function () {
       var pref = 'system';
@@ -21,8 +21,8 @@
       var dark = pref === 'dark' || (pref === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
       document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
 
-      // Diseño y accesibilidad, por lo mismo: el tamaño de letra o el diseño
-      // en bloques no pueden aparecer un instante después de pintar.
+      // Layout and accessibility, for the same reason: the text size or the
+      // tiles layout must not appear a moment after painting.
       try {
         var p = JSON.parse(localStorage.getItem('bipsy_admin_prefs') || '{}');
         var d = document.documentElement.dataset;

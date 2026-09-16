@@ -3,13 +3,13 @@ import { BadgeKey } from '../navigation';
 import { AdminApi } from './admin-api.service';
 import { liveReload } from './live.service';
 
-/** Cada cuánto como mucho se vuelven a pedir los contadores al navegar. */
+// How often, at most, the counters are fetched again while navigating.
 const TTL_MS = 30_000;
 
 /**
- * Contadores de lo pendiente (tickets abiertos, solicitudes, reportes). Los
- * pintan el menú lateral y los bloques de inicio; vivir aquí evita pedirlos
- * dos veces y que cada sitio enseñe una cifra distinta.
+ * Counters for pending work (open tickets, requests, reports). They are shown
+ * by the side menu and the home tiles; living here avoids fetching them twice
+ * and each place showing a different number.
  */
 @Injectable({ providedIn: 'root' })
 export class BadgesService {
@@ -18,7 +18,7 @@ export class BadgesService {
 
   readonly counts = signal<Record<BadgeKey, number>>({ tickets: 0, improvements: 0, reports: 0, onboarding: 0 });
 
-  /** Tiempo real: un ticket o reporte nuevo enciende el contador al momento. */
+  // Real time: a new ticket or report lights up the counter right away.
   private readonly live = liveReload(['tickets', 'reports', 'plans', 'actors'], () => this.refresh(true));
 
   refresh(force = false) {

@@ -1,7 +1,7 @@
 /**
- * Contratos del backend que usa el panel. Cada interfaz refleja un record de
- * com.gipsi.dto.* (el nombre del record va en el comentario) para poder
- * seguirle la pista cuando cambie.
+ * Backend contracts used by the panel. Each interface mirrors a record from
+ * com.gipsi.dto.* (the record name goes in the comment) so it can be tracked
+ * when it changes.
  */
 
 export interface PageResponse<T> {
@@ -14,7 +14,7 @@ export interface PageResponse<T> {
   last: boolean;
 }
 
-// === DASHBOARD (AdminDashboardDtos) ========================================
+// ----- DASHBOARD (AdminDashboardDtos) --------------------
 
 export interface DashboardStats {
   customers: { total: number; newLast30Days: number; referred: number };
@@ -24,7 +24,7 @@ export interface DashboardStats {
   subscriptions: { active: number; estimatedMrr: number };
 }
 
-// === CLIENTES (AdminCustomerDtos) ==========================================
+// ----- CLIENTS (AdminCustomerDtos) --------------------
 
 export type Reputation = 'GREEN' | 'ORANGE' | 'RED';
 export type SanctionType = 'SUSPENSION' | 'BAN';
@@ -78,7 +78,7 @@ export interface Charge {
   createdAt: string;
 }
 
-/** AdminOnboardingDtos: negocios nuevos a los que llamar. */
+/** AdminOnboardingDtos: new businesses to call. */
 export type OnboardingStage = 'WELCOME' | 'TRIAL' | 'PAYING' | 'FREE' | 'PAST_DUE' | 'NO_PLAN';
 export type CallOutcome = 'CALLED' | 'NO_ANSWER' | 'CALL_BACK' | 'WILL_PAY' | 'NOT_INTERESTED' | 'NOTE';
 
@@ -129,7 +129,7 @@ export interface OnboardingContact {
   createdAt: string;
 }
 
-/** AdminPaymentDtos.AdminPaymentResponse: un cobro visto desde el registro global. */
+/** AdminPaymentDtos.AdminPaymentResponse: a payment as seen from the global ledger. */
 export interface AdminPayment {
   id: number;
   kind: string;
@@ -282,7 +282,7 @@ export interface SanctionRequest {
   extraIps: string[] | null;
 }
 
-// === NEGOCIOS (AdminBusinessDtos) ==========================================
+// ----- BUSINESSES (AdminBusinessDtos) --------------------
 
 export interface BusinessListItem {
   id: number;
@@ -318,7 +318,7 @@ export interface BusinessSubscription {
   cancelAtPeriodEnd: boolean;
 }
 
-// === PLANES Y OFERTAS (SubscriptionDtos / AdminGrantDtos) ==================
+// ----- PLANS AND OFFERS (SubscriptionDtos / AdminGrantDtos) --------------------
 
 export interface PlanFeatureRef {
   code: string;
@@ -342,7 +342,7 @@ export interface Plan {
   features?: PlanFeatureRef[];
 }
 
-/** SubscriptionDtos.SubscriptionStatusResponse: lo mismo que recibe la app del negocio. */
+/** SubscriptionDtos.SubscriptionStatusResponse: the same the business app receives. */
 export interface SubscriptionStatus {
   state: 'WELCOME_TRIAL' | 'TRIAL' | 'ACTIVE' | 'PAST_DUE' | 'CANCELED' | 'EXPIRED';
   blocked: boolean;
@@ -418,7 +418,7 @@ export interface Feature {
   description: string | null;
 }
 
-// === SOPORTE (SupportDtos) =================================================
+// ----- SUPPORT (SupportDtos) --------------------
 
 export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
 export type TicketKind = 'SUPPORT' | 'IMPROVEMENT';
@@ -459,7 +459,7 @@ export interface Ticket {
   replies: TicketReply[];
 }
 
-// === REPORTES (ReportDtos) =================================================
+// ----- REPORTS (ReportDtos) --------------------
 
 export type ReportStatus = 'PENDING' | 'REVIEWED' | 'DISMISSED';
 
@@ -477,7 +477,7 @@ export interface Report {
   createdAt: string;
 }
 
-// === CATÁLOGO (CategoryDtos / DiscoveryDtos / ReferralDtos) ================
+// ----- CATALOG (CategoryDtos / DiscoveryDtos / ReferralDtos) --------------------
 
 export interface Category {
   id: number;
@@ -503,7 +503,7 @@ export interface ReferralStat {
   referredCount: number;
 }
 
-// === NEGOCIO POR DENTRO (AdminOpsDtos y DTOs de cada módulo) ===============
+// ----- BUSINESS INTERNALS (AdminOpsDtos AND EACH MODULE'S DTOS) --------------------
 
 export interface BusinessOverview {
   customers: number;
@@ -626,7 +626,7 @@ export interface AdminReview {
   createdAt: string;
 }
 
-// === EQUIPO DEL PANEL ======================================================
+// ----- PANEL TEAM --------------------
 
 export type AdminScope = 'FULL' | 'SUPPORT' | 'READONLY';
 
@@ -641,7 +641,7 @@ export interface TeamMember {
   you: boolean;
 }
 
-// === AUDITORÍA Y BÚSQUEDA ==================================================
+// ----- AUDIT LOG AND SEARCH --------------------
 
 export interface AuditLogEntry {
   id: number;

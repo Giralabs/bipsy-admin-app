@@ -22,11 +22,11 @@ import { Avatar } from '../../shared/components/avatar/avatar';
 interface Tile {
   item: NavItem;
   section: string | null;
-  /** Clase de tamaño en la rejilla de 12 columnas. */
+  /** Size class in the 12-column grid. */
   size: 'xl' | 'tall' | 'wide' | 'md' | 'sm';
 }
 
-/** Tamaño de cada bloque en el mosaico. Lo que no está aquí es mediano. */
+/** Size of each tile in the bento grid. Anything not listed here is medium. */
 const SIZES: Record<string, Tile['size']> = {
   '/dashboard': 'xl',
   '/tickets': 'tall',
@@ -36,9 +36,9 @@ const SIZES: Record<string, Tile['size']> = {
 };
 
 /**
- * Inicio del diseño en bloques: un mosaico con lo que pasa en cada sección,
- * no solo un acceso. Cada persona puede ocultar los bloques que no usa
- * («Personalizar»), y se guarda en su navegador.
+ * Home page of the tile layout: a bento grid showing what is happening in each
+ * section, not just a shortcut. Each person can hide the tiles they do not use
+ * («Personalizar»), and this is saved in their browser.
  */
 @Component({
   selector: 'app-home',
@@ -84,7 +84,7 @@ export class Home {
     return `${hello}, ${this.auth.displayName().split(' ')[0]}`;
   });
 
-  /** Lo pendiente, para las pastillas de la cabecera. */
+  /** Pending work, for the header pills. */
   protected readonly focus = computed(() => {
     const c = this.badges.counts();
     return [

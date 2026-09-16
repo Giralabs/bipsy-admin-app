@@ -2,16 +2,16 @@ import { inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 /**
- * Filtros de un listado reflejados en la URL. Así, al entrar en una ficha y
- * volver atrás, la lista sigue en la misma página y con la misma búsqueda, y
- * un listado filtrado se puede pasar por enlace a otra persona del equipo.
+ * List filters mirrored in the URL. This way, after opening a detail page and
+ * going back, the list stays on the same page with the same search, and a
+ * filtered list can be shared by link with another team member.
  */
 export function listQuery() {
   const router = inject(Router);
   const route = inject(ActivatedRoute);
-  // La primera carga sale de la URL, así que no hay nada que escribir. Y
-  // navegar desde el constructor, con la navegación que crea el componente
-  // aún en curso, la cancelaría.
+  // The first load comes from the URL, so there is nothing to write. Also,
+  // navigating from the constructor, while the navigation that creates the
+  // component is still in progress, would cancel it.
   let first = true;
 
   return {
@@ -22,7 +22,7 @@ export function listQuery() {
       const n = Number(route.snapshot.queryParamMap.get('page'));
       return Number.isFinite(n) && n > 1 ? n - 1 : 0;
     },
-    /** `page` en base 0; en la URL va en base 1 y se omite la primera. */
+    /** `page` is 0-based; in the URL it is 1-based and the first page is omitted. */
     set(values: Record<string, string | number | null | undefined>) {
       if (first) {
         first = false;

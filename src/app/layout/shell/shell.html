@@ -1,6 +1,6 @@
 <div class="shell" [attr.data-shell]="layout()" [class.shell--nav-open]="navOpen()">
-  <!-- Menú lateral: fijo en «panel lateral» y «compacto»; en «barra superior»
-       solo existe como cajón del móvil. «Bloques» no lo usa. -->
+  <!-- Side menu: fixed in «panel lateral» and «compacto»; in «barra superior»
+       it only exists as the mobile drawer. «Bloques» does not use it. -->
   @if (layout() !== 'tiles') {
     <aside class="side" [class.side--rail]="layout() === 'rail'" [class.side--drawer]="layout() === 'topbar'" aria-label="Menú principal">
       <a routerLink="/dashboard" class="side__brand" aria-label="Bipsy Admin, ir al resumen">

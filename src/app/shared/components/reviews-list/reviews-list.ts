@@ -12,9 +12,9 @@ import { Pagination } from '../pagination/pagination';
 import { liveReload } from '../../../core/services/live.service';
 
 /**
- * Reseñas publicadas: todas, las de un negocio o las de un cliente. Retirar
- * una es un borrado lógico, igual que cuando la borra su autor: deja de verse
- * en la app, en la web y en la media del negocio.
+ * Published reviews: all of them, those of a business or those of a client.
+ * Removing one is a soft delete, just like when its author deletes it: it
+ * stops showing in the app, on the web and in the business rating average.
  */
 @Component({
   selector: 'app-reviews-list',
@@ -143,7 +143,7 @@ export class ReviewsList {
     }
   });
 
-  /** Tiempo real: recarga en silencio cuando cambian estos datos. */
+  // Real time: reloads quietly when this data changes.
   private readonly live = liveReload(['reviews'], () => this.load());
 
   constructor() {

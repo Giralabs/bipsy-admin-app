@@ -3,16 +3,16 @@ import { inject } from '@angular/core';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
-/** Rutas de /auth que nunca llevan token ni disparan un refresh. */
+// /auth routes that never carry a token nor trigger a refresh.
 const PUBLIC_AUTH = ['/auth/login', '/auth/refresh', '/auth/logout'];
 
 const withToken = (req: HttpRequest<unknown>, token: string | null) =>
   token ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : req;
 
 /**
- * Adjunta el access token y, si el backend responde 401 (token caducado),
- * lo renueva una vez y repite la petición. Si no se puede renovar, la sesión
- * se da por terminada.
+ * Attaches the access token and, if the backend responds 401 (expired token),
+ * renews it once and repeats the request. If it cannot be renewed, the session
+ * is considered over.
  */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);

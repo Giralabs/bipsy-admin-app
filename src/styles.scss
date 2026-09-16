@@ -1,15 +1,13 @@
-/* ============================================================
-   BIPSY ADMIN — sistema de diseño
-   Mismos tokens que bipsy-web-app y bipsy-business-web-app (y que
-   gipsi_shared_ui en Flutter): modo "lift". Una superficie se lee
-   como superficie porque es MÁS CLARA que el suelo; sin cristal,
-   sin bordes y sin sombras. Lo único que flota (diálogos, avisos,
-   buscador) conserva la sombra.
+// ----- BIPSY ADMIN DESIGN SYSTEM --------------------
+/* Same tokens as bipsy-web-app and bipsy-business-web-app (and as
+   gipsi_shared_ui in Flutter): "lift" mode. A surface reads as a
+   surface because it is LIGHTER than the floor; no glass, no borders
+   and no shadows. Only what floats (dialogs, toasts, search) keeps
+   its shadow.
 
-   El tema lo decide ThemeService escribiendo data-theme en <html>
-   (un script en index.html lo pone antes del primer pintado para
-   que no parpadee). Por eso aquí no hay prefers-color-scheme.
-   ============================================================ */
+   The theme is decided by ThemeService writing data-theme on <html>
+   (a script in index.html sets it before the first paint so it does
+   not flicker). That is why there is no prefers-color-scheme here. */
 
 @mixin light-tokens {
   --clr-base: #ECEEED;
@@ -42,7 +40,7 @@
 }
 
 :root {
-  /* Suelo y superficies (GipsiColors lift*) */
+  /* Floor and surfaces (GipsiColors lift*) */
   --clr-base: #23282E;
   --clr-band: #2A3036;
   --clr-surface: #333A41;
@@ -52,7 +50,7 @@
   --clr-border: #454C54;
   --clr-hairline: rgba(255, 255, 255, 0.07);
 
-  /* Acento: menta en oscuro, pizarra en claro (primary / onPrimary) */
+  /* Accent: mint in dark, slate in light (primary / onPrimary) */
   --clr-accent: #C0EED3;
   --clr-accent-hover: #D4F7E3;
   --clr-on-accent: #2E343B;
@@ -66,7 +64,7 @@
   --clr-text-2: #B5C3BE;
   --clr-text-3: #7F8E89;
 
-  /* Semánticos: relleno (sin -text) y texto legible sobre tarjeta (-text) */
+  /* Semantic: fill (no -text) and readable text on a card (-text) */
   --clr-success: #5FB98A;
   --clr-warn: #E8B657;
   --clr-danger: #E67676;
@@ -97,7 +95,7 @@
 
 :root[data-theme='light'] { @include light-tokens; }
 
-/* ----- RESET -------------------------------------------------------- */
+// ----- RESET --------------------
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body { height: 100%; }
@@ -147,7 +145,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 .material-symbols-rounded.fill { font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
 
-/* Visibilidad por tema: solo esconden, nunca imponen display. */
+/* Visibility per theme: they only hide, never force a display value. */
 :root[data-theme='light'] .only-dark { display: none !important; }
 :root:not([data-theme='light']) .only-light { display: none !important; }
 
@@ -156,9 +154,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
   clip: rect(0 0 0 0); white-space: nowrap;
 }
 
-/* ============================================================
-   TIPOGRAFÍA — GipsiTypography
-   ============================================================ */
+// ----- TYPOGRAPHY --------------------
+/* Mirrors GipsiTypography. */
 .t-display { font-family: var(--ff-display); font-size: 2rem; font-weight: 800; line-height: 1.05; letter-spacing: -1.2px; }
 .t-h2 { font-family: var(--ff-display); font-size: 1.5rem; font-weight: 700; line-height: 1.15; letter-spacing: -0.6px; }
 .t-h3 { font-family: var(--ff-display); font-size: 1.125rem; font-weight: 700; line-height: 1.2; letter-spacing: -0.3px; }
@@ -180,18 +177,16 @@ button, input, select, textarea { font: inherit; color: inherit; }
   color: var(--clr-text-2);
 }
 
-/* ============================================================
-   PÁGINA
-   ============================================================ */
+// ----- PAGE --------------------
 .page {
   width: 100%;
   max-width: 1180px;
   margin: 0 auto;
   padding: 36px 40px 96px;
-  /* `backwards` y no `both`: con el fotograma final retenido, el transform
-     seguía activo y convertía la página en el marco de los `position: fixed`
-     de dentro. El velo de los diálogos quedaba recortado a la página en vez
-     de cubrir la ventana. */
+  /* `backwards` and not `both`: with the final keyframe retained, the transform
+     stayed active and turned the page into the containing block for the
+     `position: fixed` elements inside. The dialog scrim was clipped to the page
+     instead of covering the viewport. */
   animation: fade-up .35s var(--ease-out) backwards;
 }
 .page--narrow { max-width: 860px; }
@@ -247,9 +242,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .t-display { font-size: 1.625rem; }
 }
 
-/* ============================================================
-   SUPERFICIES
-   ============================================================ */
+// ----- SURFACES --------------------
 .card {
   background: var(--clr-surface);
   border-radius: var(--r-md);
@@ -272,7 +265,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 .card__link:hover { text-decoration: underline; }
 
-/* ── Bloque agrupado (Ajustes de iOS / GipsiGroupedSection) ── */
+// ----- GROUPED SECTION --------------------
+/* Like iOS Settings / GipsiGroupedSection. */
 .group__header { padding: 0 4px 6px; }
 .group__box { background: var(--clr-surface); border-radius: var(--r-sm); overflow: hidden; }
 .group__footer { padding: 8px 4px 0; font-size: 0.75rem; font-weight: 500; color: var(--clr-text-2); max-width: 64ch; }
@@ -305,9 +299,8 @@ button.row:hover, a.row:hover { background: var(--clr-surface-2); }
 .row__chevron { font-size: 18px; color: var(--clr-text-3); }
 .row--danger { color: var(--clr-danger-text); }
 
-/* ============================================================
-   BOTONES — GipsiButton en modo plano
-   ============================================================ */
+// ----- BUTTONS --------------------
+/* GipsiButton in flat mode. */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -360,9 +353,8 @@ button.row:hover, a.row:hover { background: var(--clr-surface-2); }
   animation: spin .7s linear infinite;
 }
 
-/* ============================================================
-   CAMPOS — sin bordes; el foco se dice con el relleno
-   ============================================================ */
+// ----- FIELDS --------------------
+/* No borders; focus is shown through the fill. */
 .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .field__label { font-size: 0.75rem; font-weight: 700; color: var(--clr-text-2); padding: 0 2px; }
 .field__hint { font-size: 0.75rem; color: var(--clr-text-3); padding: 0 2px; }
@@ -396,7 +388,7 @@ select.input {
 }
 select.input option { background: var(--clr-surface); color: var(--clr-text); }
 
-/* Sobre el suelo el campo necesita el relleno de tarjeta para verse. */
+/* On the floor the field needs the card fill to be visible. */
 .toolbar .input { background: var(--clr-surface); }
 .toolbar .input:focus { background: var(--clr-surface-2); }
 
@@ -430,9 +422,8 @@ select.input option { background: var(--clr-surface); color: var(--clr-text); }
   margin-bottom: 16px;
 }
 
-/* ============================================================
-   PASTILLAS — GipsiStatusPill
-   ============================================================ */
+// ----- PILLS --------------------
+/* Mirrors GipsiStatusPill. */
 .pill {
   display: inline-flex;
   align-items: center;
@@ -460,9 +451,8 @@ select.input option { background: var(--clr-surface); color: var(--clr-text); }
   display: inline-flex; align-items: center; justify-content: center;
 }
 
-/* ============================================================
-   TABLAS — filas con separador sangrado, como una lista agrupada
-   ============================================================ */
+// ----- TABLES --------------------
+/* Rows with an inset separator, like a grouped list. */
 .table-card { background: var(--clr-surface); border-radius: var(--r-md); overflow: hidden; }
 .table-scroll { overflow-x: auto; }
 
@@ -504,12 +494,11 @@ select.input option { background: var(--clr-surface); color: var(--clr-text); }
 .skeleton-row td { padding: 16px; }
 .skeleton-row .skeleton { height: 18px; }
 
-/* Recargando con datos ya pintados: se atenúa en vez de saltar a esqueleto. */
+/* Reloading with data already painted: dim it instead of jumping to a skeleton. */
 .table-card.is-loading tbody { opacity: .55; transition: opacity .2s ease; pointer-events: none; }
 
-/* ============================================================
-   CHIPS DE OPCIÓN — GipsiChip: relleno de tarjeta, el elegido con acento
-   ============================================================ */
+// ----- OPTION CHIPS --------------------
+/* GipsiChip: card fill, the selected one uses the accent. */
 .chip {
   display: inline-flex;
   align-items: center;
@@ -530,9 +519,8 @@ select.input option { background: var(--clr-surface); color: var(--clr-text); }
 .chip.is-on { background: var(--clr-accent); color: var(--clr-on-accent); font-weight: 700; }
 .chip .material-symbols-rounded { font-size: 16px; }
 
-/* ============================================================
-   CABECERA DE FICHA (cliente, negocio)
-   ============================================================ */
+// ----- PROFILE HEADER --------------------
+/* Header of a detail page (client, business). */
 .profile {
   display: flex;
   align-items: center;
@@ -576,9 +564,7 @@ select.input option { background: var(--clr-surface); color: var(--clr-text); }
   .profile__actions { width: 100%; }
 }
 
-/* ============================================================
-   AVATAR
-   ============================================================ */
+// ----- AVATAR --------------------
 .avatar {
   --size: 36px;
   width: var(--size); height: var(--size); border-radius: 50%;
@@ -591,9 +577,7 @@ select.input option { background: var(--clr-surface); color: var(--clr-text); }
 .avatar--mint { background: var(--clr-accent); color: var(--clr-on-accent); }
 .avatar--square { border-radius: 30%; }
 
-/* ============================================================
-   ESTADÍSTICAS
-   ============================================================ */
+// ----- STATS --------------------
 .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
 .stat {
   display: flex; flex-direction: column; gap: 6px;
@@ -615,7 +599,7 @@ a.stat:hover { background: var(--clr-surface-2); }
 .bar { display: grid; grid-template-columns: 120px 1fr 48px; align-items: center; gap: 12px; font-size: 0.8125rem; }
 .bar__label { color: var(--clr-text-2); font-weight: 500; }
 .bar__track { height: 8px; border-radius: var(--r-pill); background: var(--clr-field); overflow: hidden; }
-/* block: son <span> y, en línea, el ancho en % no se aplica y la barra sale vacía. */
+/* Block: they are <span>s and, inline, the % width does not apply and the bar renders empty. */
 .bar__track, .bar__fill { display: block; }
 .bar__fill { height: 100%; border-radius: inherit; background: var(--clr-text-3); transition: width .6s var(--ease-out); }
 .bar__count { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -625,9 +609,8 @@ a.stat:hover { background: var(--clr-surface-2); }
 .fill--info { background: var(--clr-info); }
 .fill--mint { background: var(--clr-sage); }
 
-/* ============================================================
-   ESTADOS: vacío, error, carga
-   ============================================================ */
+// ----- STATES --------------------
+/* Empty, error and loading. */
 .empty {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   text-align: center; gap: 6px; padding: 48px 24px; color: var(--clr-text-2);
@@ -659,10 +642,10 @@ a.stat:hover { background: var(--clr-surface-2); }
 
 .divider { height: 0.5px; background: var(--clr-border); border: none; }
 
-/* ============================================================
-   DIÁLOGOS — lo único con velo y sombra
-   ============================================================ */
-/* Con un diálogo abierto, lo de detrás no se desplaza. */
+// ----- DIALOGS --------------------
+/* The only thing with a scrim and a shadow. */
+
+/* With a dialog open, the content behind it does not scroll. */
 html:has(.scrim) { overflow: hidden; }
 
 .scrim {
@@ -684,18 +667,15 @@ html:has(.scrim) { overflow: hidden; }
 .dialog__body { margin-top: 18px; display: flex; flex-direction: column; gap: 14px; }
 .dialog__actions { margin-top: 22px; display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
 
-/* ============================================================
-   ANIMACIÓN
-   ============================================================ */
+// ----- ANIMATION --------------------
 @keyframes fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes pop { from { opacity: 0; transform: scale(.96) translateY(6px); } to { opacity: 1; transform: none; } }
 @keyframes pulse { from { opacity: .45; } to { opacity: .9; } }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ============================================================
-   ACCESIBILIDAD — preferencias de Mi cuenta (PreferencesService)
-   ============================================================ */
+// ----- ACCESSIBILITY --------------------
+/* Preferences from Mi cuenta (PreferencesService). */
 @mixin no-motion {
   *, *::before, *::after {
     animation-duration: 0.001ms !important;
@@ -705,18 +685,18 @@ html:has(.scrim) { overflow: hidden; }
   }
 }
 
-/* "Sistema" sigue al sistema operativo; "Reducir" y "Completas" lo fuerzan. */
+/* "Sistema" follows the operating system; "Reducir" and "Completas" force it. */
 @media (prefers-reduced-motion: reduce) {
   html:not([data-motion='full']) { @include no-motion; }
 }
 html[data-motion='reduce'] { @include no-motion; }
 
-/* Tamaño de letra: casi todo va en rem, así que escala el panel entero. */
+/* Text size: almost everything is in rem, so the whole panel scales. */
 html[data-text='large'] { font-size: 112.5%; }
 html[data-text='xlarge'] { font-size: 125%; }
 
-/* Alto contraste: textos secundarios más legibles y bordes que separan cada
-   superficie, que en modo plano solo se distinguen por el tono. */
+/* High contrast: more readable secondary text and borders that separate each
+   surface, which in flat mode are only told apart by tone. */
 :root[data-contrast='high'] {
   --clr-text-2: #E1E8E5;
   --clr-text-3: #BAC6C1;
@@ -745,7 +725,7 @@ html[data-contrast='high'] {
   .pill { box-shadow: inset 0 0 0 1px currentColor; }
 }
 
-/* Enlaces subrayados: el color solo no basta para quien no distingue tonos. */
+/* Underlined links: color alone is not enough for people who cannot tell hues apart. */
 html[data-links='underline'] {
   a:not(.btn):not(.row):not(.stat):not(.side__link):not(.side__brand):not(.side__me):not(.tile):not(.attention__item):not(.topbar__me):not(.topbar__brand) {
     text-decoration: underline;
@@ -753,7 +733,7 @@ html[data-links='underline'] {
   }
 }
 
-/* Dianas grandes: WCAG 2.5.5 pide 44 px; aquí se va a 48. */
+/* Large targets: WCAG 2.5.5 asks for 44 px; here we go to 48. */
 html[data-targets='large'] {
   .btn { height: 48px; padding: 0 22px; font-size: 0.875rem; }
   .btn--sm { height: 42px; }
@@ -765,20 +745,20 @@ html[data-targets='large'] {
   .table td { padding-top: 16px; padding-bottom: 16px; }
 }
 
-/* Foco muy visible: grueso, con halo y siempre por fuera. */
+/* Strong focus: thick, with a halo and always outside. */
 html[data-focus='strong'] :focus-visible {
   outline: 3px solid var(--clr-accent) !important;
   outline-offset: 3px !important;
   box-shadow: 0 0 0 6px var(--clr-accent-dim) !important;
 }
 
-/* Flechas nativas de los campos numéricos: fuera. Donde hacen falta se usa
-   app-number-input, con botones − y + del tamaño de un dedo. */
+/* Native arrows on number fields: removed. Where they are needed, use
+   app-number-input, with finger-sized − and + buttons. */
 input[type='number'] { -moz-appearance: textfield; appearance: textfield; }
 input[type='number']::-webkit-inner-spin-button,
 input[type='number']::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 
-/* Autocompletado de Chrome: sin esto pinta el campo de azul/blanco. */
+/* Chrome autofill: without this it paints the field blue/white. */
 .input:-webkit-autofill {
   -webkit-text-fill-color: var(--clr-text);
   -webkit-box-shadow: 0 0 0 1000px var(--clr-field) inset;

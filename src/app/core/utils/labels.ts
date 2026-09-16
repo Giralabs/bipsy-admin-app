@@ -1,6 +1,6 @@
 /**
- * Traducción de los enums del backend a texto, tono e icono. Todo en un sitio:
- * antes cada pantalla pintaba "IN_PROGRESS" o "CANCELLATION_FEE" tal cual.
+ * Mapping of backend enums to text, tone and icon. All in one place: previously
+ * each screen rendered "IN_PROGRESS" or "CANCELLATION_FEE" as is.
  */
 
 export type Tone = 'mint' | 'success' | 'warn' | 'danger' | 'info' | 'neutral';
@@ -63,7 +63,7 @@ export const subscriptionSource = lookup({
   WELCOME: { label: 'Bienvenida', tone: 'neutral' },
 });
 
-/** BusinessAccessState: lo que decide si la app del negocio se abre. */
+/** BusinessAccessState: what decides whether the business app opens. */
 export const accessState = lookup({
   WELCOME_TRIAL: { label: 'Cortesía de bienvenida', tone: 'info', icon: 'celebration' },
   TRIAL: { label: 'En prueba', tone: 'info', icon: 'hourglass_top' },
@@ -201,7 +201,7 @@ export const entityType = lookup({
   PAYMENT: { label: 'cobro', tone: 'neutral' },
 });
 
-/** Estado de UNA cita (bookingStatus va en plural para los gráficos). */
+/** Status of ONE booking (bookingStatus is plural, for the charts). */
 export const bookingState = lookup({
   PENDING: { label: 'Pendiente', tone: 'warn', icon: 'hourglass_top' },
   CONFIRMED: { label: 'Confirmada', tone: 'success', icon: 'check_circle' },
@@ -221,14 +221,14 @@ export const weekday: Record<string, string> = {
 
 export const WEEK_ORDER = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 
-/** Estado visible de un negocio: el baneo manda sobre el alta a medias. */
+/** Visible status of a business: a ban takes precedence over an unfinished sign-up. */
 export function businessState(b: { banned: boolean; setupComplete: boolean }): Meta {
   if (b.banned) return { label: 'Baneado', tone: 'danger', icon: 'block' };
   if (!b.setupComplete) return { label: 'Alta sin terminar', tone: 'warn', icon: 'pending' };
   return { label: 'Activo', tone: 'success', icon: 'check_circle' };
 }
 
-/** Una oferta está en vigor si está activa y hoy cae dentro de su ventana. */
+/** An offer is in force if it is active and today falls within its window. */
 export function grantState(g: { active: boolean; validFrom: string; validUntil: string | null }): Meta {
   if (!g.active) return { label: 'Revocada', tone: 'neutral' };
   const now = Date.now();
@@ -237,7 +237,7 @@ export function grantState(g: { active: boolean; validFrom: string; validUntil: 
   return { label: 'En vigor', tone: 'success' };
 }
 
-/** Ruta del panel para una entidad del log, si tiene ficha. */
+/** Panel route for an audit log entity, if it has a detail page. */
 export function entityRoute(type: string, id: number | null): string[] | null {
   if (id == null) return null;
   switch (type) {

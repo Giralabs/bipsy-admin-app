@@ -1,5 +1,5 @@
 <div class="stack stack--lg">
-  <!-- ── Lo que ve su app ── -->
+  <!-- ----- WHAT THEIR APP SHOWS -------------------- -->
   <section class="pa-card" [class.is-blocked]="access()?.status?.blocked">
     @if (accessUnavailable()) {
       <p class="notice"><span class="material-symbols-rounded">update</span>Ver y gestionar el acceso necesita la versión nueva del backend (GET /admin/businesses/&#123;id&#125;/access).</p>
@@ -89,7 +89,7 @@
     }
   </section>
 
-  <!-- ── Historial ── -->
+  <!-- ----- HISTORY -------------------- -->
   <section>
     <p class="group__header overline">Historial de suscripciones</p>
     <div class="table-card">
@@ -125,7 +125,7 @@
   </section>
 </div>
 
-<!-- ── Regalar / cambiar fecha ── -->
+<!-- ----- GIFT / CHANGE END DATE -------------------- -->
 @if (dialog(); as mode) {
   <div class="scrim" (click)="!saving() && dialog.set(null)">
     <form class="dialog dialog--wide" (click)="$event.stopPropagation()" (submit)="$event.preventDefault(); save()">

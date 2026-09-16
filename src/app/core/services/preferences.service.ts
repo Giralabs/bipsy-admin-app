@@ -1,27 +1,27 @@
 import { Injectable, computed, signal } from '@angular/core';
 
 /**
- * - sidebar: menú lateral con texto (el de siempre).
- * - rail:    menú lateral solo con iconos; más sitio para tablas.
- * - topbar:  navegación arriba con menús desplegables por sección.
- * - tiles:   pantalla de inicio en bloques, sin menú fijo.
+ * - sidebar: side menu with text (the classic one).
+ * - rail:    side menu with icons only; more room for tables.
+ * - topbar:  top navigation with a dropdown menu per section.
+ * - tiles:   home screen made of tiles, with no fixed menu.
  */
 export type LayoutMode = 'sidebar' | 'rail' | 'topbar' | 'tiles';
 export type TextSize = 'normal' | 'large' | 'xlarge';
 export type MotionPref = 'system' | 'reduce' | 'full';
 
 export interface Preferences {
-  /** Panel lateral de siempre, o pantalla de inicio con bloques grandes. */
+  /** Classic side panel, or a home screen with large tiles. */
   layout: LayoutMode;
   textSize: TextSize;
   motion: MotionPref;
   highContrast: boolean;
   underlineLinks: boolean;
-  /** Botones, filas y campos más altos: dianas más fáciles de acertar. */
+  /** Taller buttons, rows and fields: targets that are easier to hit. */
   largeTargets: boolean;
-  /** Anillo de foco grueso y siempre visible al navegar con teclado. */
+  /** Thick focus ring, always visible when navigating with the keyboard. */
   strongFocus: boolean;
-  /** Bloques ocultos en la pantalla de inicio (por su ruta). */
+  /** Tiles hidden on the home screen (by their route). */
   hiddenTiles: string[];
 }
 
@@ -36,16 +36,16 @@ export const DEFAULT_PREFERENCES: Preferences = {
   hiddenTiles: [],
 };
 
-/** Misma clave que lee el script de index.html antes del primer pintado. */
+// Same key the index.html script reads before the first paint.
 const STORAGE_KEY = 'bipsy_admin_prefs';
 
 /**
- * Preferencias de interfaz y accesibilidad de quien usa el panel. Son de este
- * navegador (localStorage): cada puesto puede tener su diseño, y una pantalla
- * grande de la oficina puede ir en bloques mientras el portátil va en lista.
+ * Interface and accessibility preferences of whoever uses the panel. They belong
+ * to this browser (localStorage): each workstation can have its own layout, and
+ * a large office screen can use tiles while the laptop uses a list.
  *
- * Todo se aplica como atributos data-* en <html>; los estilos viven en
- * styles.scss. Así una preferencia nueva no toca ningún componente.
+ * Everything is applied as data-* attributes on <html>; the styles live in
+ * styles.scss. That way a new preference does not touch any component.
  */
 @Injectable({ providedIn: 'root' })
 export class PreferencesService {
@@ -69,11 +69,11 @@ export class PreferencesService {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     } catch {
-      /* sin almacenamiento: se aplica solo en esta visita */
+      // No storage available: it only applies for this visit.
     }
   }
 
-  /** Vuelve a lo de fábrica sin tocar el diseño ni los bloques elegidos. */
+  /** Restores the factory defaults without touching the chosen layout or tiles. */
   resetAccessibility() {
     const { layout, hiddenTiles } = this.state();
     this.update({ ...DEFAULT_PREFERENCES, layout, hiddenTiles });
@@ -100,7 +100,7 @@ export class PreferencesService {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return { ...DEFAULT_PREFERENCES };
       const parsed = { ...DEFAULT_PREFERENCES, ...(JSON.parse(raw) as Partial<Preferences>) };
-      // Un valor guardado por una versión anterior (o a mano) no puede dejar el panel sin navegación.
+      // A value stored by an older version (or by hand) must not leave the panel without navigation.
       if (!['sidebar', 'rail', 'topbar', 'tiles'].includes(parsed.layout)) parsed.layout = 'sidebar';
       if (!Array.isArray(parsed.hiddenTiles)) parsed.hiddenTiles = [];
       return parsed;

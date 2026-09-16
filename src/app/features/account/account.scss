@@ -1,6 +1,7 @@
 .acc-me { margin-bottom: 24px; }
 
-/* ── Elegir diseño: dos tarjetas con su miniatura ── */
+// ----- LAYOUT PICKER --------------------
+// Two cards, each with its own thumbnail.
 .acc-layouts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 
 .acc-layout {
@@ -32,7 +33,7 @@
   small { font-size: 0.75rem; font-weight: 500; color: var(--clr-text-2); line-height: 1.45; }
 }
 
-/* Miniaturas dibujadas con cajas: se ven igual en los dos temas. */
+// Thumbnails are drawn with boxes so they look the same in both themes.
 .acc-preview {
   display: flex;
   gap: 6px;

@@ -1,7 +1,9 @@
 :host { display: inline-block; position: relative; min-width: 0; }
 :host(.is-block) { display: block; width: 100%; }
 
-/* ── Disparador: igual que un campo del panel ── */
+// ----- TRIGGER --------------------
+
+// Looks the same as any other panel field.
 .sel {
   display: flex;
   align-items: center;
@@ -49,7 +51,9 @@
   &.tone--mint { background: var(--clr-sage); }
 }
 
-/* ── Menú: flota, así que lleva sombra ── */
+// ----- MENU --------------------
+
+// It floats, so it has a shadow.
 .sel-panel {
   position: fixed;
   z-index: 1100;

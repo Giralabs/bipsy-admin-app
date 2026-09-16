@@ -5,7 +5,7 @@
 .disc-row .row__label { flex: 1; }
 .disc-row .row__label small { max-width: 46ch; line-height: 1.45; margin-top: 2px; }
 
-/* La barra de guardar aparece solo cuando hay algo que guardar. */
+// The save bar only appears when there is something to save.
 .disc-bar {
   position: sticky;
   bottom: 16px;

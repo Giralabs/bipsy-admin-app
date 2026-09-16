@@ -1,6 +1,6 @@
 /**
- * Mapa del panel. Lo leen el menú lateral, la pantalla de bloques y el
- * buscador: una sección nueva se añade aquí y aparece en los tres sitios.
+ * Panel map. It is read by the side menu, the tiles screen and the search:
+ * a new section is added here and shows up in all three places.
  */
 
 export type BadgeKey = 'tickets' | 'improvements' | 'reports' | 'onboarding';
@@ -9,10 +9,10 @@ export interface NavItem {
   path: string;
   label: string;
   icon: string;
-  /** Una línea para el bloque de la pantalla de inicio. */
+  /** One line for the tile on the home screen. */
   description: string;
   badge?: BadgeKey;
-  /** Bloque ancho en la pantalla de inicio. */
+  /** Wide tile on the home screen. */
   wide?: boolean;
 }
 
