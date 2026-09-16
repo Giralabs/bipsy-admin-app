@@ -1,0 +1,172 @@
+<div class="page">
+  <header class="page-head">
+    <div class="page-head__text">
+      <h1 class="t-display">Planes y ofertas</h1>
+      <p class="page-head__sub">El catálogo que ve Bipsy Business y los accesos regalados que hay activos.</p>
+    </div>
+    @if (auth.canManage()) {
+      <div class="page-head__actions">
+        <button type="button" class="btn btn--primary" (click)="grantOpen.set(true)">
+          <span class="material-symbols-rounded">redeem</span>Oferta para todos
+        </button>
+      </div>
+    }
+  </header>
+
+  <section class="stack stack--lg">
+    <div>
+      <p class="group__header overline">Catálogo</p>
+      @if (plansError(); as e) {
+        <div class="card"><div class="empty"><span class="material-symbols-rounded">cloud_off</span><p>{{ e }}</p><button type="button" class="btn" (click)="loadPlans()">Reintentar</button></div></div>
+      } @else if (plans() === null) {
+        <div class="plan-grid">@for (i of [1, 2, 3]; track i) { <span class="skeleton" style="height: 220px; border-radius: 20px"></span> }</div>
+      } @else {
+        <div class="plan-grid">
+          @for (p of plans(); track p.code) {
+            <article class="plan" [class.plan--muted]="!p.selectable">
+              <div class="plan__head">
+                <div>
+                  <h2 class="t-h3">{{ p.name }}</h2>
+                  <span class="t-mono t-faint">{{ p.code }}</span>
+                </div>
+                <div class="cluster">
+                  @if (p.addon) { <span class="pill pill--info">Complemento</span> }
+                  @if (!p.selectable) { <span class="pill">No se vende</span> }
+                </div>
+              </div>
+              <p class="plan__price">
+                <span class="t-num">{{ p.priceCents === 0 ? 'Gratis' : eur(p.price) }}</span>
+                @if (p.priceCents > 0) { <small>{{ interval(p.billingInterval).label }}</small> }
+              </p>
+              <p class="t-caption plan__terms">
+                {{ p.trialDays ? p.trialDays + ' días de prueba' : 'Sin prueba' }}
+                · {{ p.durationDays ? 'dura ' + p.durationDays + ' días' : 'sin caducidad' }}
+              </p>
+              @if (p.description) { <p class="t-body plan__desc">{{ p.description }}</p> }
+              @if (p.features?.length) {
+                <ul class="plan__features">
+                  @for (f of p.features; track f.code) {
+                    <li [title]="f.description || ''"><span class="material-symbols-rounded">check</span>{{ f.name }}</li>
+                  }
+                </ul>
+              }
+            </article>
+          }
+        </div>
+        <p class="group__footer">Los precios y las funciones de cada plan se definen en el backend (tablas plan y plan_feature).</p>
+      }
+    </div>
+
+    <div>
+      <div class="plans-grants-head">
+        <div>
+          <p class="group__header overline">Suscripciones de los negocios</p>
+          <p class="t-caption plans-hint">Para regalar, alargar o quitar un plan, entra en la ficha del negocio → «Plan y acceso».</p>
+        </div>
+        <app-segmented [options]="subsOptions()" [value]="subsFilter()" (valueChange)="subsFilter.set($event)" />
+      </div>
+
+      @if (subsUnavailable()) {
+        <p class="notice"><span class="material-symbols-rounded">update</span>Este listado necesita la versión nueva del backend (GET /admin/subscriptions).</p>
+      } @else {
+        <div class="table-card">
+          @if (subs() === null) {
+            <div class="empty"><span class="spinner"></span></div>
+          } @else if (visibleSubs().length === 0) {
+            <div class="empty">
+              <span class="material-symbols-rounded">workspace_premium</span>
+              <h3>{{ subsFilter() === 'FREE' ? 'Nadie tiene un plan regalado' : subsFilter() === 'PAID' ? 'Nadie paga un plan ahora mismo' : 'Sin suscripciones' }}</h3>
+            </div>
+          } @else {
+            <div class="table-scroll">
+              <table class="table">
+                <thead><tr><th>Negocio</th><th>Plan</th><th>Origen</th><th>Estado</th><th>Hasta</th></tr></thead>
+                <tbody>
+                  @for (s of visibleSubs(); track s.id) {
+                    <tr>
+                      <td><a class="plans-link" [routerLink]="['/businesses', s.businessId]">{{ s.businessName }}</a></td>
+                      <td><strong>{{ s.planName }}</strong></td>
+                      <td class="t-muted">{{ labels.subscriptionSource(s.source).label }}</td>
+                      <td>
+                        @if (s.grantsAccessNow) { <span class="pill pill--success">Da acceso</span> }
+                        @else { <app-pill [meta]="labels.subscriptionStatus(s.status)" [icon]="false" /> }
+                      </td>
+                      <td class="t-muted nowrap">
+                        @if (s.currentPeriodEnd) {
+                          {{ s.currentPeriodEnd | date: 'd MMM y' }}
+                          @if (s.grantsAccessNow) { <small class="plans-small">{{ remaining(s.currentPeriodEnd) }}</small> }
+                        } @else { Sin fin }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div>
+      <div class="plans-grants-head">
+        <p class="group__header overline">Ofertas de acceso</p>
+        <app-segmented [options]="filterOptions" [value]="filter()" (valueChange)="filter.set($event)" />
+      </div>
+
+      @if (grantsUnavailable()) {
+        <p class="notice"><span class="material-symbols-rounded">update</span>El listado de ofertas necesita la versión nueva del backend (GET /admin/grants). Crear ofertas sí funciona.</p>
+      } @else {
+        <div class="table-card">
+          @if (grants() === null) {
+            <div class="empty"><span class="spinner"></span></div>
+          } @else if (visibleGrants().length === 0) {
+            <div class="empty">
+              <span class="material-symbols-rounded">redeem</span>
+              <h3>{{ filter() === 'LIVE' ? 'Ninguna oferta en vigor' : 'Sin ofertas' }}</h3>
+              <p>Regala un plan o una función a todos los negocios desde «Oferta para todos», o a uno solo desde su ficha.</p>
+            </div>
+          } @else {
+            <div class="table-scroll">
+              <table class="table">
+                <thead><tr><th>Concede</th><th>A quién</th><th>Estado</th><th>Vigencia</th><th>Nota</th><th></th></tr></thead>
+                <tbody>
+                  @for (g of visibleGrants(); track g.id) {
+                    <tr>
+                      <td><strong>{{ grantTarget(g) }}</strong></td>
+                      <td>
+                        @if (g.scope === 'GLOBAL') {
+                          <span class="pill pill--mint"><span class="material-symbols-rounded">public</span>Todos</span>
+                        } @else {
+                          <a class="plans-link" [routerLink]="['/businesses', g.businessId]">{{ g.businessName }}</a>
+                        }
+                      </td>
+                      <td><app-pill [meta]="grantState(g)" [icon]="false" /></td>
+                      <td class="t-muted nowrap">{{ g.validFrom | date: 'd MMM y' }} → {{ g.validUntil ? (g.validUntil | date: 'd MMM y') : 'sin fin' }}</td>
+                      <td class="t-muted">{{ g.note || '—' }}</td>
+                      <td class="num">
+                        @if (g.active && auth.canManage()) { <button type="button" class="btn btn--sm" (click)="revokeTarget.set(g)">Revocar</button> }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </section>
+
+  <app-grant-dialog [open]="grantOpen()" [plans]="plans() ?? []" [features]="features()"
+    (created)="onCreated()" (cancelled)="grantOpen.set(false)" />
+
+  <app-confirm-modal
+    [open]="!!revokeTarget()"
+    [busy]="revoking()"
+    title="¿Revocar la oferta?"
+    [message]="revokeTarget()?.scope === 'GLOBAL' ? 'Todos los negocios pierden ese acceso gratuito.' : 'El negocio pierde ese acceso gratuito.'"
+    confirmLabel="Revocar"
+    (confirmed)="revoke()"
+    (cancelled)="revokeTarget.set(null)"
+  />
+</div>

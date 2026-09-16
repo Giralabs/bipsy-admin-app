@@ -1,0 +1,57 @@
+<div class="page page--narrow">
+  <header class="page-head">
+    <div class="page-head__text">
+      <h1 class="t-display">Referidos</h1>
+      <p class="page-head__sub">Cuántos clientes ha traído cada negocio con su código. Solo lo ve el equipo.</p>
+    </div>
+  </header>
+
+  @if (error(); as e) {
+    <div class="card"><div class="empty"><span class="material-symbols-rounded">cloud_off</span><h3>No se han podido cargar</h3><p>{{ e }}</p><button type="button" class="btn btn--primary" (click)="load()">Reintentar</button></div></div>
+  } @else if (stats() === null) {
+    <div class="stack"><span class="skeleton" style="height: 96px; border-radius: 20px"></span><span class="skeleton" style="height: 300px; border-radius: 20px"></span></div>
+  } @else {
+    <section class="stats" style="margin-bottom: 20px">
+      <div class="stat"><span class="stat__label">Clientes referidos</span><span class="stat__value">{{ int(total()) }}</span></div>
+      <div class="stat"><span class="stat__label">Negocios con código</span><span class="stat__value">{{ int(withCode()) }}</span></div>
+      <div class="stat"><span class="stat__label">Han traído a alguien</span><span class="stat__value">{{ int(bringing()) }}</span></div>
+    </section>
+
+    <div class="toolbar">
+      <label class="search">
+        <span class="material-symbols-rounded">search</span>
+        <input class="input" type="search" placeholder="Negocio o código" [value]="search()" (input)="search.set($any($event.target).value)" />
+      </label>
+    </div>
+
+    <div class="table-card">
+      <div class="table-scroll">
+        <table class="table">
+          <thead><tr><th>#</th><th>Negocio</th><th>Código</th><th>Clientes traídos</th></tr></thead>
+          <tbody>
+            @for (s of visible(); track s.businessId) {
+              <tr>
+                <td class="ref-rank" [class.ref-rank--top]="s.rank <= 3 && s.referredCount > 0">{{ s.rank }}</td>
+                <td>
+                  <div class="cell-main">
+                    <app-avatar [name]="s.businessName" [size]="30" [square]="true" />
+                    <a class="ref-name" [routerLink]="['/businesses', s.businessId]">{{ s.businessName }}</a>
+                  </div>
+                </td>
+                <td>@if (s.referralCode) { <span class="t-mono">{{ s.referralCode }}</span> } @else { <span class="t-faint">Sin fijar</span> }</td>
+                <td>
+                  <div class="ref-bar">
+                    <span class="bar__track"><span class="bar__fill fill--mint" [style.width.%]="(s.referredCount / max()) * 100"></span></span>
+                    <strong>{{ s.referredCount }}</strong>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="4"><div class="empty"><span class="material-symbols-rounded">share</span><p>Ningún negocio coincide.</p></div></td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>
