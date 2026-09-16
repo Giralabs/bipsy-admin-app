@@ -1,0 +1,41 @@
+@if (open()) {
+  <div class="scrim palette-scrim" (click)="closed.emit()">
+    <div class="palette" role="dialog" aria-modal="true" aria-label="Buscar" (click)="$event.stopPropagation()">
+      <div class="palette__field">
+        <span class="material-symbols-rounded">search</span>
+        <input #queryInput class="palette__input" type="text" autocomplete="off" spellcheck="false"
+          placeholder="Busca por nombre, email, asunto o #id…"
+          [value]="q()" (input)="onInput($any($event.target).value)" (keydown)="onKeydown($event)" />
+        @if (searching()) { <span class="spinner palette__spinner"></span> }
+        <span class="kbd">Esc</span>
+      </div>
+
+      <div class="palette__list">
+        @for (group of groups(); track group.name) {
+          <p class="palette__group overline">{{ group.name }}</p>
+          @for (entry of group.items; track entry.item.id) {
+            <button type="button" class="palette__item" [class.is-active]="entry.index === active()"
+              (click)="go(entry.item)" (mousemove)="active.set(entry.index)">
+              <span class="material-symbols-rounded">{{ entry.item.icon }}</span>
+              <span class="palette__label t-clip">{{ entry.item.label }}</span>
+              @if (entry.item.hint) { <span class="palette__hint t-clip">{{ entry.item.hint }}</span> }
+              <span class="material-symbols-rounded palette__enter">keyboard_return</span>
+            </button>
+          }
+        }
+
+        @if (q().trim().length >= 2 && !searching() && results() && items().length === 0) {
+          <div class="empty">
+            <span class="material-symbols-rounded">search_off</span>
+            <p>Nada con «{{ q().trim() }}».</p>
+          </div>
+        }
+      </div>
+
+      <div class="palette__foot">
+        <span><span class="kbd">↑</span> <span class="kbd">↓</span> moverse</span>
+        <span><span class="kbd">Enter</span> abrir</span>
+      </div>
+    </div>
+  </div>
+}
