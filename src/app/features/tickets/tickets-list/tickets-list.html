@@ -1,58 +1,97 @@
-<div class="tickets-list anim-fade-up">
-  <h1>Tickets</h1>
+<div class="page">
+  <header class="page-head">
+    <div class="page-head__text">
+      <h1 class="t-display">{{ isImprovement() ? 'Solicitudes de mejora' : 'Soporte' }}</h1>
+      <p class="page-head__sub">
+        {{ isImprovement()
+          ? 'Lo que piden a Bipsy los negocios con plan Quality. Responde, prioriza y márcalas como resueltas cuando salgan.'
+          : 'Tickets de ayuda que llegan desde Bipsy Business.' }}
+      </p>
+    </div>
+    <div class="page-head__actions">
+      <button type="button" class="btn" (click)="export()" [disabled]="exporting()">
+        @if (exporting()) { <span class="spinner"></span> } @else { <span class="material-symbols-rounded">download</span> }
+        Exportar CSV
+      </button>
+    </div>
+  </header>
 
-  <div class="filters">
-    <select [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()">
-      <option value="">Todos los estados</option>
-      <option value="OPEN">Abierto</option>
-      <option value="IN_PROGRESS">En progreso</option>
-      <option value="RESOLVED">Resuelto</option>
-      <option value="CLOSED">Cerrado</option>
-    </select>
-    <input
-      type="text"
-      placeholder="ID de negocio…"
-      [(ngModel)]="businessIdFilter"
-      (keyup.enter)="onFilterChange()"
-    />
-    <button type="button" (click)="onFilterChange()">Buscar</button>
-    <button type="button" class="btn-ghost" (click)="export()">Exportar CSV</button>
+  <div class="toolbar">
+    <app-segmented [options]="statusOptions" [value]="status()" (valueChange)="setStatus($event)" />
+    @if (businessId(); as id) {
+      <span class="filter-chip">
+        <span class="material-symbols-rounded">storefront</span>
+        <a [routerLink]="['/businesses', id]">Negocio #{{ id }}</a>
+        <button type="button" (click)="clearBusiness()" aria-label="Quitar filtro de negocio">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </span>
+    }
   </div>
 
-  @if (loading()) {
-    <p>Cargando…</p>
-  } @else {
-    <table>
-      <thead>
-        <tr>
-          <th>Asunto</th>
-          <th>Negocio</th>
-          <th>Autor</th>
-          <th>Prioridad</th>
-          <th>Estado</th>
-          <th>Actualizado</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (t of tickets(); track t.id) {
-          <tr [routerLink]="['/tickets', t.id]">
-            <td>{{ displaySubject(t) }}</td>
-            <td>{{ t.businessName || '—' }}</td>
-            <td>{{ t.requesterName }}</td>
-            <td><span class="priority-badge" [class]="'priority-' + t.priority.toLowerCase()">{{ t.priority }}</span></td>
-            <td><span class="status-badge" [class]="'status-' + t.status.toLowerCase()">{{ t.status }}</span></td>
-            <td>{{ t.updatedAt | date: 'dd/MM/yy HH:mm' }}</td>
-          </tr>
-        } @empty {
-          <tr><td colspan="6" class="table-empty">No hay tickets que coincidan con el filtro.</td></tr>
-        }
-      </tbody>
-    </table>
-
-    <div class="pagination">
-      <button type="button" (click)="goToPage(-1)" [disabled]="page() === 0">Anterior</button>
-      <span>Página {{ page() + 1 }} de {{ totalPages() || 1 }}</span>
-      <button type="button" (click)="goToPage(1)" [disabled]="page() + 1 >= totalPages()">Siguiente</button>
-    </div>
-  }
+  <div class="table-card" [class.is-loading]="loading() && !!data()">
+    @if (error(); as e) {
+      <div class="empty">
+        <span class="material-symbols-rounded">cloud_off</span>
+        <h3>No se han podido cargar</h3>
+        <p>{{ e }}</p>
+        <button type="button" class="btn btn--primary" (click)="load()">Reintentar</button>
+      </div>
+    } @else {
+      <div class="table-scroll">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Asunto</th>
+              <th>Negocio</th>
+              <th>Prioridad</th>
+              <th>Estado</th>
+              <th>Actualizado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (loading() && !data()) {
+              @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+                <tr class="skeleton-row"><td colspan="6"><span class="skeleton"></span></td></tr>
+              }
+            } @else {
+              @for (t of data()?.content ?? []; track t.id) {
+                <tr class="is-link" (click)="open(t)" (keydown.enter)="open(t)" tabindex="0">
+                  <td class="ticket-id">{{ t.id }}</td>
+                  <td>
+                    <span class="ticket-subject">
+                      <strong>{{ subject(t) }}</strong>
+                      <small>
+                        {{ t.requesterName }}
+                        @if (t.replies.length) { <span class="cluster" style="gap: 2px"><span class="material-symbols-rounded">forum</span>{{ t.replies.length }}</span> }
+                        @if (t.attachments.length) { <span class="cluster" style="gap: 2px"><span class="material-symbols-rounded">attach_file</span>{{ t.attachments.length }}</span> }
+                      </small>
+                    </span>
+                  </td>
+                  <td class="t-muted">{{ t.businessName || '—' }}</td>
+                  <td><app-pill [meta]="labels.ticketPriority(t.priority)" /></td>
+                  <td><app-pill [meta]="labels.ticketStatus(t.status)" /></td>
+                  <td class="t-muted nowrap">{{ ago(t.updatedAt) }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6">
+                    <div class="empty">
+                      <span class="material-symbols-rounded">inbox</span>
+                      <h3>{{ isImprovement() ? 'Sin solicitudes' : 'Bandeja vacía' }}</h3>
+                      <p>No hay tickets con este filtro.</p>
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (data(); as d) {
+        <app-pagination [page]="d.page" [size]="d.size" [total]="d.totalElements" [pages]="d.totalPages" (pageChange)="goTo($event)" />
+      }
+    }
+  </div>
 </div>

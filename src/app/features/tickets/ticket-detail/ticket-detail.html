@@ -1,151 +1,219 @@
-<div class="ticket-detail anim-fade-up">
-  <a routerLink="/tickets" class="back">← Volver a Tickets</a>
+<div class="page">
+  <a [routerLink]="ticket()?.kind === 'IMPROVEMENT' ? '/improvements' : '/tickets'" class="back-link">
+    <span class="material-symbols-rounded">arrow_back</span>{{ ticket()?.kind === 'IMPROVEMENT' ? 'Solicitudes de mejora' : 'Soporte' }}
+  </a>
 
   @if (loading()) {
-    <p>Cargando…</p>
-  } @else if (ticket(); as t) {
-    <header class="header">
-      <div>
-        <h1>{{ displaySubject(t) }}</h1>
-        <p class="subtitle">
-          {{ t.requesterName }} ({{ t.requesterRole }})
-          @if (t.businessName) {
-            · <button type="button" class="link" (click)="toggleBusinessPanel()">{{ t.businessName }}</button>
-          }
-          · Abierto {{ t.createdAt | date: 'medium' }}
-        </p>
+    <div class="stack">
+      <span class="skeleton" style="height: 40px; width: 60%"></span>
+      <span class="skeleton" style="height: 180px"></span>
+    </div>
+  } @else if (error(); as e) {
+    <div class="card">
+      <div class="empty">
+        <span class="material-symbols-rounded">error</span>
+        <h3>No se ha podido abrir el ticket</h3>
+        <p>{{ e }}</p>
+        <button type="button" class="btn btn--primary" (click)="load()">Reintentar</button>
       </div>
-      <div class="header-badges">
-        <select
-          class="priority-select"
-          [class]="'priority-' + t.priority.toLowerCase()"
-          [ngModel]="t.priority"
-          (ngModelChange)="setPriority($event)"
-          [disabled]="updatingPriority() || auth.isReadOnly()"
-        >
-          <option value="LOW">Baja</option>
-          <option value="MEDIUM">Media</option>
-          <option value="HIGH">Alta</option>
-          <option value="URGENT">Urgente</option>
-        </select>
-        <span class="status-badge" [class]="'status-' + t.status.toLowerCase()">{{ t.status }}</span>
+    </div>
+  } @else if (ticket(); as t) {
+    <header class="page-head">
+      <div class="page-head__text">
+        <p class="overline">Ticket #{{ t.id }} · {{ labels.ticketKind(t.kind).label }}</p>
+        <h1 class="t-h2 td-title">{{ title(t) }}</h1>
+        <div class="cluster td-meta">
+          <app-pill [meta]="labels.ticketStatus(t.status)" />
+          <app-pill [meta]="labels.ticketPriority(t.priority)" />
+          <span class="t-caption">Abierto {{ ago(t.createdAt) }} · actualizado {{ ago(t.updatedAt) }}</span>
+        </div>
       </div>
     </header>
 
-    @if (showBusinessPanel()) {
-      <section class="panel business-panel">
-        @if (loadingBusiness()) {
-          <p>Cargando negocio…</p>
-        } @else if (businessDetail(); as b) {
-          <dl class="info-grid">
-            <dt>Nombre</dt><dd>{{ b.name }}</dd>
-            <dt>Email</dt><dd>{{ b.email }}</dd>
-            <dt>Teléfono</dt><dd>{{ b.phone }}</dd>
-            <dt>CIF</dt><dd>{{ b.cif || '—' }}</dd>
-            <dt>Dirección</dt><dd>{{ b.address || '—' }}</dd>
-            <dt>Ciudad</dt><dd>{{ b.city || '—' }} @if (b.province) { ({{ b.province }}) }</dd>
-            <dt>Categorías</dt><dd>{{ b.categories.join(', ') || '—' }}</dd>
-            <dt>Autónomo</dt><dd>{{ b.autonomous ? 'Sí' : 'No' }}</dd>
-            <dt>Setup completo</dt><dd>{{ b.setupComplete ? 'Sí' : 'No' }}</dd>
-            <dt>Cuenta baneada</dt><dd>{{ b.banned ? 'Sí' : 'No' }}</dd>
-            <dt>Alta</dt><dd>{{ b.createdAt | date: 'medium' }}</dd>
-          </dl>
-        } @else {
-          <p>No se pudo cargar la información del negocio.</p>
-        }
-      </section>
-    }
+    <div class="split">
+      <!-- ── Conversación ── -->
+      <div class="stack">
+        <article class="msg">
+          <app-avatar [name]="t.requesterName" [size]="36" />
+          <div class="msg__body">
+            <div class="msg__head">
+              <strong>{{ t.requesterName }}</strong>
+              <span class="t-caption">{{ t.businessName ? 'desde ' + t.businessName : t.requesterRole }} · {{ t.createdAt | date: "d MMM y, HH:mm" }}</span>
+            </div>
+            <div class="msg__bubble">
+              <p class="msg__text">{{ t.description }}</p>
 
-    <section class="panel">
-      <h3>Descripción</h3>
-      <p class="description">{{ t.description }}</p>
-
-      @if (previews().length > 0) {
-        <div class="attachments">
-          @for (p of previews(); track p.attachment.id) {
-            <div class="attachment">
-              @if (p.loading) {
-                <span class="attachment-loading">Cargando…</span>
-              } @else if (p.kind === 'image' && p.objectUrl) {
-                <img [src]="p.objectUrl" [alt]="p.attachment.filename" />
-              } @else if (p.kind === 'video' && p.objectUrl) {
-                <video [src]="p.objectUrl" controls></video>
-              } @else if (p.objectUrl) {
-                <button type="button" class="file-chip" (click)="downloadFile(p)">
-                  📄 {{ p.attachment.filename }}
-                </button>
-              } @else {
-                <span class="attachment-error">No se pudo cargar</span>
+              @if (previews().length > 0) {
+                <div class="attachments">
+                  @for (p of previews(); track p.attachment.id) {
+                    <div class="attachment">
+                      @if (p.loading) {
+                        <span class="skeleton attachment__skeleton"></span>
+                      } @else if (p.kind === 'image' && p.objectUrl) {
+                        <button type="button" class="attachment__media" (click)="openInTab(p)" [title]="p.attachment.filename">
+                          <img [src]="p.objectUrl" [alt]="p.attachment.filename" />
+                        </button>
+                      } @else if (p.kind === 'video' && p.objectUrl) {
+                        <video class="attachment__media" [src]="p.objectUrl" controls preload="metadata"></video>
+                      } @else if (p.objectUrl) {
+                        <button type="button" class="attachment__file" (click)="openInTab(p)">
+                          <span class="material-symbols-rounded">description</span>
+                          <span class="t-clip">{{ p.attachment.filename }}</span>
+                        </button>
+                      } @else {
+                        <span class="attachment__file attachment__file--error">
+                          <span class="material-symbols-rounded">broken_image</span>No se pudo cargar
+                        </span>
+                      }
+                      <div class="attachment__foot">
+                        <span class="t-clip">{{ p.attachment.filename }} · {{ size(p.attachment.sizeBytes) }}</span>
+                        @if (p.blob) {
+                          <button type="button" class="btn btn--ghost btn--icon btn--sm" (click)="download(p)" aria-label="Descargar">
+                            <span class="material-symbols-rounded">download</span>
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
               }
             </div>
-          }
-        </div>
-      }
-    </section>
+          </div>
+        </article>
 
-    <section class="panel">
-      <h3>Respuestas</h3>
-
-      @if (t.replies.length === 0) {
-        <p>Todavía no se ha respondido a este ticket.</p>
-      } @else {
-        <ul class="replies">
-          @for (r of t.replies; track r.id) {
-            <li class="reply">
-              <div class="reply-meta">
+        @for (r of t.replies; track r.id) {
+          <article class="msg msg--team">
+            <span class="avatar avatar--mint" style="width: 36px; height: 36px; font-size: 13px">
+              <img src="brand/symbol-carbon.webp" alt="" class="msg__logo only-dark" />
+              <img src="brand/symbol-mint.webp" alt="" class="msg__logo only-light" />
+            </span>
+            <div class="msg__body">
+              <div class="msg__head">
                 <strong>{{ r.adminName }}</strong>
-                <span>{{ r.createdAt | date: 'short' }}</span>
+                <span class="t-caption">Equipo Bipsy · {{ r.createdAt | date: "d MMM y, HH:mm" }}</span>
               </div>
-              <p>{{ r.body }}</p>
-            </li>
-          }
-        </ul>
-      }
+              <div class="msg__bubble"><p class="msg__text">{{ r.body }}</p></div>
+            </div>
+          </article>
+        }
 
-      @if (t.status !== 'CLOSED' && !auth.isReadOnly()) {
-        <form class="reply-form" (ngSubmit)="sendReply()">
-          <textarea
-            [(ngModel)]="replyBody"
-            name="replyBody"
-            rows="3"
-            placeholder="Escribe una respuesta para el negocio…"
-          ></textarea>
-          <button type="submit" [disabled]="sendingReply() || !replyBody.trim()">
-            {{ sendingReply() ? 'Enviando…' : 'Responder' }}
-          </button>
-        </form>
-      }
-    </section>
+        @if (t.status === 'CLOSED') {
+          <p class="notice"><span class="material-symbols-rounded">lock</span>Ticket cerrado. Reábrelo desde el panel lateral para volver a responder.</p>
+        } @else if (canWrite()) {
+          <section class="composer">
+            <textarea class="composer__input" rows="4" placeholder="Escribe una respuesta para {{ t.requesterName }}…"
+              [value]="reply()" (input)="reply.set($any($event.target).value)" (keydown)="onComposerKeydown($event)"
+              [disabled]="sending()" maxlength="4000"></textarea>
+            <div class="composer__bar">
+              <div class="composer__templates">
+                <button type="button" class="btn btn--ghost btn--sm" (click)="showTemplates.set(!showTemplates())">
+                  <span class="material-symbols-rounded">bolt</span>Respuestas rápidas
+                </button>
+                @if (showTemplates()) {
+                  <div class="menu">
+                    @for (q of quickReplies; track q.label) {
+                      <button type="button" class="menu__item" (click)="useTemplate(q.body)">{{ q.label }}</button>
+                    }
+                  </div>
+                }
+              </div>
+              <span class="t-caption composer__hint">Ctrl + Enter para enviar</span>
+              <button type="button" class="btn btn--sm" (click)="send(true)" [disabled]="sending() || !reply().trim() || t.status === 'RESOLVED'">
+                Enviar y resolver
+              </button>
+              <button type="button" class="btn btn--primary btn--sm" (click)="send(false)" [disabled]="sending() || !reply().trim()">
+                @if (sending()) { <span class="spinner"></span> } @else { <span class="material-symbols-rounded">send</span> }
+                Responder
+              </button>
+            </div>
+          </section>
+        }
+      </div>
 
-    @if (!auth.isReadOnly()) {
-      <section class="panel actions-panel">
-        <h3>Estado</h3>
-        <div class="actions">
-          <button type="button" [disabled]="updatingStatus() || t.status === 'IN_PROGRESS'" (click)="setStatus('IN_PROGRESS')">
-            Marcar en progreso
-          </button>
-          <button type="button" [disabled]="updatingStatus() || t.status === 'RESOLVED'" (click)="setStatus('RESOLVED')">
-            Marcar resuelto
-          </button>
-          <button
-            type="button"
-            class="danger"
-            [disabled]="updatingStatus() || t.status === 'CLOSED'"
-            (click)="showCloseConfirm.set(true)"
-          >
-            Cerrar ticket
-          </button>
-        </div>
-      </section>
-    }
+      <!-- ── Panel lateral ── -->
+      <aside class="stack">
+        <section>
+          <p class="group__header overline">Gestión</p>
+          <div class="group__box">
+            <div class="row">
+              <span class="row__label">Estado</span>
+              <app-select class="td-select" size="sm" [block]="false" ariaLabel="Estado del ticket"
+                [options]="statusOptions" [value]="t.status" [disabled]="updating() || !canWrite()"
+                (valueChange)="requestStatus($event)" />
+            </div>
+            <div class="row">
+              <span class="row__label">Prioridad</span>
+              <app-select class="td-select" size="sm" [block]="false" ariaLabel="Prioridad del ticket"
+                [options]="priorityOptions" [value]="t.priority" [disabled]="updating() || !canWrite()"
+                (valueChange)="changePriority($event)" />
+            </div>
+            @if (t.resolvedAt) {
+              <div class="row"><span class="row__label">Resuelto</span><span class="row__value">{{ t.resolvedAt | date: 'd MMM y, HH:mm' }}</span></div>
+            }
+          </div>
+        </section>
+
+        <section>
+          <p class="group__header overline">Notas internas</p>
+          <div class="card td-notes">
+            <textarea class="input" rows="4" placeholder="Solo las ve el equipo. Contexto, pasos dados, a quién se escaló…"
+              [value]="notes()" (input)="notes.set($any($event.target).value)" [disabled]="!canWrite() || savingNotes()" maxlength="4000"></textarea>
+            @if (canWrite()) {
+              <div class="cluster td-notes__actions">
+                @if (notesDirty()) { <span class="t-caption">Sin guardar</span> }
+                <span class="spacer"></span>
+                <button type="button" class="btn btn--sm" (click)="saveNotes()" [disabled]="!notesDirty() || savingNotes()">
+                  @if (savingNotes()) { <span class="spinner"></span> } Guardar notas
+                </button>
+              </div>
+            }
+          </div>
+        </section>
+
+        <section>
+          <p class="group__header overline">Quién escribe</p>
+          <div class="group__box">
+            <div class="row">
+              <app-avatar [name]="t.requesterName" [size]="32" />
+              <span class="row__label">{{ t.requesterName }}<small>{{ t.requesterRole === 'WORKER' ? 'Profesional' : t.requesterRole === 'BUSINESS' ? 'Dueño del negocio' : t.requesterRole }}</small></span>
+            </div>
+            @if (business(); as b) {
+              <a class="row" [routerLink]="['/businesses', b.id]">
+                <span class="material-symbols-rounded row__icon">storefront</span>
+                <span class="row__label">{{ b.name }}<small>{{ b.city || 'Sin ciudad' }}</small></span>
+                <span class="row__trail"><app-pill [meta]="businessState(b)" [icon]="false" /><span class="material-symbols-rounded row__chevron">chevron_right</span></span>
+              </a>
+              <button type="button" class="row" (click)="copy(b.email, 'Email')">
+                <span class="material-symbols-rounded row__icon">mail</span>
+                <span class="row__label t-clip">{{ b.email }}</span>
+                <span class="row__trail"><span class="material-symbols-rounded row__chevron">content_copy</span></span>
+              </button>
+              <button type="button" class="row" (click)="copy(b.phone, 'Teléfono')">
+                <span class="material-symbols-rounded row__icon">call</span>
+                <span class="row__label">{{ b.phone }}</span>
+                <span class="row__trail"><span class="material-symbols-rounded row__chevron">content_copy</span></span>
+              </button>
+              <a class="row" routerLink="/tickets" [queryParams]="{ businessId: b.id }">
+                <span class="material-symbols-rounded row__icon">confirmation_number</span>
+                <span class="row__label">Otros tickets de este negocio</span>
+                <span class="row__trail"><span class="material-symbols-rounded row__chevron">chevron_right</span></span>
+              </a>
+            } @else if (t.businessName) {
+              <div class="row"><span class="material-symbols-rounded row__icon">storefront</span><span class="row__label">{{ t.businessName }}</span></div>
+            }
+          </div>
+        </section>
+      </aside>
+    </div>
 
     <app-confirm-modal
-      [open]="showCloseConfirm()"
-      title="Cerrar ticket"
-      message="El ticket se cerrará y el negocio no podrá adjuntar más archivos."
+      [open]="confirmClose()"
+      [busy]="updating()"
+      title="¿Cerrar el ticket?"
+      message="El negocio ya no podrá adjuntar archivos. Puedes reabrirlo después si hace falta."
       confirmLabel="Cerrar ticket"
-      (confirmed)="setStatus('CLOSED')"
-      (cancelled)="showCloseConfirm.set(false)"
+      (confirmed)="changeStatus('CLOSED')"
+      (cancelled)="confirmClose.set(false)"
     />
   }
 </div>
