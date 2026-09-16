@@ -1,0 +1,237 @@
+<div class="page">
+  <a routerLink="/payments" class="back-link"><span class="material-symbols-rounded">arrow_back</span>Cobros</a>
+
+  @if (notFound()) {
+    <div class="card"><div class="empty"><span class="material-symbols-rounded">search_off</span><h3>No existe ese cobro</h3><p>Puede que se borrara junto con la cuenta del cliente.</p></div></div>
+  } @else if (error(); as e) {
+    <div class="card"><div class="empty"><span class="material-symbols-rounded">cloud_off</span><h3>No se ha podido cargar</h3><p>{{ e }}</p><button type="button" class="btn btn--primary" (click)="load()">Reintentar</button></div></div>
+  } @else if (!detail()) {
+    <div class="stack"><span class="skeleton" style="height: 140px; border-radius: 20px"></span><span class="skeleton" style="height: 320px; border-radius: 20px"></span></div>
+  } @else {
+    @let d = detail()!;
+    @let pay = d.payment;
+
+    <!-- ── Cabecera ── -->
+    <header class="pd-head">
+      <div class="pd-head__main">
+        <p class="overline">{{ labels.chargeKind(pay.kind).label }} · #{{ pay.id }}</p>
+        <h1 class="pd-amount t-num">{{ cents(pay.amountCents, pay.currency) }}</h1>
+        <div class="cluster">
+          <app-pill [meta]="labels.chargeStatus(pay.status)" />
+          @if (pay.manual) { <span class="pill">Registrado a mano</span> }
+          <span class="t-muted pd-when">{{ pay.createdAt | date: "d 'de' MMMM y, HH:mm" }} · {{ ago(pay.createdAt) }}</span>
+        </div>
+        @if (pay.refundedCents > 0) {
+          <div class="pd-meter" [attr.aria-label]="'Devuelto ' + cents(pay.refundedCents)">
+            <span class="pd-meter__fill" [style.width.%]="(pay.refundedCents / pay.amountCents) * 100"></span>
+          </div>
+          <p class="pd-meter__text">
+            Devuelto <strong>{{ cents(pay.refundedCents, pay.currency) }}</strong>
+            @if (pay.refundableCents > 0) { · quedan {{ cents(pay.refundableCents, pay.currency) }} }
+          </p>
+        }
+      </div>
+
+      @if (auth.canManage()) {
+        <div class="pd-actions">
+          @if (canRefundAny()) {
+            <button type="button" class="btn btn--primary" (click)="openRefund()">
+              <span class="material-symbols-rounded">currency_exchange</span>Devolver dinero
+            </button>
+          }
+          @if (d.canRetry) {
+            <button type="button" class="btn" (click)="retryOpen.set(true)"><span class="material-symbols-rounded">replay</span>Reintentar cobro</button>
+          }
+          @if (pay.bookingId) {
+            <button type="button" class="btn btn--ghost" (click)="chargeOpen.set(true)"><span class="material-symbols-rounded">add_card</span>Otro cobro de esta cita</button>
+          }
+        </div>
+      }
+    </header>
+
+    @if (pay.failureReason && (pay.status === 'FAILED' || pay.status === 'REQUIRES_ACTION')) {
+      <p class="notice notice--danger pd-notice">
+        <span class="material-symbols-rounded fill">error</span>
+        <span><strong>{{ pay.status === 'FAILED' ? 'No se cobró' : 'Pendiente del banco' }}:</strong> {{ pay.failureReason }}.
+          @if (!d.canRetry && d.retryBlockedReason && pay.kind !== 'BOOKING_PAYMENT') { <br />No se puede reintentar: {{ d.retryBlockedReason }} }
+        </span>
+      </p>
+    }
+
+    <div class="pd-grid">
+      <!-- ── Datos ── -->
+      <section class="group__box pd-rows">
+        <div class="row">
+          <span class="row__label">Cliente</span>
+          <span class="row__value"><a class="pd-link" [routerLink]="['/users', pay.customerId]">{{ pay.customerName }}</a><small>{{ pay.customerEmail }}</small></span>
+        </div>
+        <div class="row">
+          <span class="row__label">Negocio</span>
+          <span class="row__value">
+            @if (pay.businessId) { <a class="pd-link" [routerLink]="['/businesses', pay.businessId]">{{ pay.businessName }}</a> } @else { — }
+          </span>
+        </div>
+        <div class="row">
+          <span class="row__label">Concepto</span>
+          <span class="row__value">{{ pay.description || labels.chargeKind(pay.kind).label }}</span>
+        </div>
+        @if (pay.bookingId) {
+          <div class="row">
+            <span class="row__label">Cita</span>
+            <span class="row__value">
+              #{{ pay.bookingId }} · {{ pay.serviceName }}
+              @if (pay.bookingStart) { <small>{{ pay.bookingStart | date: "EEEE d 'de' MMMM, HH:mm" }}</small> }
+            </span>
+          </div>
+        }
+        <div class="row">
+          <span class="row__label">Comisión retenida</span>
+          <span class="row__value">{{ pay.applicationFeeCents != null ? cents(pay.applicationFeeCents) : '—' }}<small>Cubre lo que Stripe cobra a Bipsy. No vuelve al devolver, salvo que se marque.</small></span>
+        </div>
+        <div class="row">
+          <span class="row__label">Stripe</span>
+          <span class="row__value">
+            @if (pay.stripePaymentIntentId) {
+              <code class="t-mono pd-code">{{ pay.stripePaymentIntentId }}</code>
+              <small>Cuenta {{ pay.stripeAccountId || 'de Bipsy (antigua)' }}</small>
+            } @else { No pasó por Stripe }
+          </span>
+        </div>
+        <div class="row">
+          <span class="row__label">Tarjeta del cliente hoy</span>
+          <span class="row__value">
+            @if (d.card; as c) {
+              <span class="pd-card"><span class="material-symbols-rounded">credit_card</span>{{ c.brand | titlecase }} ···· {{ c.last4 }}</span>
+              @if (c.expMonth) { <small>Caduca {{ c.expMonth }}/{{ c.expYear }}{{ c.isDefault ? ' · principal' : '' }}</small> }
+            } @else { Sin tarjeta guardada }
+          </span>
+        </div>
+        <div class="pd-links">
+          <a class="btn btn--sm btn--ghost" [routerLink]="['/payments']" [queryParams]="{ customerId: pay.customerId }">Cobros de este cliente</a>
+          @if (pay.businessId) {
+            <a class="btn btn--sm btn--ghost" [routerLink]="['/payments']" [queryParams]="{ businessId: pay.businessId }">Cobros de este negocio</a>
+          }
+        </div>
+      </section>
+
+      <div class="stack">
+        <!-- ── Devoluciones ── -->
+        <section class="card">
+          <div class="card__head"><h2 class="card__title">Devoluciones</h2></div>
+          @for (r of d.refunds; track r.id) {
+            <div class="pd-refund">
+              <span class="pd-refund__icon material-symbols-rounded" [class.is-bad]="r.status === 'FAILED'">{{ labels.refundMethod(r.method).icon }}</span>
+              <div class="pd-refund__text">
+                <p><strong class="t-num">{{ cents(r.amountCents) }}</strong> · {{ labels.refundMethod(r.method).label }} <app-pill [meta]="labels.refundStatus(r.status)" [icon]="false" /></p>
+                @if (r.reason) { <p class="pd-refund__reason">«{{ r.reason }}»</p> }
+                @if (r.failureReason) { <p class="pd-refund__reason t-danger">{{ r.failureReason }}</p> }
+                <small>{{ r.createdByName || 'El negocio o el sistema' }} · {{ r.createdAt | date: 'd MMM y, HH:mm' }}</small>
+              </div>
+            </div>
+          } @empty {
+            <p class="t-muted pd-empty">No se ha devuelto nada de este cobro.</p>
+          }
+        </section>
+
+        <!-- ── Historial del panel ── -->
+        <section class="card">
+          <div class="card__head"><h2 class="card__title">Historial en el panel</h2></div>
+          @if (history(); as h) {
+            @for (e of h; track e.id) {
+              <div class="pd-log">
+                <span class="material-symbols-rounded">{{ labels.auditAction(e.action).icon || 'bolt' }}</span>
+                <p><strong>{{ e.adminName }}</strong> {{ labels.auditAction(e.action).label | lowercase }} cobro<small>{{ e.details }} · {{ ago(e.createdAt) }}</small></p>
+              </div>
+            } @empty {
+              <p class="t-muted pd-empty">Nadie del equipo ha tocado este cobro.</p>
+            }
+          } @else {
+            <span class="skeleton" style="height: 60px"></span>
+          }
+        </section>
+      </div>
+    </div>
+
+    <!-- ── Diálogo: devolver ── -->
+    @if (refundOpen()) {
+      <div class="scrim" (click)="!refunding() && refundOpen.set(false)">
+        <form class="dialog dialog--wide" (click)="$event.stopPropagation()" (submit)="$event.preventDefault(); submitRefund()">
+          <h2 class="dialog__title">Devolver dinero a {{ pay.customerName }}</h2>
+          <p class="dialog__text">De {{ cents(pay.amountCents) }} cobrados quedan {{ cents(pay.refundableCents) }} por devolver. El cobro original no se toca: la devolución queda como un movimiento aparte.</p>
+
+          <div class="dialog__body">
+            <div class="field">
+              <span class="field__label">Cómo</span>
+              <div class="pd-methods">
+                <button type="button" class="pd-method" [class.is-on]="refundMethodSel() === 'STRIPE'" (click)="refundMethodSel.set('STRIPE')" [attr.aria-pressed]="refundMethodSel() === 'STRIPE'">
+                  <span class="material-symbols-rounded">credit_card</span>
+                  <strong>A su tarjeta</strong>
+                  <small>{{ d.canRefundStripe ? 'Con Stripe, desde la cuenta del negocio. Tarda 5–10 días en verse.' : d.stripeRefundBlockedReason }}</small>
+                </button>
+                <button type="button" class="pd-method" [class.is-on]="refundMethodSel() === 'MANUAL'" (click)="refundMethodSel.set('MANUAL')" [attr.aria-pressed]="refundMethodSel() === 'MANUAL'">
+                  <span class="material-symbols-rounded">handshake</span>
+                  <strong>Ya devuelto por otra vía</strong>
+                  <small>{{ d.canRefundManual ? 'Efectivo, Bizum, transferencia… Solo se registra, no se mueve dinero.' : d.manualRefundBlockedReason }}</small>
+                </button>
+              </div>
+            </div>
+
+            <div class="field">
+              <span class="field__label">Cuánto</span>
+              <div class="cluster">
+                <button type="button" class="chip" [class.is-on]="refundAll()" (click)="refundAll.set(true)">Todo · {{ cents(pay.refundableCents) }}</button>
+                <button type="button" class="chip" [class.is-on]="!refundAll()" (click)="refundAll.set(false)">Una parte</button>
+                @if (!refundAll()) {
+                  <app-number-input ariaLabel="Importe a devolver" [value]="refundEuros()" (valueChange)="refundEuros.set($event)" [min]="0.01" [max]="refundableEuros()" [step]="1" [places]="2" unit="€" />
+                }
+              </div>
+            </div>
+
+            <label class="field">
+              <span class="field__label">Motivo</span>
+              <textarea class="input" rows="2" maxlength="280" placeholder="Ej.: el negocio cerró ese día y el cliente no tuvo culpa" [value]="refundReason()" (input)="refundReason.set($any($event.target).value)"></textarea>
+              <span class="field__hint">Queda en el historial del cobro y en la auditoría.</span>
+            </label>
+
+            @if (refundMethodSel() === 'STRIPE' && pay.applicationFeeCents) {
+              <label class="check">
+                <input type="checkbox" [checked]="refundFee()" (change)="refundFee.set($any($event.target).checked)" />
+                <span>Bipsy asume también la comisión ({{ cents(pay.applicationFeeCents) }}). Úsalo cuando el fallo sea del negocio o nuestro.</span>
+              </label>
+            }
+
+            @if (methodBlock(); as b) { <p class="notice notice--warn"><span class="material-symbols-rounded">block</span>{{ b }}</p> }
+            @if (refundError(); as e) { <p class="notice notice--danger"><span class="material-symbols-rounded">error</span>{{ e }}</p> }
+          </div>
+
+          <div class="dialog__actions">
+            <button type="button" class="btn btn--ghost" (click)="refundOpen.set(false)" [disabled]="refunding()">Cancelar</button>
+            <button type="submit" class="btn btn--primary" [disabled]="!canSubmitRefund() || refunding()">
+              @if (refunding()) { <span class="spinner"></span> }
+              {{ refundMethodSel() === 'STRIPE' ? 'Devolver' : 'Registrar' }} {{ cents(refundCents()) }}
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <app-confirm-modal
+      [open]="retryOpen()"
+      [busy]="retrying()"
+      tone="primary"
+      [title]="'¿Volver a cobrar ' + cents(pay.amountCents) + '?'"
+      [message]="'Se intenta cargar en la tarjeta de ' + pay.customerName + (d.card ? ' (···· ' + d.card.last4 + ')' : '') + '. Queda como un cobro nuevo; este se mantiene como fallido.'"
+      confirmLabel="Cobrar"
+      (confirmed)="retry()"
+      (cancelled)="retryOpen.set(false)"
+    />
+
+    <app-charge-dialog
+      [open]="chargeOpen()"
+      [bookingId]="pay.bookingId"
+      [bookingLabel]="'Cita #' + pay.bookingId + ' de ' + pay.customerName + (pay.serviceName ? ' · ' + pay.serviceName : '')"
+      (closed)="chargeOpen.set(false)"
+      (charged)="onCharged($event)"
+    />
+  }
+</div>

@@ -1,0 +1,74 @@
+.pay-stats { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); margin-bottom: 12px; }
+.pay-stat-btn {
+  border: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover { background: var(--clr-surface-2); }
+  &.is-on { box-shadow: inset 0 0 0 2px var(--clr-accent); }
+}
+
+.pay-kinds {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.pay-kind {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: var(--r-sm);
+  background: var(--clr-band);
+  color: var(--clr-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color .15s ease;
+
+  &:hover { background: var(--clr-surface); }
+  &.is-on { background: var(--clr-accent); color: var(--clr-on-accent); }
+  &.is-on small, &.is-on .pay-kind__label { color: inherit; opacity: .8; }
+
+  strong { font-family: var(--ff-display); font-size: 1.125rem; font-weight: 800; letter-spacing: -0.3px; }
+  small { font-size: 0.75rem; color: var(--clr-text-3); }
+}
+.pay-kind__label { font-size: 0.75rem; font-weight: 700; color: var(--clr-text-2); }
+
+.pay-tabs { display: block; margin-bottom: 16px; }
+.pay-filter { min-width: 190px; }
+.pay-dates { display: inline-flex; align-items: center; gap: 6px; }
+.pay-dates .input { width: 150px; height: 38px; }
+.pay-scope { margin: -4px 0 14px; }
+.pay-note { margin-bottom: 12px; }
+
+.pay-concept { font-weight: 600; }
+.pay-small {
+  display: block;
+  margin-top: 2px;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  color: var(--clr-text-3);
+}
+.pay-reason { max-width: 320px; color: var(--clr-text-2); }
+.pay-method {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--clr-text-2);
+
+  .material-symbols-rounded { font-size: 18px; color: var(--clr-text-3); }
+}
+.pay-link { color: var(--clr-text); font-weight: 600; text-decoration: none; }
+.pay-link:hover { color: var(--clr-accent-text); text-decoration: underline; }
+
+@media (max-width: 680px) {
+  .pay-filter, .pay-dates { flex: 1 1 100%; }
+  .pay-dates .input { flex: 1; width: auto; }
+}
