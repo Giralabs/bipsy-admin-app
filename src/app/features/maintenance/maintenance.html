@@ -1,0 +1,137 @@
+<div class="page page--narrow">
+  <header class="page-head">
+    <div class="page-head__text">
+      <h1 class="t-display">Mantenimiento</h1>
+      <p class="page-head__sub">Cierra la web de clientes o la de negocios mientras se trabaja en ellas. Cada una por separado.</p>
+    </div>
+  </header>
+
+  @if (unavailable()) {
+    <p class="notice"><span class="material-symbols-rounded">update</span>El modo mantenimiento necesita la versión nueva del backend (GET /admin/maintenance).</p>
+  } @else if (error(); as e) {
+    <div class="card"><div class="empty"><span class="material-symbols-rounded">cloud_off</span><h3>No se ha podido cargar</h3><p>{{ e }}</p><button type="button" class="btn btn--primary" (click)="load()">Reintentar</button></div></div>
+  } @else if (!form()) {
+    <div class="stack"><span class="skeleton" style="height: 80px; border-radius: 20px"></span><span class="skeleton" style="height: 220px; border-radius: 20px"></span></div>
+  } @else {
+    @let f = form()!;
+    @let s = saved()!;
+    <form class="stack stack--lg" (submit)="$event.preventDefault(); save()">
+      <p class="notice mnt-summary">
+        <span class="material-symbols-rounded">info</span>
+        <span>
+          Solo se cierra la web: <strong>las apps móviles y la API siguen funcionando</strong>. Mientras una web está en
+          mantenimiento, el equipo entra por <span class="t-mono">/admin</span> en esa misma web con la contraseña de acceso.
+        </span>
+      </p>
+
+      <!-- ----- THE TWO WEBSITES -------------------- -->
+      @for (d of sites; track d.site) {
+        <section>
+          <p class="group__header overline">{{ d.title }} — {{ d.repo }}</p>
+          <div class="group__box">
+            <label class="row mnt-row mnt-switch">
+              <span class="material-symbols-rounded row__icon">{{ d.icon }}</span>
+              <span class="row__label">
+                Modo mantenimiento
+                <small>{{ d.hint }}</small>
+              </span>
+              <app-pill [meta]="status(d)" />
+              <input type="checkbox" role="switch" [checked]="f[d.enabledKey]" [attr.aria-label]="'Mantenimiento de ' + d.name"
+                [disabled]="!auth.canManage() || saving()" (change)="setEnabled(d, $any($event.target).checked)" />
+            </label>
+            <label class="row mnt-row mnt-message">
+              <span class="row__label">
+                Mensaje para los visitantes
+                <small>Opcional. Se enseña en la pantalla de mantenimiento: cuándo vuelve, qué se está haciendo.</small>
+              </span>
+              <span class="mnt-message__field">
+                <textarea class="input" rows="2" [attr.maxlength]="messageMax" placeholder="Volvemos en unos minutos."
+                  [value]="f[d.messageKey]" [disabled]="!auth.canManage() || saving()"
+                  (input)="setMessage(d, $any($event.target).value)"></textarea>
+                <span class="t-caption t-num">{{ f[d.messageKey].length }}/{{ messageMax }}</span>
+              </span>
+            </label>
+          </div>
+          @if (f[d.enabledKey] !== s[d.enabledKey]) {
+            <p class="group__footer">
+              {{ f[d.enabledKey] ? 'Se cerrará al guardar.' : 'Se abrirá al guardar.' }}
+            </p>
+          }
+        </section>
+      }
+
+      <!-- ----- ACCESS PASSWORD -------------------- -->
+      <section>
+        <p class="group__header overline">Contraseña de acceso</p>
+        <div class="group__box">
+          <div class="row mnt-row">
+            <span class="material-symbols-rounded row__icon">key</span>
+            <span class="row__label">
+              Contraseña actual
+              <small>No se puede consultar: solo se guarda cifrada. Si se ha perdido, pon una nueva.</small>
+            </span>
+            @if (s.passwordSet) {
+              <span class="pill pill--success"><span class="material-symbols-rounded">check_circle</span>Configurada</span>
+            } @else {
+              <span class="pill pill--danger"><span class="material-symbols-rounded">error</span>Sin configurar</span>
+            }
+          </div>
+          @if (auth.canManage()) {
+            <label class="row mnt-row mnt-password">
+              <span class="row__label">
+                Nueva contraseña
+                <small>Mínimo {{ passwordMin }} caracteres. Déjala vacía para mantener la actual.</small>
+              </span>
+              <span class="mnt-password__field">
+                <input class="input" [type]="showPassword() ? 'text' : 'password'" name="maintenance-password"
+                  autocomplete="new-password" [attr.maxlength]="passwordMax" [value]="newPassword()" [disabled]="saving()"
+                  [attr.aria-invalid]="passwordTooShort()" (input)="newPassword.set($any($event.target).value)" />
+                <button type="button" class="mnt-eye" (click)="showPassword.set(!showPassword())"
+                  [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                  <span class="material-symbols-rounded">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
+                </button>
+              </span>
+            </label>
+          }
+        </div>
+        @if (passwordTooShort()) {
+          <p class="group__footer t-danger">Le faltan {{ passwordMin - newPassword().length }} caracteres para llegar a {{ passwordMin }}.</p>
+        } @else {
+          <p class="group__footer">Es una sola para las dos webs. Al cambiarla, quien hubiera entrado con la anterior tiene que volver a entrar.</p>
+        }
+      </section>
+
+      @if (lockedOut()) {
+        <p class="notice notice--warn">
+          <span class="material-symbols-rounded fill">warning</span>
+          <span>No hay contraseña de acceso configurada: con una web en mantenimiento, tampoco el equipo podrá entrar en ella. Pon una antes de guardar.</span>
+        </p>
+      }
+
+      <p class="t-caption">Último cambio: {{ s.updatedAt | date: "d 'de' MMMM y, HH:mm" }}</p>
+
+      @if (auth.canManage()) {
+        <div class="mnt-bar" [class.is-visible]="dirty()">
+          <span class="t-body">Tienes cambios sin guardar.</span>
+          <span class="spacer"></span>
+          <button type="button" class="btn btn--ghost" (click)="reset()" [disabled]="saving()">Descartar</button>
+          <button type="submit" class="btn btn--primary" [disabled]="invalid() || saving()">
+            @if (saving()) { <span class="spinner"></span> } Guardar cambios
+          </button>
+        </div>
+      } @else {
+        <p class="notice"><span class="material-symbols-rounded">lock</span>Tu rol puede consultar el modo mantenimiento, pero no cambiarlo.</p>
+      }
+    </form>
+  }
+</div>
+
+<app-confirm-modal
+  [open]="confirming() !== null"
+  [busy]="saving()"
+  [title]="confirmTitle()"
+  [message]="confirmMessage()"
+  confirmLabel="Poner en mantenimiento"
+  (confirmed)="commit()"
+  (cancelled)="confirming.set(null)"
+/>

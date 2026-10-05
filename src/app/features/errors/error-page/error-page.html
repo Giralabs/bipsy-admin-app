@@ -1,0 +1,34 @@
+<div class="err">
+  <section class="err__panel">
+    <div class="err__inner" role="alert">
+      <img src="brand/logo-mint.webp" alt="Bipsy" class="err__logo only-dark" />
+      <img src="brand/logo-carbon.webp" alt="Bipsy" class="err__logo only-light" />
+
+      <p class="err__badge">
+        <span class="material-symbols-rounded fill">{{ copy().icon }}</span>
+        @if (copy().code) { <span class="t-num">Error {{ copy().code }}</span> }
+      </p>
+      <h1 class="t-display err__title">{{ copy().title }}</h1>
+      <p class="err__text">{{ copy().text }}</p>
+
+      <div class="cluster err__actions">
+        @if (copy().retry; as label) {
+          <button type="button" class="btn btn--primary" (click)="retry()">
+            <span class="material-symbols-rounded">refresh</span>{{ label }}
+          </button>
+          <button type="button" class="btn" (click)="home()">Volver al inicio</button>
+        } @else {
+          <button type="button" class="btn btn--primary" (click)="home()">Volver al inicio</button>
+          <button type="button" class="btn" (click)="permissions()">Ver mis permisos</button>
+        }
+      </div>
+    </div>
+  </section>
+
+  <aside class="err__art" aria-hidden="true">
+    <div class="err__art-card">
+      <img src="brand/bip-hello.webp" alt="" class="err__bip" />
+      <p class="err__quote">{{ copy().quote }}</p>
+    </div>
+  </aside>
+</div>

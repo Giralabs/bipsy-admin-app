@@ -1,0 +1,79 @@
+// Same two halves as the login: text on the left, the Bip card on the right.
+.err {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  min-height: 100vh;
+  padding: 16px;
+}
+
+.err__panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+
+.err__inner { width: 100%; max-width: 420px; animation: fade-up .45s var(--ease-out) both; }
+
+.err__logo { height: 34px; width: auto; margin-bottom: 40px; }
+
+.err__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--clr-text-2);
+
+  .material-symbols-rounded {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+    background: var(--clr-surface);
+    color: var(--clr-accent-text);
+  }
+}
+
+.err__title { font-size: 2.25rem; }
+.err__text { margin-top: 10px; font-size: 0.9375rem; font-weight: 500; color: var(--clr-text-2); line-height: 1.55; }
+.err__actions { margin-top: 28px; }
+
+// ----- BIP ARTWORK --------------------
+
+.err__art { display: flex; min-height: calc(100vh - 32px); }
+
+.err__art-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 48px 40px;
+  border-radius: 32px;
+  background: var(--clr-band);
+}
+
+.err__bip { width: min(240px, 50%); height: auto; }
+
+.err__quote {
+  max-width: 300px;
+  text-align: center;
+  font-family: var(--ff-display);
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.3px;
+  color: var(--clr-text-2);
+}
+
+@media (max-width: 900px) {
+  .err { grid-template-columns: minmax(0, 1fr); padding: 0; }
+  .err__art { display: none; }
+  .err__title { font-size: 1.75rem; }
+}

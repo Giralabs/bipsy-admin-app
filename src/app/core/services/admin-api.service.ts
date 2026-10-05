@@ -38,6 +38,7 @@ import {
   DiscoverySettings,
   Feature,
   Grant,
+  MaintenanceSettings,
   PageResponse,
   Plan,
   ReferralStat,
@@ -52,6 +53,7 @@ import {
   TicketKind,
   TicketPriority,
   TicketStatus,
+  UpdateMaintenanceRequest,
 } from '../models/admin.models';
 
 type Params = Record<string, string | number | boolean | null | undefined>;
@@ -294,6 +296,14 @@ export class AdminApi {
 
   updateDiscoverySettings(req: DiscoverySettings) {
     return this.http.put<DiscoverySettings>(`${this.api}/admin/discovery-settings`, req);
+  }
+
+  maintenance() {
+    return this.http.get<MaintenanceSettings>(`${this.api}/admin/maintenance`);
+  }
+
+  updateMaintenance(req: UpdateMaintenanceRequest) {
+    return this.http.put<MaintenanceSettings>(`${this.api}/admin/maintenance`, req);
   }
 
   referrals() {

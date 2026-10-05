@@ -1,0 +1,99 @@
+.mnt-summary { line-height: 1.55; font-size: 0.875rem; color: var(--clr-text); }
+.mnt-summary .material-symbols-rounded { color: var(--clr-accent-text); }
+.mnt-summary strong { font-weight: 700; }
+
+.mnt-row { align-items: center; padding-top: 12px; padding-bottom: 12px; }
+.mnt-row .row__label { flex: 1; }
+.mnt-row .row__label small { max-width: 46ch; line-height: 1.45; margin-top: 2px; }
+
+// Switch: the native checkbox styled like the app's one (same as plan-access).
+.mnt-switch { cursor: pointer; }
+.mnt-switch input {
+  appearance: none;
+  flex-shrink: 0;
+  width: 44px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--clr-subtle);
+  position: relative;
+  cursor: pointer;
+  transition: background-color .2s ease;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    transition: transform .2s var(--ease-out);
+  }
+  // Warn, not success: here «on» means the website is closed.
+  &:checked { background: var(--clr-warn); }
+  &:checked::after { transform: translateX(18px); }
+  &:disabled { opacity: .5; cursor: not-allowed; }
+}
+
+.mnt-message { align-items: flex-start; }
+.mnt-message__field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  width: min(340px, 50%);
+
+  textarea { width: 100%; resize: vertical; min-height: 64px; }
+}
+
+.mnt-password__field {
+  position: relative;
+  width: min(340px, 50%);
+
+  .input { width: 100%; padding-right: 44px; }
+  .input[aria-invalid='true'] { box-shadow: inset 0 0 0 1.5px var(--clr-danger); }
+}
+.mnt-eye {
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--clr-text-3);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+
+  &:hover { color: var(--clr-text); }
+}
+
+// The save bar only appears when there is something to save (same as Explorar).
+.mnt-bar {
+  position: sticky;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 10px 10px 18px;
+  border-radius: 20px;
+  background: var(--clr-surface-2);
+  box-shadow: var(--shadow-float);
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+  transition: opacity .2s ease, transform .25s var(--ease-out);
+
+  &.is-visible { opacity: 1; transform: none; pointer-events: auto; }
+}
+
+@media (max-width: 640px) {
+  .mnt-row { flex-wrap: wrap; }
+  .mnt-message__field, .mnt-password__field { width: 100%; }
+  .mnt-bar .t-body { display: none; }
+}

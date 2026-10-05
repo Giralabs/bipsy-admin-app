@@ -1,0 +1,15 @@
+<div class="page page--narrow">
+  <div class="nf">
+    <img src="brand/bip-hello.webp" alt="" class="nf__bip" />
+    <p class="overline">Error 404</p>
+    <h1 class="t-display">Esta página no existe</h1>
+    <p class="nf__text">
+      Puede que el enlace esté mal escrito o que la pantalla haya cambiado de sitio. Usa el menú o el buscador para llegar a donde ibas.
+    </p>
+    <p class="t-mono nf__path">{{ path }}</p>
+    <div class="cluster nf__actions">
+      <a class="btn btn--primary" routerLink="/"><span class="material-symbols-rounded">home</span>Volver al inicio</a>
+      <button type="button" class="btn" (click)="back()">Volver atrás</button>
+    </div>
+  </div>
+</div>

@@ -2,6 +2,7 @@ import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
 import { adminGuard, guestGuard } from './core/guards/admin.guard';
 import { PreferencesService } from './core/services/preferences.service';
+import { ErrorPage } from './features/errors/error-page/error-page';
 
 export const routes: Routes = [
   {
@@ -9,6 +10,14 @@ export const routes: Routes = [
     canActivate: [guestGuard],
     title: 'Entrar · Bipsy Admin',
     loadComponent: () => import('./features/auth/login/login').then((m) => m.Login),
+  },
+  {
+    // Not lazy on purpose: it is where the user lands when a lazy chunk fails
+    // to load, so it cannot be one. No guard either: it has to work logged out.
+    // The kind comes in the query (?kind=unexpected|offline|forbidden|update).
+    path: 'error',
+    title: 'Error · Bipsy Admin',
+    component: ErrorPage,
   },
   {
     path: '',
@@ -131,11 +140,22 @@ export const routes: Routes = [
         loadComponent: () => import('./features/audit-log/audit-log').then((m) => m.AuditLog),
       },
       {
+        path: 'maintenance',
+        title: 'Mantenimiento · Bipsy Admin',
+        loadComponent: () => import('./features/maintenance/maintenance').then((m) => m.Maintenance),
+      },
+      {
         path: 'account',
         title: 'Mi cuenta · Bipsy Admin',
         loadComponent: () => import('./features/account/account').then((m) => m.Account),
       },
+      // Any other URL: a real 404 inside the shell. Being a child, it goes through
+      // adminGuard like the rest, so a logged-out visitor still ends up at /login.
+      {
+        path: '**',
+        title: 'Página no encontrada · Bipsy Admin',
+        loadComponent: () => import('./features/errors/not-found/not-found').then((m) => m.NotFound),
+      },
     ],
   },
-  { path: '**', redirectTo: '' },
 ];

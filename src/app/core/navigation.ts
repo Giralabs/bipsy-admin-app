@@ -104,6 +104,12 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { path: '/team', label: 'Equipo del panel', icon: 'admin_panel_settings', description: 'Cuentas de administración y permisos.' },
       { path: '/audit-log', label: 'Auditoría', icon: 'history', description: 'Quién cambió qué y cuándo.' },
+      {
+        path: '/maintenance',
+        label: 'Mantenimiento',
+        icon: 'construction',
+        description: 'Cierra la web de clientes o la de negocios mientras se trabaja en ellas.',
+      },
       { path: '/legal', label: 'Legal', icon: 'gavel', description: 'Términos, privacidad, suscripción y datos del titular.' },
     ],
   },

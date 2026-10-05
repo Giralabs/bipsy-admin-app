@@ -138,6 +138,7 @@ export const auditAction = lookup({
   UPDATE_CATEGORY: { label: 'Editó la categoría', tone: 'info', icon: 'edit' },
   DEACTIVATE_CATEGORY: { label: 'Desactivó la categoría', tone: 'warn', icon: 'visibility_off' },
   UPDATE_DISCOVERY_SETTINGS: { label: 'Cambió los ajustes de Explorar', tone: 'info', icon: 'tune' },
+  UPDATE_MAINTENANCE: { label: 'Cambió el modo mantenimiento de las webs', tone: 'warn', icon: 'construction' },
   REPORT_STATUS: { label: 'Resolvió', tone: 'info', icon: 'flag' },
   UPDATE_SUBSCRIPTION_END: { label: 'Cambió la fecha de fin del plan de', tone: 'info', icon: 'event' },
   REVOKE_ACCESS: { label: 'Quitó el acceso gratis a', tone: 'danger', icon: 'lock' },

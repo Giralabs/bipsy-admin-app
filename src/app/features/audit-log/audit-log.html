@@ -33,7 +33,7 @@
                     {{ labels.auditAction(e.action).label | lowercase }}
                     @if (entityRoute(e.entityType, e.entityId); as route) {
                       <a [routerLink]="route">{{ labels.entityType(e.entityType).label }} #{{ e.entityId }}</a>
-                    } @else if (e.entityType !== 'DISCOVERY_SETTINGS') {
+                    } @else if (e.entityType !== 'DISCOVERY_SETTINGS' && e.entityType !== 'MAINTENANCE_SETTINGS') {
                       {{ labels.entityType(e.entityType).label }}{{ e.entityId ? ' #' + e.entityId : '' }}
                     }
                   </p>

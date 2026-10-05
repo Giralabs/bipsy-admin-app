@@ -496,6 +496,30 @@ export interface DiscoverySettings {
   featuredMaxDistanceKm: number;
 }
 
+// ----- MAINTENANCE (MaintenanceDtos) --------------------
+
+/** The two public websites that can be closed. The panel and the mobile apps cannot. */
+export type MaintenanceSite = 'CUSTOMER_WEB' | 'BUSINESS_WEB';
+
+/** GET /admin/maintenance. Never carries the access password, only whether one is set. */
+export interface MaintenanceSettings {
+  customerWebEnabled: boolean;
+  customerWebMessage: string | null;
+  businessWebEnabled: boolean;
+  businessWebMessage: string | null;
+  passwordSet: boolean;
+  updatedAt: string;
+}
+
+/** PUT /admin/maintenance. `newPassword` null keeps the current one. */
+export interface UpdateMaintenanceRequest {
+  customerWebEnabled: boolean;
+  customerWebMessage: string | null;
+  businessWebEnabled: boolean;
+  businessWebMessage: string | null;
+  newPassword: string | null;
+}
+
 export interface ReferralStat {
   businessId: number;
   businessName: string;

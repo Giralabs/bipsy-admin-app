@@ -14,6 +14,7 @@ export type LiveArea =
   | 'plans'
   | 'categories'
   | 'discovery'
+  | 'maintenance'
   | 'audit';
 
 const INTERVAL_MS = 6000;
