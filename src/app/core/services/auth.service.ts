@@ -63,7 +63,9 @@ export class AuthService {
   }
 
   login(req: LoginRequest, remember: boolean) {
-    return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, req).pipe(
+    // The backend signs in by email since V105: there is no username any more.
+    const body = { email: req.username, password: req.password };
+    return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, body).pipe(
       tap((res) => {
         if (res.role !== 'ADMIN') {
           throw new NotAdminError();
@@ -71,7 +73,7 @@ export class AuthService {
         this.store({
           accessToken: res.accessToken,
           refreshToken: res.refreshToken,
-          username: res.username,
+          username: res.username ?? req.username,
           role: res.role,
           scope: 'FULL',
           name: null,

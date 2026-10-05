@@ -17,9 +17,9 @@
       <form class="login__form" (ngSubmit)="submit()" autocomplete="on">
         <div class="group__box">
           <label class="login__row">
-            <span class="login__label">Usuario</span>
+            <span class="login__label">Correo</span>
             <input class="login__input" type="text" name="username" autocomplete="username" required
-              placeholder="usuario o email" [(ngModel)]="username" [disabled]="submitting()" />
+              placeholder="tu@email.com" [(ngModel)]="username" [disabled]="submitting()" />
           </label>
           <label class="login__row">
             <span class="login__label">Contraseña</span>

@@ -42,7 +42,7 @@ export class Login {
         } else if (err instanceof HttpErrorResponse && err.status === 0) {
           this.error.set('No hay conexión con el servidor. ¿Está el backend arrancado?');
         } else if (err instanceof HttpErrorResponse && (err.status === 401 || err.status === 400)) {
-          this.error.set('Usuario o contraseña incorrectos.');
+          this.error.set('Correo o contraseña incorrectos.');
         } else if (err instanceof HttpErrorResponse && err.status === 429) {
           this.error.set('Demasiados intentos. Espera un momento antes de volver a probar.');
         } else {
