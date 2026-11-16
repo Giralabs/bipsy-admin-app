@@ -1,17 +1,30 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, ElementRef, inject, input, signal, viewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, computed, inject, input, signal, viewChild } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService, NotAdminError } from '../../../core/services/auth.service';
+import { AuthService, NotAdminError, TotpSetup, TwoFactorMethod, TwoFactorStatus } from '../../../core/services/auth.service';
+import { Qr } from '../../../shared/components/qr/qr';
 
 /**
- * Sign in, in two steps: email and password, then the 6-digit code that the
- * backend emails to the account (two-step verification, backend V130). Only
- * after the code is there a stored session.
+ * Where the login is:
+ *  - password: email and password.
+ *  - choose:   first time, no second step yet: email code or authenticator app.
+ *  - email:    the code that went to the email.
+ *  - setup:    first time with an app: the QR, then its first code.
+ *  - totp:     the code the app shows now.
+ */
+type Step = 'password' | 'choose' | 'email' | 'setup' | 'totp';
+
+/**
+ * Sign in, in two steps (backend V130): email and password, then a 6-digit
+ * code from the email or from an authenticator app. The first time, the admin
+ * chooses which; after that the login goes straight to it. Only after the
+ * code is there a stored session.
  */
 @Component({
   selector: 'app-login',
-  imports: [FormsModule],
+  imports: [FormsModule, NgTemplateOutlet, Qr],
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })
@@ -27,13 +40,17 @@ export class Login {
   protected password = '';
   protected remember = false;
   protected code = '';
-  protected readonly step = signal<'password' | 'code'>('password');
+  protected readonly step = signal<Step>('password');
   protected readonly showPassword = signal(false);
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
   /** Seconds until «Reenviar código» is available again. */
   protected readonly resendIn = signal(0);
-  protected readonly email = this.auth.pendingEmail;
+  protected readonly email = signal('');
+  protected readonly setup = signal<TotpSetup | null>(null);
+  protected readonly copied = signal(false);
+  /** The seed in groups of four, easier to type by hand. */
+  protected readonly secretGroups = computed(() => this.setup()?.secret.match(/.{1,4}/g)?.join(' ') ?? '');
 
   private readonly codeInput = viewChild<ElementRef<HTMLInputElement>>('codeInput');
   private timer: ReturnType<typeof setInterval> | null = null;
@@ -42,7 +59,7 @@ export class Login {
     inject(DestroyRef).onDestroy(() => {
       this.stopTimer();
       // Leaving halfway drops the unverified session.
-      if (this.step() === 'code') this.auth.cancelLogin();
+      if (this.step() !== 'password') this.auth.cancelLogin();
     });
   }
 
@@ -52,12 +69,13 @@ export class Login {
     this.error.set(null);
 
     this.auth.login({ username: this.username.trim(), password: this.password }, this.remember).subscribe({
-      next: (resendIn) => {
+      next: (status) => {
         this.submitting.set(false);
         this.password = '';
-        this.step.set('code');
-        this.startTimer(resendIn);
-        setTimeout(() => this.codeInput()?.nativeElement.focus());
+        this.email.set(status.email);
+        if (status.method === 'EMAIL') this.toEmail(status);
+        else if (status.method === 'TOTP') this.toCode('totp');
+        else this.step.set('choose');
       },
       error: (err: unknown) => {
         this.submitting.set(false);
@@ -76,6 +94,46 @@ export class Login {
     });
   }
 
+  // ----- FIRST TIME: CHOOSE --------------------
+
+  protected chooseEmail() {
+    if (this.submitting()) return;
+    this.submitting.set(true);
+    this.error.set(null);
+    this.auth.sendEmailCode().subscribe({
+      next: (status) => {
+        this.submitting.set(false);
+        this.toEmail(status);
+      },
+      error: (err: unknown) => this.fail(err, 'No se ha podido enviar el código.'),
+    });
+  }
+
+  protected chooseApp() {
+    if (this.submitting()) return;
+    this.submitting.set(true);
+    this.error.set(null);
+    this.auth.setupTotp().subscribe({
+      next: (setup) => {
+        this.submitting.set(false);
+        this.setup.set(setup);
+        this.toCode('setup');
+      },
+      error: (err: unknown) => this.fail(err, 'No se ha podido preparar la app.'),
+    });
+  }
+
+  protected copySecret() {
+    const secret = this.setup()?.secret;
+    if (!secret) return;
+    navigator.clipboard?.writeText(secret).then(() => {
+      this.copied.set(true);
+      setTimeout(() => this.copied.set(false), 1800);
+    });
+  }
+
+  // ----- THE CODE --------------------
+
   /** Only digits, and it sends itself when the sixth one is in. */
   protected onCode(value: string) {
     this.code = value.replace(/\D/g, '').slice(0, 6);
@@ -85,27 +143,27 @@ export class Login {
 
   protected verify() {
     if (this.code.length !== 6 || this.submitting()) return;
+    const method: TwoFactorMethod = this.step() === 'email' ? 'EMAIL' : 'TOTP';
     this.submitting.set(true);
     this.error.set(null);
 
-    this.auth.verifyCode(this.code).subscribe({
+    this.auth.verifyCode(this.code, method).subscribe({
       next: () => {
         this.stopTimer();
         const target = this.returnUrl();
         this.router.navigateByUrl(target && target.startsWith('/') && !target.startsWith('//') ? target : '/dashboard');
       },
       error: (err: unknown) => {
-        this.submitting.set(false);
         this.code = '';
         if (err instanceof HttpErrorResponse && err.status === 400) {
-          this.error.set('El código no es correcto o ha caducado. Revisa el último correo o pide otro.');
-        } else if (err instanceof HttpErrorResponse && err.status === 401) {
-          this.error.set('Ha pasado demasiado tiempo. Vuelve a escribir tu contraseña.');
-          this.back();
-        } else if (err instanceof HttpErrorResponse && err.status === 0) {
-          this.error.set('No hay conexión con el servidor.');
+          this.submitting.set(false);
+          this.error.set(
+            method === 'EMAIL'
+              ? 'El código no es correcto o ha caducado. Revisa el último correo o pide otro.'
+              : 'El código no es correcto. Escribe el que muestra la app ahora mismo.',
+          );
         } else {
-          this.error.set('No se ha podido comprobar el código.');
+          this.fail(err, 'No se ha podido comprobar el código.');
         }
         setTimeout(() => this.codeInput()?.nativeElement.focus());
       },
@@ -115,19 +173,19 @@ export class Login {
   protected resend() {
     if (this.resendIn() > 0 || this.submitting()) return;
     this.error.set(null);
-    this.auth.sendCode().subscribe({
-      next: (seconds) => this.startTimer(seconds),
-      error: (err: unknown) => {
-        if (err instanceof HttpErrorResponse && err.status === 429) {
-          this.error.set('Espera un poco antes de pedir otro código.');
-        } else if (err instanceof HttpErrorResponse && err.status === 401) {
-          this.error.set('Ha pasado demasiado tiempo. Vuelve a escribir tu contraseña.');
-          this.back();
-        } else {
-          this.error.set('No se ha podido enviar el código.');
-        }
-      },
+    this.auth.sendEmailCode().subscribe({
+      next: (status) => this.startTimer(status.resendInSeconds ?? 30),
+      error: (err: unknown) => this.fail(err, 'No se ha podido enviar el código.'),
     });
+  }
+
+  /** From the app setup back to the choice. */
+  protected backToChoice() {
+    this.stopTimer();
+    this.code = '';
+    this.error.set(null);
+    this.setup.set(null);
+    this.step.set('choose');
   }
 
   /** «Usar otra cuenta»: back to the first step. */
@@ -135,7 +193,39 @@ export class Login {
     this.auth.cancelLogin();
     this.stopTimer();
     this.code = '';
+    this.setup.set(null);
     this.step.set('password');
+  }
+
+  // ----- HELPERS --------------------
+
+  private toEmail(status: TwoFactorStatus) {
+    this.toCode('email');
+    this.startTimer(status.resendInSeconds ?? 30);
+  }
+
+  private toCode(step: Step) {
+    this.code = '';
+    this.step.set(step);
+    setTimeout(() => this.codeInput()?.nativeElement.focus());
+  }
+
+  private fail(err: unknown, fallback: string) {
+    this.submitting.set(false);
+    if (err instanceof HttpErrorResponse && err.status === 401) {
+      this.back();
+      this.error.set('Ha pasado demasiado tiempo. Vuelve a escribir tu contraseña.');
+    } else if (err instanceof HttpErrorResponse && err.status === 429) {
+      this.error.set(
+        this.step() === 'email'
+          ? 'Espera un poco antes de pedir otro código.'
+          : 'Demasiados códigos incorrectos. Espera unos minutos antes de volver a probar.',
+      );
+    } else if (err instanceof HttpErrorResponse && err.status === 0) {
+      this.error.set('No hay conexión con el servidor.');
+    } else {
+      this.error.set(fallback);
+    }
   }
 
   private startTimer(seconds: number) {

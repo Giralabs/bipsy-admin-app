@@ -1,21 +1,35 @@
 <div class="login">
   <section class="login__panel">
-    <div class="login__inner">
+    <div class="login__inner" [class.login__inner--wide]="step() === 'setup'">
       <img src="brand/logo-mint.webp" alt="Bipsy" class="login__logo only-dark" />
       <img src="brand/logo-carbon.webp" alt="Bipsy" class="login__logo only-light" />
 
-      @if (step() === 'code') {
-        <!-- Second step: the code from the email (two-step verification). -->
-        <h1 class="t-display login__title">Revisa tu correo</h1>
-        <p class="login__sub">
-          Te hemos enviado un código de 6 dígitos a <strong>{{ email() }}</strong>. Escríbelo para terminar de entrar.
-        </p>
+      @switch (step()) {
+        <!-- ----- FIRST TIME: CHOOSE THE SECOND STEP -------------------- -->
+        @case ('choose') {
+          <h1 class="t-display login__title">Protege tu cuenta</h1>
+          <p class="login__sub">
+            Además de la contraseña, al entrar te pediremos un código. Elige de dónde quieres que salga; lo puedes cambiar después en «Mi cuenta».
+          </p>
 
-        <form class="login__form" (ngSubmit)="verify()" autocomplete="off">
-          <label class="login__code-label" for="code">Código de verificación</label>
-          <input #codeInput id="code" class="login__code" name="code" type="text" inputmode="numeric"
-            autocomplete="one-time-code" maxlength="6" placeholder="······" required
-            [ngModel]="code" (ngModelChange)="onCode($event)" [disabled]="submitting()" />
+          <div class="group__box login__choices">
+            <button type="button" class="login__choice" (click)="chooseApp()" [disabled]="submitting()">
+              <span class="material-symbols-rounded login__choice-icon">phonelink_lock</span>
+              <span class="login__choice-text">
+                <strong>App de autenticación</strong>
+                <small>Google Authenticator, 1Password, Authy… El código está siempre en tu móvil, sin esperar correos.</small>
+              </span>
+              <span class="material-symbols-rounded row__chevron">chevron_right</span>
+            </button>
+            <button type="button" class="login__choice" (click)="chooseEmail()" [disabled]="submitting()">
+              <span class="material-symbols-rounded login__choice-icon">mail</span>
+              <span class="login__choice-text">
+                <strong>Código por correo</strong>
+                <small>Cada vez que entres te mandamos un código a {{ email() }}.</small>
+              </span>
+              <span class="material-symbols-rounded row__chevron">chevron_right</span>
+            </button>
+          </div>
 
           @if (error()) {
             <p class="login__error" role="alert">
@@ -23,66 +37,124 @@
             </p>
           }
 
-          <button type="submit" class="btn btn--primary btn--block login__submit" [disabled]="submitting() || code.length !== 6">
-            @if (submitting()) { <span class="spinner"></span> Comprobando… } @else { Verificar }
-          </button>
-        </form>
-
-        <div class="login__code-actions">
-          <button type="button" class="login__link" (click)="resend()" [disabled]="resendIn() > 0">
-            @if (resendIn() > 0) { Reenviar código en {{ resendIn() }} s } @else { Reenviar código }
-          </button>
-          <button type="button" class="login__link" (click)="back()">Usar otra cuenta</button>
-        </div>
-
-        <p class="login__foot">El código caduca en 15 minutos. Si no lo ves, mira en la carpeta de spam.</p>
-      } @else {
-      <h1 class="t-display login__title">Panel de administración</h1>
-      <p class="login__sub">Clientes, negocios, soporte y ajustes de la plataforma, en un solo sitio.</p>
-
-      @if (expired()) {
-        <p class="notice notice--warn login__notice">
-          <span class="material-symbols-rounded fill">schedule</span>
-          Tu sesión ha caducado. Vuelve a entrar para seguir donde lo dejaste.
-        </p>
-      }
-
-      <form class="login__form" (ngSubmit)="submit()" autocomplete="on">
-        <div class="group__box">
-          <label class="login__row">
-            <span class="login__label">Correo</span>
-            <input class="login__input" type="text" name="username" autocomplete="username" required
-              placeholder="tu@email.com" [(ngModel)]="username" [disabled]="submitting()" />
-          </label>
-          <label class="login__row">
-            <span class="login__label">Contraseña</span>
-            <input class="login__input" [type]="showPassword() ? 'text' : 'password'" name="password"
-              autocomplete="current-password" required [(ngModel)]="password" [disabled]="submitting()" />
-            <button type="button" class="login__eye" (click)="showPassword.set(!showPassword())"
-              [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
-              <span class="material-symbols-rounded">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
-            </button>
-          </label>
-        </div>
-
-        <label class="check login__remember">
-          <input type="checkbox" name="remember" [(ngModel)]="remember" />
-          Mantener la sesión en este equipo
-        </label>
-
-        @if (error()) {
-          <p class="login__error" role="alert">
-            <span class="material-symbols-rounded fill">error</span>{{ error() }}
-          </p>
+          <div class="login__code-actions login__code-actions--end">
+            <button type="button" class="login__link" (click)="back()">Usar otra cuenta</button>
+          </div>
         }
 
-        <button type="submit" class="btn btn--primary btn--block login__submit"
-          [disabled]="submitting() || !username.trim() || !password">
-          @if (submitting()) { <span class="spinner"></span> Entrando… } @else { Continuar }
-        </button>
-      </form>
+        <!-- ----- FIRST TIME WITH AN APP: THE QR -------------------- -->
+        @case ('setup') {
+          <h1 class="t-display login__title">Añade Bipsy a tu app</h1>
+          <p class="login__sub">Abre tu app de autenticación, pulsa «Añadir» y escanea este código.</p>
 
-      <p class="login__foot">Acceso restringido al equipo de Bipsy. Al entrar te pediremos un código que llega a tu correo.</p>
+          @if (setup(); as s) {
+            <div class="login__setup">
+              <app-qr class="login__qr" [data]="s.otpauthUri" label="Código QR para la app de autenticación" />
+              <div class="login__setup-key">
+                <p class="login__setup-hint">¿No puedes escanearlo? Escribe esta clave en la app:</p>
+                <code class="login__secret">{{ secretGroups() }}</code>
+                <button type="button" class="btn btn--sm login__copy" (click)="copySecret()">
+                  <span class="material-symbols-rounded">{{ copied() ? 'check' : 'content_copy' }}</span>
+                  {{ copied() ? 'Copiada' : 'Copiar clave' }}
+                </button>
+              </div>
+            </div>
+          }
+
+          <form class="login__form" (ngSubmit)="verify()" autocomplete="off">
+            <label class="login__code-label" for="code">Escribe el código de 6 dígitos que muestra la app</label>
+            <input #codeInput id="code" class="login__code" name="code" type="text" inputmode="numeric"
+              autocomplete="one-time-code" maxlength="6" placeholder="······" required
+              [ngModel]="code" (ngModelChange)="onCode($event)" [disabled]="submitting()" />
+            @if (error()) {
+              <p class="login__error" role="alert"><span class="material-symbols-rounded fill">error</span>{{ error() }}</p>
+            }
+            <button type="submit" class="btn btn--primary btn--block login__submit" [disabled]="submitting() || code.length !== 6">
+              @if (submitting()) { <span class="spinner"></span> Comprobando… } @else { Activar y entrar }
+            </button>
+          </form>
+
+          <div class="login__code-actions">
+            <button type="button" class="login__link" (click)="backToChoice()">Elegir otro método</button>
+            <button type="button" class="login__link" (click)="back()">Usar otra cuenta</button>
+          </div>
+        }
+
+        <!-- ----- THE CODE (EMAIL OR APP) -------------------- -->
+        @case ('email') {
+          <h1 class="t-display login__title">Revisa tu correo</h1>
+          <p class="login__sub">
+            Te hemos enviado un código de 6 dígitos a <strong>{{ email() }}</strong>. Escríbelo para terminar de entrar.
+          </p>
+          <ng-container *ngTemplateOutlet="codeForm" />
+          <div class="login__code-actions">
+            <button type="button" class="login__link" (click)="resend()" [disabled]="resendIn() > 0">
+              @if (resendIn() > 0) { Reenviar código en {{ resendIn() }} s } @else { Reenviar código }
+            </button>
+            <button type="button" class="login__link" (click)="back()">Usar otra cuenta</button>
+          </div>
+          <p class="login__foot">El código caduca en 15 minutos. Si no lo ves, mira en la carpeta de spam.</p>
+        }
+
+        @case ('totp') {
+          <h1 class="t-display login__title">Código de tu app</h1>
+          <p class="login__sub">Abre tu app de autenticación y escribe el código de Bipsy que aparece ahora.</p>
+          <ng-container *ngTemplateOutlet="codeForm" />
+          <div class="login__code-actions login__code-actions--end">
+            <button type="button" class="login__link" (click)="back()">Usar otra cuenta</button>
+          </div>
+          <p class="login__foot">¿Has perdido el móvil? Pide a otro admin que te reinicie la verificación desde «Equipo del panel».</p>
+        }
+
+        <!-- ----- EMAIL AND PASSWORD -------------------- -->
+        @default {
+          <h1 class="t-display login__title">Panel de administración</h1>
+          <p class="login__sub">Clientes, negocios, soporte y ajustes de la plataforma, en un solo sitio.</p>
+
+          @if (expired()) {
+            <p class="notice notice--warn login__notice">
+              <span class="material-symbols-rounded fill">schedule</span>
+              Tu sesión ha caducado. Vuelve a entrar para seguir donde lo dejaste.
+            </p>
+          }
+
+          <form class="login__form" (ngSubmit)="submit()" autocomplete="on">
+            <div class="group__box">
+              <label class="login__row">
+                <span class="login__label">Correo</span>
+                <input class="login__input" type="text" name="username" autocomplete="username" required
+                  placeholder="tu@email.com" [(ngModel)]="username" [disabled]="submitting()" />
+              </label>
+              <label class="login__row">
+                <span class="login__label">Contraseña</span>
+                <input class="login__input" [type]="showPassword() ? 'text' : 'password'" name="password"
+                  autocomplete="current-password" required [(ngModel)]="password" [disabled]="submitting()" />
+                <button type="button" class="login__eye" (click)="showPassword.set(!showPassword())"
+                  [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                  <span class="material-symbols-rounded">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
+                </button>
+              </label>
+            </div>
+
+            <label class="check login__remember">
+              <input type="checkbox" name="remember" [(ngModel)]="remember" />
+              Mantener la sesión en este equipo
+            </label>
+
+            @if (error()) {
+              <p class="login__error" role="alert">
+                <span class="material-symbols-rounded fill">error</span>{{ error() }}
+              </p>
+            }
+
+            <button type="submit" class="btn btn--primary btn--block login__submit"
+              [disabled]="submitting() || !username.trim() || !password">
+              @if (submitting()) { <span class="spinner"></span> Entrando… } @else { Continuar }
+            </button>
+          </form>
+
+          <p class="login__foot">Acceso restringido al equipo de Bipsy. Después de la contraseña te pediremos un código.</p>
+        }
       }
     </div>
   </section>
@@ -94,3 +166,18 @@
     </div>
   </aside>
 </div>
+
+<ng-template #codeForm>
+  <form class="login__form" (ngSubmit)="verify()" autocomplete="off">
+    <label class="login__code-label" for="code">Código de verificación</label>
+    <input #codeInput id="code" class="login__code" name="code" type="text" inputmode="numeric"
+      autocomplete="one-time-code" maxlength="6" placeholder="······" required
+      [ngModel]="code" (ngModelChange)="onCode($event)" [disabled]="submitting()" />
+    @if (error()) {
+      <p class="login__error" role="alert"><span class="material-symbols-rounded fill">error</span>{{ error() }}</p>
+    }
+    <button type="submit" class="btn btn--primary btn--block login__submit" [disabled]="submitting() || code.length !== 6">
+      @if (submitting()) { <span class="spinner"></span> Comprobando… } @else { Verificar }
+    </button>
+  </form>
+</ng-template>

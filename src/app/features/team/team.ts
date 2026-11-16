@@ -63,6 +63,9 @@ export class Team {
   protected readonly saving = signal(false);
 
   protected readonly toggleTarget = signal<TeamMember | null>(null);
+  /** Whose two-step verification is about to be reset. */
+  protected readonly twoFactorTarget = signal<TeamMember | null>(null);
+  protected readonly resettingTwoFactor = signal(false);
   protected readonly toggling = signal(false);
 
   protected readonly scopes = SCOPES;
@@ -188,6 +191,24 @@ export class Team {
         .resetTeamPassword(d.member.id, this.fPassword())
         .subscribe({ next: () => done(`Contraseña de ${d.member.name} cambiada. Sus sesiones abiertas se han cerrado.`), error: fail });
     }
+  }
+
+  protected resetTwoFactor() {
+    const m = this.twoFactorTarget();
+    if (!m) return;
+    this.resettingTwoFactor.set(true);
+    this.api.resetTeamMemberTwoFactor(m.id).subscribe({
+      next: () => {
+        this.resettingTwoFactor.set(false);
+        this.twoFactorTarget.set(null);
+        this.toast.success(`${m.name} elegirá otra vez cómo recibir el código la próxima vez que entre.`);
+      },
+      error: (err) => {
+        this.resettingTwoFactor.set(false);
+        this.twoFactorTarget.set(null);
+        this.toast.error(err, 'No se ha podido reiniciar.');
+      },
+    });
   }
 
   protected toggleEnabled() {
