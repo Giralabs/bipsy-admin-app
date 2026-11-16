@@ -18,6 +18,8 @@ interface StoredSession {
   scope: AdminScope;
   name: string | null;
   email: string | null;
+  /** How this admin does the second step; null if not chosen or not known yet. */
+  twoFactor?: TwoFactorMethod | null;
   // True means localStorage (survives closing the browser).
   remember: boolean;
 }
@@ -27,6 +29,39 @@ interface AdminMeResponse {
   name: string;
   email: string;
   adminScope: AdminScope;
+  twoFactorMethod: TwoFactorMethod | null;
+}
+
+/**
+ * Password accepted, code not written yet. Kept in memory only: a reload
+ * starts the login again, and nothing half-verified is ever stored.
+ */
+interface PendingLogin {
+  accessToken: string;
+  refreshToken: string | null;
+  username: string;
+  remember: boolean;
+}
+
+/** Error code of an admin session that has not passed the second step (backend V130). */
+export const MFA_REQUIRED = 'MFA_REQUIRED';
+
+/** Where the second-step code comes from. */
+export type TwoFactorMethod = 'EMAIL' | 'TOTP';
+
+/** POST /auth/admin/2fa/start and /email. */
+export interface TwoFactorStatus {
+  /** Null the first time: the admin chooses. */
+  method: TwoFactorMethod | null;
+  email: string;
+  /** With email: the code has gone out, seconds until another can be asked for. */
+  resendInSeconds: number | null;
+}
+
+/** POST /auth/admin/2fa/totp/setup. */
+export interface TotpSetup {
+  secret: string;
+  otpauthUri: string;
 }
 
 /**
@@ -48,6 +83,7 @@ export class AuthService {
   readonly username = computed(() => this.session()?.username ?? null);
   readonly displayName = computed(() => this.session()?.name || this.session()?.username || 'Admin');
   readonly email = computed(() => this.session()?.email ?? null);
+  readonly twoFactor = computed(() => this.session()?.twoFactor ?? null);
 
   /** FULL while the scope is not resolved yet: never hides too much by default. */
   readonly scope = computed<AdminScope>(() => this.session()?.scope ?? 'FULL');
@@ -62,7 +98,18 @@ export class AuthService {
     return this.session()?.accessToken ?? null;
   }
 
-  login(req: LoginRequest, remember: boolean) {
+  private readonly pending = signal<PendingLogin | null>(null);
+  /** The email the second-step code went to, while it is being asked for. */
+  readonly pendingEmail = computed(() => this.pending()?.username ?? null);
+
+  /**
+   * Step one: email and password. For an admin account the backend answers
+   * with a session that does not open /admin/** yet; it is kept aside, and
+   * the backend says how this account does the second step (null the first
+   * time: the login lets the admin choose). With email, the code is already
+   * on its way.
+   */
+  login(req: LoginRequest, remember: boolean): Observable<TwoFactorStatus> {
     // The backend signs in by email since V105: there is no username any more.
     const body = { email: req.username, password: req.password };
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, body).pipe(
@@ -70,26 +117,81 @@ export class AuthService {
         if (res.role !== 'ADMIN') {
           throw new NotAdminError();
         }
-        this.store({
+        this.pending.set({
           accessToken: res.accessToken,
           refreshToken: res.refreshToken,
           username: res.username ?? req.username,
-          role: res.role,
-          scope: 'FULL',
-          name: null,
-          email: null,
           remember,
         });
       }),
-      switchMap(() => this.http.get<AdminMeResponse>(`${environment.apiUrl}/admin/me`)),
-      tap((me) => this.patch({ scope: me.adminScope, name: me.name, email: me.email })),
+      switchMap(() => this.twoStep<TwoFactorStatus>('start')),
     );
+  }
+
+  /** Sends (or sends again) the code by email. */
+  sendEmailCode(): Observable<TwoFactorStatus> {
+    return this.twoStep<TwoFactorStatus>('email');
+  }
+
+  /** First time with an authenticator app: the seed and its QR link. */
+  setupTotp(): Observable<TotpSetup> {
+    return this.twoStep<TotpSetup>('totp/setup');
+  }
+
+  /**
+   * Step two: the code from the email or the app. Swaps the pending session
+   * for the verified one, which is the only one stored and the only one that
+   * opens the panel. The first time, the method that works stays chosen.
+   */
+  verifyCode(code: string, method: TwoFactorMethod) {
+    const p = this.pending();
+    if (!p) return throwError(() => new Error('No hay un inicio de sesión a medias'));
+    return this.http
+      .post<AuthResponse>(
+        `${environment.apiUrl}/auth/admin/2fa/verify`,
+        { code, method, refreshToken: p.refreshToken },
+        { headers: bearer(p.accessToken) },
+      )
+      .pipe(
+        tap((res) => {
+          this.pending.set(null);
+          this.store({
+            accessToken: res.accessToken,
+            refreshToken: res.refreshToken,
+            username: p.username,
+            role: res.role,
+            scope: 'FULL',
+            name: null,
+            email: null,
+            remember: p.remember,
+          });
+        }),
+        switchMap(() => this.http.get<AdminMeResponse>(`${environment.apiUrl}/admin/me`)),
+        tap((me) => this.patch({ scope: me.adminScope, name: me.name, email: me.email, twoFactor: me.twoFactorMethod })),
+      );
+  }
+
+  /** Back to the password step («Usar otra cuenta»). */
+  cancelLogin() {
+    this.pending.set(null);
+  }
+
+  /** «Mi cuenta» › change the method: the next sign in asks again. */
+  resetTwoFactor() {
+    return this.http.delete<void>(`${environment.apiUrl}/admin/me/two-factor`).pipe(tap(() => this.patch({ twoFactor: null })));
+  }
+
+  /** A call of the second step, with the pending session's token. */
+  private twoStep<T>(path: string): Observable<T> {
+    const p = this.pending();
+    if (!p) return throwError(() => new Error('No hay un inicio de sesión a medias'));
+    return this.http.post<T>(`${environment.apiUrl}/auth/admin/2fa/${path}`, {}, { headers: bearer(p.accessToken) });
   }
 
   /** Refreshes the scope, name and email of an already open session (after a reload). */
   refreshProfile() {
     this.http.get<AdminMeResponse>(`${environment.apiUrl}/admin/me`).subscribe({
-      next: (me) => this.patch({ scope: me.adminScope, name: me.name, email: me.email }),
+      next: (me) => this.patch({ scope: me.adminScope, name: me.name, email: me.email, twoFactor: me.twoFactorMethod }),
       error: () => {},
     });
   }
@@ -168,6 +270,7 @@ export class AuthService {
         scope: parsed.scope ?? 'FULL',
         name: parsed.name ?? null,
         email: parsed.email ?? null,
+        twoFactor: parsed.twoFactor ?? null,
         remember: parsed.remember ?? false,
       };
     } catch {
@@ -175,6 +278,9 @@ export class AuthService {
     }
   }
 }
+
+/** The pending session's token, sent by hand: it is not the stored session. */
+const bearer = (token: string) => ({ Authorization: `Bearer ${token}` });
 
 /** Valid credentials, but the account is not an admin account. */
 export class NotAdminError extends Error {

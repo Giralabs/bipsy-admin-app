@@ -79,6 +79,9 @@ export class Dashboard {
   });
 
   /** What someone on the team should look at today. */
+  /** «Pendiente»: only the jobs with something waiting. */
+  protected readonly todo = computed(() => this.attention().filter((a) => a.value > 0));
+
   protected readonly attention = computed(() => {
     const s = this.stats();
     if (!s) return [];

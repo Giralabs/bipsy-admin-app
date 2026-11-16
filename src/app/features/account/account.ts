@@ -8,6 +8,7 @@ import { ThemePreference, ThemeService } from '../../core/services/theme.service
 import { ToastService } from '../../core/services/toast.service';
 import { adminScope } from '../../core/utils/labels';
 import { Avatar } from '../../shared/components/avatar/avatar';
+import { ConfirmModal } from '../../shared/components/confirm-modal/confirm-modal';
 import { Pill } from '../../shared/components/pill/pill';
 import { SegmentOption, Segmented } from '../../shared/components/segmented/segmented';
 
@@ -16,7 +17,7 @@ type ToggleKey = 'highContrast' | 'underlineLinks' | 'largeTargets' | 'strongFoc
 
 @Component({
   selector: 'app-account',
-  imports: [Avatar, Pill, Segmented],
+  imports: [Avatar, Pill, Segmented, ConfirmModal],
   templateUrl: './account.html',
   styleUrl: './account.scss',
 })
@@ -33,6 +34,8 @@ export class Account {
   protected readonly webUrl = environment.webUrl;
   protected readonly health = signal<Health>('checking');
   protected readonly latency = signal<number | null>(null);
+  protected readonly confirmTwoFactor = signal(false);
+  protected readonly resettingTwoFactor = signal(false);
 
   protected readonly themeOptions: SegmentOption<ThemePreference>[] = [
     { value: 'system', label: 'Sistema' },
@@ -109,4 +112,20 @@ export class Account {
       },
     });
   }
-}
+
+  /** «Cambiar método»: the next sign in asks again how to get the code. */
+  protected resetTwoFactor() {
+    this.resettingTwoFactor.set(true);
+    this.auth.resetTwoFactor().subscribe({
+      next: () => {
+        this.resettingTwoFactor.set(false);
+        this.confirmTwoFactor.set(false);
+        this.toast.success('Listo. La próxima vez que entres elegirás cómo recibir el código.');
+      },
+      error: (err) => {
+        this.resettingTwoFactor.set(false);
+        this.confirmTwoFactor.set(false);
+        this.toast.error(err, 'No se ha podido cambiar.');
+      },
+    });
+  }}

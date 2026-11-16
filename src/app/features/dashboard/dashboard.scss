@@ -1,38 +1,35 @@
-.page-head__sub::first-letter { text-transform: uppercase; }
+.page-head__kicker::first-letter { text-transform: uppercase; }
 
-.attention {
+// ----- TO DO --------------------
+.todo { margin-bottom: 24px; }
+.todo .card__head { margin-bottom: 6px; }
+.todo__list { padding-bottom: 6px; }
+.todo__row { padding-left: 22px; padding-right: 18px; }
+.todo__row strong { font-weight: 800; }
+.todo__row .row__label { flex: 1; }
+.todo__icon {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 12px;
-  margin-bottom: 12px;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--clr-field);
+  color: var(--clr-text-2);
+  font-size: 18px;
 }
-.attention__skeleton { height: 64px; border-radius: var(--r-md); }
-
-.attention__item {
+.todo__clear {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  border-radius: var(--r-md);
-  background: var(--clr-band);
-  text-decoration: none;
+  gap: 8px;
+  padding: 4px 22px 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
   color: var(--clr-text-2);
-  transition: background-color .18s ease;
 
-  &:hover { background: var(--clr-surface); }
-
-  &.is-hot {
-    background: var(--clr-accent);
-    color: var(--clr-on-accent);
-    .attention__icon { color: var(--clr-on-accent); }
-    &:hover { background: var(--clr-accent-hover); }
-  }
+  .material-symbols-rounded { font-size: 20px; color: var(--clr-success-text); }
 }
-.attention__icon { font-size: 22px; color: var(--clr-text-3); }
-.attention__value { font-family: var(--ff-display); font-size: 1.5rem; font-weight: 800; letter-spacing: -0.6px; line-height: 1; }
-.attention__label { font-size: 0.8125rem; font-weight: 600; line-height: 1.25; min-width: 0; }
-
-.stats { margin-bottom: 24px; }
+.todo__pad { display: flex; flex-direction: column; gap: 10px; padding: 6px 22px 20px; }
+.todo__skeleton { height: 32px; }
 
 .dash-split { grid-template-columns: minmax(0, 1fr) 380px; }
 
@@ -75,7 +72,4 @@
 
 @media (max-width: 1100px) {
   .dash-split { grid-template-columns: minmax(0, 1fr); }
-}
-@media (max-width: 900px) {
-  .attention { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

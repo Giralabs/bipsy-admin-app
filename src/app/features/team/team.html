@@ -45,6 +45,10 @@
                 <span class="material-symbols-rounded">password</span>
               </button>
               @if (!m.you) {
+                <button type="button" class="btn btn--ghost btn--icon btn--sm" (click)="twoFactorTarget.set(m)"
+                  title="Reiniciar la verificación en dos pasos" aria-label="Reiniciar la verificación en dos pasos">
+                  <span class="material-symbols-rounded">phonelink_lock</span>
+                </button>
                 <button type="button" class="btn btn--ghost btn--icon btn--sm" (click)="toggleTarget.set(m)"
                   [title]="m.enabled ? 'Desactivar' : 'Reactivar'" [attr.aria-label]="m.enabled ? 'Desactivar' : 'Reactivar'">
                   <span class="material-symbols-rounded">{{ m.enabled ? 'person_off' : 'person_check' }}</span>
@@ -165,6 +169,17 @@
     </form>
   </div>
 }
+
+<app-confirm-modal
+  [open]="!!twoFactorTarget()"
+  [busy]="resettingTwoFactor()"
+  tone="primary"
+  [title]="'¿Reiniciar la verificación de ' + twoFactorTarget()?.name + '?'"
+  message="Para cuando ha perdido el móvil con su app de autenticación. Se cierran sus sesiones abiertas y, la próxima vez que entre, elegirá otra vez cómo recibir el código."
+  confirmLabel="Reiniciar"
+  (confirmed)="resetTwoFactor()"
+  (cancelled)="twoFactorTarget.set(null)"
+/>
 
 <app-confirm-modal
   [open]="!!toggleTarget()"

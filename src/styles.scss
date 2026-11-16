@@ -21,7 +21,7 @@
 
   --clr-accent: #2E343B;
   --clr-accent-hover: #44544B;
-  --clr-on-accent: #C0EED3;
+  --clr-on-accent: #FFFFFF;
   --clr-accent-dim: rgba(46, 52, 59, 0.08);
   --clr-accent-text: #2E343B;
 
@@ -35,6 +35,7 @@
   --clr-info-text: #3D7A93;
 
   --shadow-float: 0 18px 48px rgba(29, 41, 47, 0.16);
+  --rim: none;
   --clr-scrim: rgba(30, 36, 40, 0.32);
   color-scheme: light;
 }
@@ -50,12 +51,15 @@
   --clr-border: #454C54;
   --clr-hairline: rgba(255, 255, 255, 0.07);
 
-  /* Accent: mint in dark, slate in light (primary / onPrimary) */
-  --clr-accent: #C0EED3;
-  --clr-accent-hover: #D4F7E3;
-  --clr-on-accent: #2E343B;
-  --clr-accent-dim: rgba(192, 238, 211, 0.12);
-  --clr-accent-text: #C0EED3;
+  /* Accent: neutral, like the Bipsy Business panel. Near-white in dark,
+     slate in light. Mint is the brand (logo, Bip), not a UI colour: painting
+     the active row, the chosen filter and every primary button mint is what
+     made the panel look generated. */
+  --clr-accent: #ECEFF1;
+  --clr-accent-hover: #FFFFFF;
+  --clr-on-accent: #23282E;
+  --clr-accent-dim: rgba(236, 239, 241, 0.10);
+  --clr-accent-text: #F5F7F6;
 
   --clr-mint: #C0EED3;
   --clr-sage: #83A38E;
@@ -82,6 +86,8 @@
   --r-pill: 999px;
 
   --shadow-float: 0 18px 48px rgba(0, 0, 0, 0.45);
+  /* The edge of light that gives a surface a lip without a shadow. */
+  --rim: inset 0 1px 0 rgba(255, 255, 255, 0.055);
   --clr-scrim: rgba(13, 16, 20, 0.6);
 
   --ff: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -200,6 +206,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
   margin-bottom: 24px;
 }
 .page-head__text { min-width: 0; }
+/* A small line over the title (the date, the section), as in the Business panel. */
+.page-head__kicker { margin-bottom: 6px; font-size: 0.875rem; font-weight: 600; color: var(--clr-text-3); }
 .page-head__sub { margin-top: 8px; font-size: 0.875rem; font-weight: 500; color: var(--clr-text-2); }
 .page-head__actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
@@ -249,6 +257,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
   padding: 20px 22px;
 }
 .card--flush { padding: 0; overflow: hidden; }
+
+/* Every card-coloured surface gets the same lip of light as the Business panel. */
+.card, .table-card, .group__box, .stat, .profile, .stat-strip { box-shadow: var(--rim); }
 
 .card__head {
   display: flex;
@@ -460,10 +471,8 @@ select.input option { background: var(--clr-surface); color: var(--clr-text); }
 .table th {
   padding: 14px 16px 10px;
   text-align: left;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 600;
   color: var(--clr-text-3);
   white-space: nowrap;
 }
@@ -578,22 +587,79 @@ select.input option { background: var(--clr-surface); color: var(--clr-text); }
 .avatar--square { border-radius: 30%; }
 
 // ----- STATS --------------------
-.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+/* A group of figures is one surface split by hairlines (the 1 px gaps show
+   the border colour behind), not a row of separate tiles with an icon each.
+   Flex, so a wrapped last row stretches instead of leaving empty cells. */
+.stats {
+  display: flex; flex-wrap: wrap; gap: 1px;
+  border-radius: var(--r-md); overflow: hidden;
+  background: var(--clr-border);
+  box-shadow: var(--rim);
+}
+:root:not([data-theme='light']) .stats { background: color-mix(in srgb, var(--clr-surface) 80%, var(--clr-border)); }
 .stat {
-  display: flex; flex-direction: column; gap: 6px;
-  padding: 18px 20px; border-radius: var(--r-md); background: var(--clr-surface);
+  flex: 1 1 200px;
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 18px 22px; background: var(--clr-surface);
   text-decoration: none; color: inherit; transition: background-color .18s ease;
 }
+.stats .stat { box-shadow: none; }
 a.stat:hover { background: var(--clr-surface-2); }
 .stat__label { display: flex; align-items: center; gap: 8px; font-size: 0.8125rem; font-weight: 600; color: var(--clr-text-2); }
-.stat__label .material-symbols-rounded { font-size: 18px; color: var(--clr-text-3); }
+.stat__label .material-symbols-rounded { display: none; }
 .stat__value {
-  font-family: var(--ff-display); font-size: 2rem; font-weight: 800; letter-spacing: -1px;
+  font-family: var(--ff-display); font-size: 1.75rem; font-weight: 800; letter-spacing: -0.8px;
   line-height: 1.05; font-variant-numeric: tabular-nums;
 }
 .stat__sub { font-size: 0.75rem; font-weight: 500; color: var(--clr-text-3); }
 .stat__sub strong { color: var(--clr-success-text); font-weight: 700; }
 .stat--warn .stat__sub strong { color: var(--clr-warn-text); }
+
+/* Figures in one surface split by hairlines, like a store's analytics
+   header, instead of a row of separate tiles with an icon each. */
+.stat-strip {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr));
+  margin-bottom: 16px;
+  border-radius: var(--r-md);
+  background: var(--clr-surface);
+  overflow: hidden;
+}
+.stat-strip__item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 18px 22px;
+  color: inherit;
+  text-decoration: none;
+  box-shadow: inset 1px 0 0 var(--clr-hairline);
+  transition: background-color .15s ease;
+}
+.stat-strip__item:first-child { box-shadow: none; }
+a.stat-strip__item:hover { background: var(--clr-surface-2); }
+.stat-strip__label { font-size: 0.8125rem; font-weight: 600; color: var(--clr-text-2); }
+.stat-strip__value {
+  font-family: var(--ff-display);
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.stat-strip__sub { font-size: 0.75rem; font-weight: 500; color: var(--clr-text-3); }
+.stat-strip__sub strong { color: var(--clr-success-text); font-weight: 700; }
+/* Something to act on: the number takes the colour, the tile stays the same. */
+.stat-strip__item.is-due .stat-strip__value { color: var(--clr-danger-text); }
+.stat-strip__item.is-warn .stat-strip__value { color: var(--clr-warn-text); }
+.stat-strip__skeleton { height: 104px; margin-bottom: 16px; border-radius: var(--r-md); }
+
+@media (max-width: 900px) {
+  .stat-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat-strip__item { box-shadow: inset 0 1px 0 var(--clr-hairline); }
+  .stat-strip__item:nth-child(even) { box-shadow: inset 1px 0 0 var(--clr-hairline), inset 0 1px 0 var(--clr-hairline); }
+  .stat-strip__item:first-child { box-shadow: none; }
+  .stat-strip__item:nth-child(2) { box-shadow: inset 1px 0 0 var(--clr-hairline); }
+}
 
 .bars { display: flex; flex-direction: column; gap: 12px; }
 .bar { display: grid; grid-template-columns: 120px 1fr 48px; align-items: center; gap: 12px; font-size: 0.8125rem; }
@@ -718,7 +784,7 @@ html[data-text='xlarge'] { font-size: 125%; }
   --clr-success-text: #1D6B45;
 }
 html[data-contrast='high'] {
-  .card, .table-card, .group__box, .stat, .profile, .dialog, .attention__item, .tile, .tabs,
+  .card, .table-card, .group__box, .stat, .profile, .dialog, .stat-strip, .tile, .tabs,
   .input, .chip, .btn:not(.btn--primary):not(.btn--ghost) {
     box-shadow: inset 0 0 0 1px var(--clr-border);
   }
@@ -727,7 +793,7 @@ html[data-contrast='high'] {
 
 /* Underlined links: color alone is not enough for people who cannot tell hues apart. */
 html[data-links='underline'] {
-  a:not(.btn):not(.row):not(.stat):not(.side__link):not(.side__brand):not(.side__me):not(.tile):not(.attention__item):not(.topbar__me):not(.topbar__brand) {
+  a:not(.btn):not(.row):not(.stat):not(.sb__item):not(.sb__brand):not(.tile):not(.stat-strip__item):not(.topbar__brand):not(.topnav__btn):not(.topnav__item):not(.me-menu__row) {
     text-decoration: underline;
     text-underline-offset: 3px;
   }

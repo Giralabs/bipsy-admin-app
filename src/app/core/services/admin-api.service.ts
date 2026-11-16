@@ -449,6 +449,11 @@ export class AdminApi {
     return this.http.put<TeamMember>(`${this.api}/admin/team/${id}/enabled`, { enabled });
   }
 
+  /** Lets an admin choose their two-step method again (lost phone) and closes their sessions. */
+  resetTeamMemberTwoFactor(id: number) {
+    return this.http.delete<void>(`${this.api}/admin/team/${id}/two-factor`);
+  }
+
   // ----- AUDIT LOG --------------------
 
   auditLog(page: number, size = 30) {

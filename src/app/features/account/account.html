@@ -19,6 +19,30 @@
   </div>
 
   <div class="stack stack--lg">
+    <!-- ----- SECURITY -------------------- -->
+    <section>
+      <p class="group__header overline">Seguridad</p>
+      <div class="group__box">
+        <div class="row acc-row">
+          <span class="material-symbols-rounded row__icon">{{ auth.twoFactor() === 'TOTP' ? 'phonelink_lock' : 'mail_lock' }}</span>
+          <span class="row__label">
+            Verificación en dos pasos
+            <small>
+              @switch (auth.twoFactor()) {
+                @case ('TOTP') { Con una app de autenticación }
+                @case ('EMAIL') { Con un código a tu correo }
+                @default { Activa }
+              }
+            </small>
+          </span>
+          <span class="row__trail">
+            <button type="button" class="btn btn--sm" (click)="confirmTwoFactor.set(true)">Cambiar método</button>
+          </span>
+        </div>
+      </div>
+      <p class="group__footer">Siempre está activa: al entrar, después de la contraseña, te pedimos un código.</p>
+    </section>
+
     <!-- ----- LAYOUT -------------------- -->
     <section>
       <p class="group__header overline">Diseño del panel</p>
@@ -157,3 +181,14 @@
     </section>
   </div>
 </div>
+
+<app-confirm-modal
+  [open]="confirmTwoFactor()"
+  [busy]="resettingTwoFactor()"
+  tone="primary"
+  title="¿Cambiar el método de verificación?"
+  message="La próxima vez que entres, después de la contraseña, elegirás otra vez entre la app de autenticación y el código por correo. La sesión de ahora sigue abierta."
+  confirmLabel="Cambiar"
+  (confirmed)="resetTwoFactor()"
+  (cancelled)="confirmTwoFactor.set(false)"
+/>

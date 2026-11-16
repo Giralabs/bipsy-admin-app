@@ -1,26 +1,8 @@
-.ob-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-  gap: 8px;
-  margin-bottom: 18px;
-}
-.ob-stat {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  grid-template-rows: auto auto;
-  column-gap: 10px;
-  align-items: center;
-  padding: 14px 16px;
-  border-radius: var(--r-sm);
-  background: var(--clr-surface);
-
-  .material-symbols-rounded { grid-row: span 2; font-size: 22px; color: var(--clr-text-3); }
-  strong { font-family: var(--ff-display); font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; line-height: 1.1; }
-  small { font-size: 0.75rem; font-weight: 600; color: var(--clr-text-2); }
-
-  &.is-hot { background: var(--clr-accent); color: var(--clr-on-accent); }
-  &.is-hot .material-symbols-rounded, &.is-hot small { color: inherit; opacity: .8; }
-  &.is-warn .material-symbols-rounded, &.is-warn strong { color: var(--clr-warn-text); }
+.ob-strip { margin-bottom: 18px; }
+.ob-strip .stat-strip__item { padding: 14px 18px; }
+.ob-strip .stat-strip__value { font-size: 1.5rem; }
+@media (max-width: 1180px) {
+  .ob-strip { --cols: 3 !important; }
 }
 
 .ob-list { display: flex; flex-direction: column; gap: 10px; }
