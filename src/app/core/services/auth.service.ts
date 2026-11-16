@@ -30,6 +30,20 @@ interface AdminMeResponse {
 }
 
 /**
+ * Password accepted, code not written yet. Kept in memory only: a reload
+ * starts the login again, and nothing half-verified is ever stored.
+ */
+interface PendingLogin {
+  accessToken: string;
+  refreshToken: string | null;
+  username: string;
+  remember: boolean;
+}
+
+/** Error code of an admin session that has not passed the second step (backend V130). */
+export const MFA_REQUIRED = 'MFA_REQUIRED';
+
+/**
  * Admin session. The access token lasts 30 min in the backend; when it expires,
  * the interceptor renews it with the refresh token (POST /auth/refresh) and
  * retries the request, so the panel does not kick you out mid-ticket.
@@ -62,7 +76,17 @@ export class AuthService {
     return this.session()?.accessToken ?? null;
   }
 
-  login(req: LoginRequest, remember: boolean) {
+  private readonly pending = signal<PendingLogin | null>(null);
+  /** The email the second-step code went to, while it is being asked for. */
+  readonly pendingEmail = computed(() => this.pending()?.username ?? null);
+
+  /**
+   * Step one: email and password. For an admin account the backend answers
+   * with a session that does not open /admin/** yet; it is kept aside and the
+   * code goes to the account's email. Emits the seconds until a new code can
+   * be asked for.
+   */
+  login(req: LoginRequest, remember: boolean): Observable<number> {
     // The backend signs in by email since V105: there is no username any more.
     const body = { email: req.username, password: req.password };
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, body).pipe(
@@ -70,20 +94,62 @@ export class AuthService {
         if (res.role !== 'ADMIN') {
           throw new NotAdminError();
         }
-        this.store({
+        this.pending.set({
           accessToken: res.accessToken,
           refreshToken: res.refreshToken,
           username: res.username ?? req.username,
-          role: res.role,
-          scope: 'FULL',
-          name: null,
-          email: null,
           remember,
         });
       }),
-      switchMap(() => this.http.get<AdminMeResponse>(`${environment.apiUrl}/admin/me`)),
-      tap((me) => this.patch({ scope: me.adminScope, name: me.name, email: me.email })),
+      switchMap(() => this.sendCode()),
     );
+  }
+
+  /** Sends (or sends again) the second-step code. Emits the resend cooldown in seconds. */
+  sendCode(): Observable<number> {
+    const p = this.pending();
+    if (!p) return throwError(() => new Error('No hay un inicio de sesión a medias'));
+    return this.http
+      .post<{ resendInSeconds: number }>(`${environment.apiUrl}/auth/admin/2fa/send`, {}, { headers: bearer(p.accessToken) })
+      .pipe(map((res) => res.resendInSeconds ?? 30));
+  }
+
+  /**
+   * Step two: the code from the email. Swaps the pending session for the
+   * verified one, which is the only one stored and the only one that opens
+   * the panel.
+   */
+  verifyCode(code: string) {
+    const p = this.pending();
+    if (!p) return throwError(() => new Error('No hay un inicio de sesión a medias'));
+    return this.http
+      .post<AuthResponse>(
+        `${environment.apiUrl}/auth/admin/2fa/verify`,
+        { code, refreshToken: p.refreshToken },
+        { headers: bearer(p.accessToken) },
+      )
+      .pipe(
+        tap((res) => {
+          this.pending.set(null);
+          this.store({
+            accessToken: res.accessToken,
+            refreshToken: res.refreshToken,
+            username: p.username,
+            role: res.role,
+            scope: 'FULL',
+            name: null,
+            email: null,
+            remember: p.remember,
+          });
+        }),
+        switchMap(() => this.http.get<AdminMeResponse>(`${environment.apiUrl}/admin/me`)),
+        tap((me) => this.patch({ scope: me.adminScope, name: me.name, email: me.email })),
+      );
+  }
+
+  /** Back to the password step («Usar otra cuenta»). */
+  cancelLogin() {
+    this.pending.set(null);
   }
 
   /** Refreshes the scope, name and email of an already open session (after a reload). */
@@ -175,6 +241,9 @@ export class AuthService {
     }
   }
 }
+
+/** The pending session's token, sent by hand: it is not the stored session. */
+const bearer = (token: string) => ({ Authorization: `Bearer ${token}` });
 
 /** Valid credentials, but the account is not an admin account. */
 export class NotAdminError extends Error {

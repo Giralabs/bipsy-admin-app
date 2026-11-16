@@ -4,6 +4,39 @@
       <img src="brand/logo-mint.webp" alt="Bipsy" class="login__logo only-dark" />
       <img src="brand/logo-carbon.webp" alt="Bipsy" class="login__logo only-light" />
 
+      @if (step() === 'code') {
+        <!-- Second step: the code from the email (two-step verification). -->
+        <h1 class="t-display login__title">Revisa tu correo</h1>
+        <p class="login__sub">
+          Te hemos enviado un código de 6 dígitos a <strong>{{ email() }}</strong>. Escríbelo para terminar de entrar.
+        </p>
+
+        <form class="login__form" (ngSubmit)="verify()" autocomplete="off">
+          <label class="login__code-label" for="code">Código de verificación</label>
+          <input #codeInput id="code" class="login__code" name="code" type="text" inputmode="numeric"
+            autocomplete="one-time-code" maxlength="6" placeholder="······" required
+            [ngModel]="code" (ngModelChange)="onCode($event)" [disabled]="submitting()" />
+
+          @if (error()) {
+            <p class="login__error" role="alert">
+              <span class="material-symbols-rounded fill">error</span>{{ error() }}
+            </p>
+          }
+
+          <button type="submit" class="btn btn--primary btn--block login__submit" [disabled]="submitting() || code.length !== 6">
+            @if (submitting()) { <span class="spinner"></span> Comprobando… } @else { Verificar }
+          </button>
+        </form>
+
+        <div class="login__code-actions">
+          <button type="button" class="login__link" (click)="resend()" [disabled]="resendIn() > 0">
+            @if (resendIn() > 0) { Reenviar código en {{ resendIn() }} s } @else { Reenviar código }
+          </button>
+          <button type="button" class="login__link" (click)="back()">Usar otra cuenta</button>
+        </div>
+
+        <p class="login__foot">El código caduca en 15 minutos. Si no lo ves, mira en la carpeta de spam.</p>
+      } @else {
       <h1 class="t-display login__title">Panel de administración</h1>
       <p class="login__sub">Clientes, negocios, soporte y ajustes de la plataforma, en un solo sitio.</p>
 
@@ -45,11 +78,12 @@
 
         <button type="submit" class="btn btn--primary btn--block login__submit"
           [disabled]="submitting() || !username.trim() || !password">
-          @if (submitting()) { <span class="spinner"></span> Entrando… } @else { Entrar }
+          @if (submitting()) { <span class="spinner"></span> Entrando… } @else { Continuar }
         </button>
       </form>
 
-      <p class="login__foot">Acceso restringido al equipo de Bipsy. Cada acción queda registrada.</p>
+      <p class="login__foot">Acceso restringido al equipo de Bipsy. Al entrar te pediremos un código que llega a tu correo.</p>
+      }
     </div>
   </section>
 
