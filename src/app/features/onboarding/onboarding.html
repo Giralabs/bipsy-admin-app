@@ -10,30 +10,30 @@
   </header>
 
   @if (data(); as d) {
-    <section class="ob-stats">
-      <div class="ob-stat" [class.is-hot]="d.summary.due > 0">
-        <span class="material-symbols-rounded">call</span>
-        <strong class="t-num">{{ d.summary.due }}</strong><small>por llamar</small>
+    <section class="stat-strip ob-strip" style="--cols: 6">
+      <div class="stat-strip__item" [class.is-due]="d.summary.due > 0">
+        <span class="stat-strip__label">Por llamar</span>
+        <span class="stat-strip__value">{{ d.summary.due }}</span>
       </div>
-      <div class="ob-stat" [class.is-warn]="d.summary.endingSoon > 0">
-        <span class="material-symbols-rounded">timer</span>
-        <strong class="t-num">{{ d.summary.endingSoon }}</strong><small>gratis que acaba en ≤ 3 días</small>
+      <div class="stat-strip__item" [class.is-warn]="d.summary.endingSoon > 0">
+        <span class="stat-strip__label">Gratis acaba en ≤ 3 días</span>
+        <span class="stat-strip__value">{{ d.summary.endingSoon }}</span>
       </div>
-      <div class="ob-stat">
-        <span class="material-symbols-rounded">celebration</span>
-        <strong class="t-num">{{ d.summary.welcome }}</strong><small>en cortesía</small>
+      <div class="stat-strip__item">
+        <span class="stat-strip__label">En cortesía</span>
+        <span class="stat-strip__value">{{ d.summary.welcome }}</span>
       </div>
-      <div class="ob-stat">
-        <span class="material-symbols-rounded">hourglass_top</span>
-        <strong class="t-num">{{ d.summary.trial }}</strong><small>en prueba</small>
+      <div class="stat-strip__item">
+        <span class="stat-strip__label">En prueba</span>
+        <span class="stat-strip__value">{{ d.summary.trial }}</span>
       </div>
-      <div class="ob-stat">
-        <span class="material-symbols-rounded">lock</span>
-        <strong class="t-num">{{ d.summary.noPlan }}</strong><small>se quedaron sin plan</small>
+      <div class="stat-strip__item">
+        <span class="stat-strip__label">Sin plan</span>
+        <span class="stat-strip__value">{{ d.summary.noPlan }}</span>
       </div>
-      <div class="ob-stat">
-        <span class="material-symbols-rounded">done_all</span>
-        <strong class="t-num">{{ d.summary.contactedThisWeek }}</strong><small>contactados esta semana</small>
+      <div class="stat-strip__item">
+        <span class="stat-strip__label">Contactados esta semana</span>
+        <span class="stat-strip__value">{{ d.summary.contactedThisWeek }}</span>
       </div>
     </section>
   }

@@ -33,6 +33,8 @@ export class Shell {
 
   protected readonly navOpen = signal(false);
   protected readonly paletteOpen = signal(false);
+  /** The account menu (theme, «Mi cuenta», sign out). */
+  protected readonly menuOpen = signal(false);
   /** Dropdown menu open in the top bar (section title). */
   protected readonly openGroup = signal<string | null>(null);
   protected readonly url = signal(this.router.url);
@@ -68,6 +70,7 @@ export class Shell {
         this.url.set((e as NavigationEnd).urlAfterRedirects);
         this.navOpen.set(false);
         this.openGroup.set(null);
+        this.menuOpen.set(false);
         this.badges.refresh();
       });
   }
@@ -103,6 +106,11 @@ export class Shell {
     this.theme.set(dark ? 'light' : 'dark');
   }
 
+  protected logout() {
+    this.menuOpen.set(false);
+    this.auth.logout();
+  }
+
   protected onKeydown(event: KeyboardEvent) {
     const target = event.target as HTMLElement | null;
     const typing =
@@ -115,6 +123,8 @@ export class Shell {
       this.paletteOpen.set(true);
     } else if (event.key === 'Escape' && this.openGroup()) {
       this.openGroup.set(null);
+    } else if (event.key === 'Escape' && this.menuOpen()) {
+      this.menuOpen.set(false);
     }
   }
 }
