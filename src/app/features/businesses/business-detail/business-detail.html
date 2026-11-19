@@ -28,6 +28,7 @@
         </p>
         <div class="cluster profile__pills">
           <app-pill [meta]="state(b)" />
+          @if (b.testAccount) { <span class="pill pill--info"><span class="material-symbols-rounded">science</span>Cuenta de prueba</span> }
           @if (activeSubscription(); as s) { <span class="pill pill--mint"><span class="material-symbols-rounded">workspace_premium</span>{{ s.planName }}</span> }
           @for (cat of b.categories; track cat) { <span class="pill">{{ cat }}</span> }
         </div>
@@ -42,6 +43,9 @@
           <span class="material-symbols-rounded">open_in_new</span>Ver en la web
         </a>
         @if (auth.canManage()) {
+          <button type="button" class="btn btn--ghost" (click)="confirmTest.set(true)">
+            <span class="material-symbols-rounded">science</span>{{ b.testAccount ? 'Quitar marca de prueba' : 'Marcar como prueba' }}
+          </button>
           <button type="button" class="btn" [class.btn--danger]="!b.banned" (click)="confirmBan.set(true)">
             <span class="material-symbols-rounded">{{ b.banned ? 'lock_open' : 'block' }}</span>{{ b.banned ? 'Quitar baneo' : 'Banear' }}
           </button>
@@ -49,6 +53,9 @@
       </div>
     </header>
 
+    @if (b.testAccount) {
+      <p class="notice bd-banner"><span class="material-symbols-rounded fill">science</span>Cuenta de prueba: lo que hace no cuenta en el resumen, los cobros ni los listados del panel. Aquí sí se ve todo.</p>
+    }
     @if (b.banned) {
       <p class="notice notice--danger bd-banner"><span class="material-symbols-rounded fill">block</span>Este negocio está baneado: ni el dueño ni sus profesionales pueden iniciar sesión.</p>
     } @else if (!b.setupComplete) {
@@ -256,6 +263,17 @@
       [confirmLabel]="b.banned ? 'Quitar baneo' : 'Banear negocio'"
       (confirmed)="toggleBan()"
       (cancelled)="confirmBan.set(false)"
+    />
+
+    <app-confirm-modal
+      [open]="confirmTest()"
+      [busy]="markingTest()"
+      tone="primary"
+      [title]="b.testAccount ? '¿Quitar la marca de prueba?' : '¿Marcar ' + b.name + ' como cuenta de prueba?'"
+      [message]="b.testAccount ? 'Sus citas, cobros, reseñas y tickets volverán a contar en el resumen y a salir en los listados.' : 'Sus citas, cobros, reseñas y tickets dejarán de contar en el resumen y de salir en los listados, también los de los clientes reales que reserven aquí. Solo se podrá encontrar con el filtro «Solo cuentas de prueba» de Negocios. En la app no cambia nada.'"
+      [confirmLabel]="b.testAccount ? 'Quitar marca' : 'Marcar como prueba'"
+      (confirmed)="toggleTestAccount()"
+      (cancelled)="confirmTest.set(false)"
     />
 
     <app-confirm-modal
