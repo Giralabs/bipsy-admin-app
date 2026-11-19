@@ -94,14 +94,20 @@ export class AdminApi {
 
   // ----- CLIENTS --------------------
 
-  customers(f: { search?: string; reputation?: Reputation | ''; page: number; size?: number }) {
+  customers(f: { search?: string; reputation?: Reputation | ''; testAccounts?: boolean; page: number; size?: number }) {
     return this.http.get<PageResponse<CustomerListItem>>(`${this.api}/admin/customers`, {
-      params: params({ search: f.search, reputation: f.reputation, page: f.page, size: f.size ?? 20 }),
+      params: params({
+        search: f.search,
+        reputation: f.reputation,
+        testAccounts: f.testAccounts || null,
+        page: f.page,
+        size: f.size ?? 20,
+      }),
     });
   }
 
-  customersExportUrl(f: { search?: string; reputation?: Reputation | '' }) {
-    return `${this.api}/admin/customers/export${query({ search: f.search, reputation: f.reputation })}`;
+  customersExportUrl(f: { search?: string; reputation?: Reputation | ''; testAccounts?: boolean }) {
+    return `${this.api}/admin/customers/export${query({ search: f.search, reputation: f.reputation, testAccounts: f.testAccounts || null })}`;
   }
 
   customer(id: number) {
@@ -120,16 +126,28 @@ export class AdminApi {
     return this.http.delete<void>(`${this.api}/admin/customers/${customerId}/sanctions/${sanctionId}`);
   }
 
+  /** Test accounts are left out of every figure and list in the panel. */
+  setCustomerTestAccount(id: number, testAccount: boolean) {
+    const url = `${this.api}/admin/customers/${id}/test-account`;
+    return testAccount ? this.http.post<void>(url, {}) : this.http.delete<void>(url);
+  }
+
   // ----- BUSINESSES --------------------
 
-  businesses(f: { search?: string; banned?: boolean | null; page: number; size?: number }) {
+  businesses(f: { search?: string; banned?: boolean | null; testAccounts?: boolean; page: number; size?: number }) {
     return this.http.get<PageResponse<BusinessListItem>>(`${this.api}/admin/businesses`, {
-      params: params({ search: f.search, banned: f.banned, page: f.page, size: f.size ?? 20 }),
+      params: params({
+        search: f.search,
+        banned: f.banned,
+        testAccounts: f.testAccounts || null,
+        page: f.page,
+        size: f.size ?? 20,
+      }),
     });
   }
 
-  businessesExportUrl(f: { search?: string; banned?: boolean | null }) {
-    return `${this.api}/admin/businesses/export${query({ search: f.search, banned: f.banned })}`;
+  businessesExportUrl(f: { search?: string; banned?: boolean | null; testAccounts?: boolean }) {
+    return `${this.api}/admin/businesses/export${query({ search: f.search, banned: f.banned, testAccounts: f.testAccounts || null })}`;
   }
 
   business(id: number) {
@@ -142,6 +160,12 @@ export class AdminApi {
 
   unbanBusiness(id: number) {
     return this.http.post<void>(`${this.api}/admin/businesses/${id}/unban`, {});
+  }
+
+  /** Test accounts are left out of every figure and list in the panel. */
+  setBusinessTestAccount(id: number, testAccount: boolean) {
+    const url = `${this.api}/admin/businesses/${id}/test-account`;
+    return testAccount ? this.http.post<void>(url, {}) : this.http.delete<void>(url);
   }
 
   businessSubscriptions(id: number) {

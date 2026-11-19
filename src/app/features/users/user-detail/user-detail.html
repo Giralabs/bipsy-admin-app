@@ -31,6 +31,7 @@
           <app-pill [meta]="accountState()" />
           <app-pill [meta]="labels.reputation(c.reputation)" />
           @if (!c.emailVerified) { <span class="pill pill--warn"><span class="material-symbols-rounded">mail</span>Email sin verificar</span> }
+          @if (c.testAccount) { <span class="pill pill--info"><span class="material-symbols-rounded">science</span>Cuenta de prueba</span> }
         </div>
       </div>
       @if (auth.canManage() && !c.deleted) {
@@ -41,6 +42,9 @@
           <button type="button" class="btn btn--ghost" (click)="notifyOpen.set(true)">
             <span class="material-symbols-rounded">notifications</span>Enviar aviso
           </button>
+          <button type="button" class="btn btn--ghost" (click)="confirmTest.set(true)">
+            <span class="material-symbols-rounded">science</span>{{ c.testAccount ? 'Quitar marca de prueba' : 'Marcar como prueba' }}
+          </button>
           <button type="button" class="btn btn--danger" (click)="openSanction()">
             <span class="material-symbols-rounded">gavel</span>Sancionar
           </button>
@@ -48,6 +52,9 @@
       }
     </header>
 
+    @if (c.testAccount) {
+      <p class="notice ud-banner"><span class="material-symbols-rounded fill">science</span>Cuenta de prueba: lo que hace no cuenta en el resumen, los cobros ni los listados del panel. Aquí sí se ve todo.</p>
+    }
     @if (activeSanction(); as s) {
       <p class="notice notice--danger ud-banner">
         <span class="material-symbols-rounded fill">gavel</span>
@@ -336,6 +343,17 @@
       confirmLabel="Restablecer"
       (confirmed)="reset()"
       (cancelled)="confirmReset.set(false)"
+    />
+
+    <app-confirm-modal
+      [open]="confirmTest()"
+      [busy]="markingTest()"
+      tone="primary"
+      [title]="c.testAccount ? '¿Quitar la marca de prueba?' : '¿Marcar a ' + c.name + ' como cuenta de prueba?'"
+      [message]="c.testAccount ? 'Sus citas, cobros, reseñas y tickets volverán a contar en el resumen y a salir en los listados.' : 'Sus citas, cobros, reseñas y tickets dejarán de contar en el resumen y de salir en los listados, también en las fichas de los negocios reales donde haya reservado. Solo se podrá encontrar con el filtro «Solo cuentas de prueba» de Clientes. En la app no cambia nada.'"
+      [confirmLabel]="c.testAccount ? 'Quitar marca' : 'Marcar como prueba'"
+      (confirmed)="toggleTestAccount()"
+      (cancelled)="confirmTest.set(false)"
     />
 
     <app-confirm-modal

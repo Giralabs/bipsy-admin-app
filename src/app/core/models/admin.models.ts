@@ -266,6 +266,8 @@ export interface CustomerDetail {
   banned: boolean;
   deleted: boolean;
   createdAt: string;
+  /** Team test account: left out of every figure and list in the panel. */
+  testAccount: boolean;
   reputation: Reputation;
   noShowCount: number;
   totalBookings: number;
@@ -300,6 +302,8 @@ export interface BusinessListItem {
 }
 
 export interface BusinessDetail extends BusinessListItem {
+  /** Team test account: left out of every figure and list in the panel. */
+  testAccount: boolean;
   phone: string;
   cif: string | null;
   description: string | null;

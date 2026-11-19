@@ -56,6 +56,8 @@ export class UserDetail {
   // Reset
   protected readonly confirmReset = signal(false);
   protected readonly resetting = signal(false);
+  protected readonly confirmTest = signal(false);
+  protected readonly markingTest = signal(false);
 
   // Sanction
   protected readonly sanctionOpen = signal(false);
@@ -179,6 +181,30 @@ export class UserDetail {
         this.resetting.set(false);
         this.confirmReset.set(false);
         this.toast.error(err, 'No se ha podido restablecer la cuenta.');
+      },
+    });
+  }
+
+  // ----- TEST ACCOUNT --------------------
+
+  protected toggleTestAccount() {
+    const c = this.customer();
+    if (!c) return;
+    this.markingTest.set(true);
+    this.api.setCustomerTestAccount(this.customerId, !c.testAccount).subscribe({
+      next: () => {
+        this.markingTest.set(false);
+        this.confirmTest.set(false);
+        this.toast.success(
+          c.testAccount ? 'Vuelve a contar en las cifras del panel.' : 'Marcado como cuenta de prueba.',
+        );
+        this.load();
+        this.history.set(null);
+      },
+      error: (err) => {
+        this.markingTest.set(false);
+        this.confirmTest.set(false);
+        this.toast.error(err, 'No se ha podido cambiar la marca de prueba.');
       },
     });
   }

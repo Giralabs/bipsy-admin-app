@@ -38,6 +38,8 @@ export class BusinessesList {
   protected readonly search = signal(this.query.get('q'));
   protected readonly ban = signal<BanFilter>(this.initialBan());
   protected readonly page = signal(this.query.page());
+  /** Test accounts never mix with real ones: this switches the list to them alone. */
+  protected readonly testOnly = signal(this.query.get('test') === '1');
 
   protected readonly banOptions: SegmentOption<BanFilter>[] = [
     { value: 'ALL', label: 'Todos' },
@@ -60,9 +62,16 @@ export class BusinessesList {
     this.loading.set(true);
     this.error.set(null);
     const banned = this.bannedValue();
-    this.query.set({ q: this.search().trim(), banned: banned === null ? '' : String(banned), page: this.page() });
+    this.query.set({
+      q: this.search().trim(),
+      banned: banned === null ? '' : String(banned),
+      test: this.testOnly() ? '1' : '',
+      page: this.page(),
+    });
 
-    this.api.businesses({ search: this.search().trim(), banned, page: this.page() }).subscribe({
+    this.api
+      .businesses({ search: this.search().trim(), banned, testAccounts: this.testOnly(), page: this.page() })
+      .subscribe({
       next: (res) => {
         this.data.set(res);
         this.loading.set(false);
@@ -89,6 +98,12 @@ export class BusinessesList {
     this.load();
   }
 
+  protected setTestOnly(value: boolean) {
+    this.testOnly.set(value);
+    this.page.set(0);
+    this.load();
+  }
+
   protected goTo(page: number) {
     this.page.set(page);
     this.load();
@@ -100,7 +115,11 @@ export class BusinessesList {
 
   protected export() {
     this.exporting.set(true);
-    const url = this.api.businessesExportUrl({ search: this.search().trim(), banned: this.bannedValue() });
+    const url = this.api.businessesExportUrl({
+      search: this.search().trim(),
+      banned: this.bannedValue(),
+      testAccounts: this.testOnly(),
+    });
     downloadCsv(this.http, url, 'negocios.csv').subscribe({
       next: () => this.exporting.set(false),
       error: (err) => {

@@ -124,6 +124,8 @@ export const adminScope = lookup({
 export const auditAction = lookup({
   BAN: { label: 'Baneó', tone: 'danger', icon: 'block' },
   UNBAN: { label: 'Quitó el baneo a', tone: 'success', icon: 'lock_open' },
+  MARK_TEST_ACCOUNT: { label: 'Marcó como cuenta de prueba a', tone: 'neutral', icon: 'science' },
+  UNMARK_TEST_ACCOUNT: { label: 'Quitó la marca de prueba a', tone: 'neutral', icon: 'science' },
   RESET_ACCOUNT: { label: 'Restableció la cuenta de', tone: 'warn', icon: 'restart_alt' },
   SANCTION: { label: 'Sancionó a', tone: 'danger', icon: 'gavel' },
   LIFT_SANCTION: { label: 'Levantó la sanción de', tone: 'success', icon: 'undo' },

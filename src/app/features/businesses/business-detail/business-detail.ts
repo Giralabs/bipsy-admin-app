@@ -91,6 +91,8 @@ export class BusinessDetailPage {
 
   protected readonly confirmBan = signal(false);
   protected readonly banning = signal(false);
+  protected readonly confirmTest = signal(false);
+  protected readonly markingTest = signal(false);
 
   protected readonly grantOpen = signal(false);
   protected readonly revokeTarget = signal<Grant | null>(null);
@@ -207,6 +209,30 @@ export class BusinessDetailPage {
         this.banning.set(false);
         this.confirmBan.set(false);
         this.toast.error(err, 'No se ha podido cambiar el baneo.');
+      },
+    });
+  }
+
+  // ----- TEST ACCOUNT --------------------
+
+  protected toggleTestAccount() {
+    const b = this.business();
+    if (!b) return;
+    this.markingTest.set(true);
+    this.api.setBusinessTestAccount(this.businessId, !b.testAccount).subscribe({
+      next: () => {
+        this.markingTest.set(false);
+        this.confirmTest.set(false);
+        this.toast.success(
+          b.testAccount ? 'Vuelve a contar en las cifras del panel.' : 'Marcado como cuenta de prueba.',
+        );
+        this.history.set(null);
+        this.load();
+      },
+      error: (err) => {
+        this.markingTest.set(false);
+        this.confirmTest.set(false);
+        this.toast.error(err, 'No se ha podido cambiar la marca de prueba.');
       },
     });
   }

@@ -3,7 +3,11 @@
     <div class="page-head__text">
       <h1 class="t-display">Clientes</h1>
       <p class="page-head__sub">
-        @if (data(); as d) { {{ int(d.totalElements) }} cuentas de la app Bipsy } @else { Cuentas de la app Bipsy }
+        @if (testOnly()) {
+          @if (data(); as d) { {{ int(d.totalElements) }} cuentas de prueba, fuera de las cifras del panel } @else { Cuentas de prueba }
+        } @else {
+          @if (data(); as d) { {{ int(d.totalElements) }} cuentas de la app Bipsy } @else { Cuentas de la app Bipsy }
+        }
       </p>
     </div>
     <div class="page-head__actions">
@@ -21,6 +25,10 @@
         (input)="onSearch($any($event.target).value)" aria-label="Buscar clientes" />
     </label>
     <app-segmented [options]="repOptions" [value]="rep()" (valueChange)="setRep($event)" />
+    <label class="check">
+      <input type="checkbox" [checked]="testOnly()" (change)="setTestOnly($any($event.target).checked)" />
+      <span>Solo cuentas de prueba</span>
+    </label>
   </div>
 
   <div class="table-card" [class.is-loading]="loading() && !!data()">
@@ -70,8 +78,13 @@
                   <td colspan="5">
                     <div class="empty">
                       <span class="material-symbols-rounded">person_search</span>
-                      <h3>Ningún cliente coincide</h3>
-                      <p>Prueba con otro nombre o quita el filtro de reputación.</p>
+                      @if (testOnly()) {
+                        <h3>No hay cuentas de prueba</h3>
+                        <p>Se marcan desde la ficha de cada cliente.</p>
+                      } @else {
+                        <h3>Ningún cliente coincide</h3>
+                        <p>Prueba con otro nombre o quita el filtro de reputación.</p>
+                      }
                     </div>
                   </td>
                 </tr>

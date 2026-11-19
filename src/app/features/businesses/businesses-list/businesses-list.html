@@ -3,7 +3,11 @@
     <div class="page-head__text">
       <h1 class="t-display">Negocios</h1>
       <p class="page-head__sub">
-        @if (data(); as d) { {{ int(d.totalElements) }} negocios en Bipsy Business } @else { Negocios de Bipsy Business }
+        @if (testOnly()) {
+          @if (data(); as d) { {{ int(d.totalElements) }} negocios de prueba, fuera de las cifras del panel } @else { Negocios de prueba }
+        } @else {
+          @if (data(); as d) { {{ int(d.totalElements) }} negocios en Bipsy Business } @else { Negocios de Bipsy Business }
+        }
       </p>
     </div>
     <div class="page-head__actions">
@@ -21,6 +25,10 @@
         (input)="onSearch($any($event.target).value)" aria-label="Buscar negocios" />
     </label>
     <app-segmented [options]="banOptions" [value]="ban()" (valueChange)="setBan($event)" />
+    <label class="check">
+      <input type="checkbox" [checked]="testOnly()" (change)="setTestOnly($any($event.target).checked)" />
+      <span>Solo cuentas de prueba</span>
+    </label>
   </div>
 
   <div class="table-card" [class.is-loading]="loading() && !!data()">
@@ -74,8 +82,13 @@
                   <td colspan="6">
                     <div class="empty">
                       <span class="material-symbols-rounded">store</span>
-                      <h3>Ningún negocio coincide</h3>
-                      <p>Prueba con otra búsqueda o cambia el filtro.</p>
+                      @if (testOnly()) {
+                        <h3>No hay negocios de prueba</h3>
+                        <p>Se marcan desde la ficha de cada negocio.</p>
+                      } @else {
+                        <h3>Ningún negocio coincide</h3>
+                        <p>Prueba con otra búsqueda o cambia el filtro.</p>
+                      }
                     </div>
                   </td>
                 </tr>

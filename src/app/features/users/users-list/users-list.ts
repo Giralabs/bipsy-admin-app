@@ -37,6 +37,8 @@ export class UsersList {
   protected readonly search = signal(this.query.get('q'));
   protected readonly rep = signal<RepFilter>((this.query.get('reputation') as Reputation) || 'ALL');
   protected readonly page = signal(this.query.page());
+  /** Test accounts never mix with real ones: this switches the list to them alone. */
+  protected readonly testOnly = signal(this.query.get('test') === '1');
 
   protected readonly repOptions: SegmentOption<RepFilter>[] = [
     { value: 'ALL', label: 'Todos' },
@@ -66,9 +68,21 @@ export class UsersList {
   protected load() {
     this.loading.set(true);
     this.error.set(null);
-    this.query.set({ q: this.search().trim(), reputation: this.repValue(), page: this.page() });
+    this.query.set({
+      q: this.search().trim(),
+      reputation: this.repValue(),
+      test: this.testOnly() ? '1' : '',
+      page: this.page(),
+    });
 
-    this.api.customers({ search: this.search().trim(), reputation: this.repValue(), page: this.page() }).subscribe({
+    this.api
+      .customers({
+        search: this.search().trim(),
+        reputation: this.repValue(),
+        testAccounts: this.testOnly(),
+        page: this.page(),
+      })
+      .subscribe({
       next: (res) => {
         this.data.set(res);
         this.loading.set(false);
@@ -95,6 +109,12 @@ export class UsersList {
     this.load();
   }
 
+  protected setTestOnly(value: boolean) {
+    this.testOnly.set(value);
+    this.page.set(0);
+    this.load();
+  }
+
   protected goTo(page: number) {
     this.page.set(page);
     this.load();
@@ -106,7 +126,11 @@ export class UsersList {
 
   protected export() {
     this.exporting.set(true);
-    const url = this.api.customersExportUrl({ search: this.search().trim(), reputation: this.repValue() });
+    const url = this.api.customersExportUrl({
+      search: this.search().trim(),
+      reputation: this.repValue(),
+      testAccounts: this.testOnly(),
+    });
     downloadCsv(this.http, url, 'clientes.csv').subscribe({
       next: () => this.exporting.set(false),
       error: (err) => {
